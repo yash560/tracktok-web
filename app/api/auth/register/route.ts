@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const { db } = await connectToDatabase();
 
     // Check if user already exists
-    const existingUser = await db.collection('users').findOne({ email });
+    const existingUser = await db.collection('members').findOne({ email });
     if (existingUser) {
       return NextResponse.json(
         { message: 'Email already registered' },
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await hashPassword(password);
 
     // Create user
-    const result = await db.collection('users').insertOne({
+    const result = await db.collection('members').insertOne({
       name,
       email,
       phone: phone || null,

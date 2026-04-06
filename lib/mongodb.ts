@@ -17,7 +17,7 @@ export async function connectToDatabase() {
   try {
     const client = new MongoClient(MONGODB_URI);
     await client.connect();
-    const db = client.db('tracktok');
+    const db = client.db('webverse');
 
     cachedClient = client;
     cachedDb = db;
