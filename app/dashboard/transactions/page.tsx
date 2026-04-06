@@ -182,8 +182,8 @@ export default function TransactionsPage() {
                 </tr>
               ) : transactions.length > 0 ? (
                 transactions.map((t) => (
-                  <tr 
-                    key={t._id} 
+                  <tr
+                    key={t._id}
                     onClick={() => openDetailModal(t)}
                     className="hover:bg-gray-50/50 dark:hover:bg-dark-bg/30 transition cursor-pointer"
                   >

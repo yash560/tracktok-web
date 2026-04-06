@@ -467,7 +467,7 @@ export default function DashboardPage() {
           <div className="space-y-2">
             <p className="text-xs text-gray-500">Spending across categories</p>
             <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
-              <div 
+              <div
                 className="bg-indigo-600 h-2 rounded-full transition-all"
                 style={{ width: `${analytics?.transactionStats?.categoryDiversity || 0}%` }}
               />
