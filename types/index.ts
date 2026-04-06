@@ -3,8 +3,16 @@ export interface User {
   email: string;
   password?: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
+  displayName?: string;
+  nickname?: string;
   phone?: string;
+  phoneNumber?: string;
   avatar?: string;
+  gender?: string;
+  dateOfBirth?: string;
+  countryCode?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

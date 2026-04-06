@@ -24,11 +24,12 @@ interface TransactionDetailModalProps {
 
 export function TransactionDetailModal({
     isOpen,
-    transaction,
+    transaction: txn,
     onClose,
 }: TransactionDetailModalProps) {
-    if (!transaction) return null;
+    if (!txn) return null;
 
+    const transaction = txn as any;
     const isIncome = transaction.type === 'income';
     const isCredit = transaction.type === 'credit';
 
@@ -58,8 +59,8 @@ export function TransactionDetailModal({
                             {/* Header */}
                             <div
                                 className={`p-6 bg-gradient-to-r ${isIncome || isCredit
-                                        ? 'from-success to-success-dark'
-                                        : 'from-danger to-danger-dark'
+                                    ? 'from-success to-success-dark'
+                                    : 'from-danger to-danger-dark'
                                     } text-white flex items-start justify-between`}
                             >
                                 <div className="flex items-start gap-3">
@@ -72,10 +73,10 @@ export function TransactionDetailModal({
                                     </div>
                                     <div>
                                         <h2 className="font-bold text-lg truncate">
-                                            {transaction.description || transaction.receiver || 'Transaction'}
+                                            {String(transaction.description || transaction.receiver || 'Transaction')}
                                         </h2>
                                         <p className="text-sm opacity-90">
-                                            {transaction.source || (isIncome ? 'Income' : 'Expense')}
+                                            {String(transaction.source || (isIncome ? 'Income' : 'Expense'))}
                                         </p>
                                     </div>
                                 </div>
@@ -94,7 +95,7 @@ export function TransactionDetailModal({
                                     className={`text-4xl font-bold font-display ${isIncome || isCredit ? 'text-success' : 'text-danger'
                                         }`}
                                 >
-                                    {isIncome || isCredit ? '+' : '-'}₹{Math.abs(transaction.amount).toFixed(2)}
+                                    {isIncome || isCredit ? '+' : '-'}₹{Math.abs(Number(transaction.amount)).toFixed(2)}
                                 </p>
                             </div>
 
