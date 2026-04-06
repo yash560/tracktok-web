@@ -41,9 +41,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-dark-card border-r border-gray-200 dark:border-gray-800 z-50 transition-transform duration-300 md:translate-x-0 ${
-          open ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-dark-card border-r border-gray-200 dark:border-gray-800 z-50 transition-transform duration-300 md:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         <div className="p-6 flex flex-col h-full">
           <div className="flex items-center justify-between mb-10">
@@ -67,11 +66,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
                   key={item.name}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition ${
-                    isActive
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition ${isActive
                       ? 'bg-primary text-white shadow-lg'
                       : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span className="font-semibold">{item.name}</span>
