@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -47,8 +48,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
         <div className="p-6 flex flex-col h-full">
           <div className="flex items-center justify-between mb-10">
             <Link href="/dashboard" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-xl">T</span>
+              <div className="w-10 h-10 rounded-xl overflow-hidden">
+                <Image src="/logo.png" alt="TrackTok Logo" width={40} height={40} className="w-full h-full object-cover" />
               </div>
               <span className="text-xl font-bold font-display text-primary">TrackTok</span>
             </Link>

@@ -172,13 +172,13 @@ export async function GET(request: NextRequest) {
 
     // Calculate additional insights
     const totalTransactions = expenseCount + incomeCount;
-    const savingsRate = totalIncome > 0 ? ((totalIncome / (totalIncome + totalExpense)) * 100).toFixed(1) : '0';
+    const savingsRateValue = totalIncome > 0 ? Number.parseFloat(((totalIncome / (totalIncome + totalExpense)) * 100).toFixed(1)) : 0;
     const topCategory = aggregationResult.categories?.[0];
-    const topCategoryPercentage = topCategory && totalExpense > 0 ? ((topCategory.amount / totalExpense) * 100).toFixed(1) : '0';
+    const topCategoryPercentageValue = topCategory && totalExpense > 0 ? Number.parseFloat(((topCategory.amount / totalExpense) * 100).toFixed(1)) : 0;
 
     // Category diversity (high = diverse spending)
     const categoryCount = (aggregationResult.categories || []).length;
-    const categoryDiversity = Math.min((categoryCount / 10) * 100, 100).toFixed(1);
+    const categoryDiversityValue = Number.parseFloat((Math.min((categoryCount / 10) * 100, 100)).toFixed(1));
 
     const categoryBreakdown = (aggregationResult.categories || []).map((c: any) => ({
       category: c._id || 'Uncategorized',
@@ -217,11 +217,11 @@ export async function GET(request: NextRequest) {
           largestTransactionCategory: largestTransaction?.category || 'N/A',
           topPaymentSource,
           topMerchants,
-          savingsRate: Number.parseFloat(savingsRate as string),
+          savingsRate: savingsRateValue,
           topCategory: topCategory?._id || 'N/A',
           topCategoryAmount: topCategory?.amount || 0,
-          topCategoryPercentage: Number.parseFloat(topCategoryPercentage as string),
-          categoryDiversity: Number.parseFloat(categoryDiversity as string),
+          topCategoryPercentage: topCategoryPercentageValue,
+          categoryDiversity: categoryDiversityValue,
         },
         period: 'current_month',
       },
