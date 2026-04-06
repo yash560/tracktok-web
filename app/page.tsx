@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
@@ -96,8 +97,8 @@ export default function Home() {
       <nav className="fixed top-0 w-full z-50 glass border-b border-white/10 py-4 px-6 md:px-12">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-xl">T</span>
+            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg">
+              <Image src="/logo.png" alt="TrackTok Logo" width={40} height={40} className="w-full h-full object-cover" />
             </div>
             <span className="text-2xl font-bold font-display text-primary">TrackTok</span>
           </div>
@@ -304,8 +305,8 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">T</span>
+                <div className="w-8 h-8 rounded-lg overflow-hidden">
+                  <Image src="/logo.png" alt="TrackTok Logo" width={32} height={32} className="w-full h-full object-cover" />
                 </div>
                 <span className="font-bold font-display text-primary">TrackTok</span>
               </div>

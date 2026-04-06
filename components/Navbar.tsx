@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Settings, LogOut, Menu, User } from 'lucide-react';
 import { useAuth } from './AuthContext';
 
@@ -15,8 +16,8 @@ export const Navbar: React.FC<NavbarProps> = ({ setSidebarOpen }) => {
     <header className="glass border-b border-white/10 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-3 md:hidden">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-lg">T</span>
+          <div className="w-8 h-8 rounded-lg overflow-hidden shadow-lg">
+            <Image src="/logo.png" alt="TrackTok Logo" width={32} height={32} className="w-full h-full object-cover" />
           </div>
           <span className="text-lg font-bold font-display text-primary">TrackTok</span>
         </div>

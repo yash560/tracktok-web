@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -200,8 +201,8 @@ export default function DashboardPage() {
       <motion.div variants={item} className="relative">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-light rounded-xl flex items-center justify-center overflow-hidden shadow-lg">
-              <span className="text-xl font-bold text-white">T</span>
+            <div className="w-12 h-12 rounded-xl overflow-hidden shadow-lg flex-shrink-0">
+              <Image src="/logo.png" alt="TrackTok Logo" width={48} height={48} className="w-full h-full object-cover" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
