@@ -1,0 +1,40 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "nodeVersion": "18.x",
+  "env": [
+    {
+      "key": "MONGODB_URI",
+      "description": "MongoDB connection string"
+    },
+    {
+      "key": "JWT_SECRET",
+      "description": "JWT secret key for authentication"
+    },
+    {
+      "key": "NEXT_PUBLIC_API_URL",
+      "description": "Public API URL"
+    }
+  ],
+  "regions": ["sfo1", "iad1", "lhr1"],
+  "functions": {
+    "api/**/*.ts": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "redirects": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/docs",
+      "destination": "/api/docs"
+    }
+  ]
+}
