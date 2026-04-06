@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Mail, Lock, User, ArrowRight, Eye, EyeOff, Phone } from 'lucide-react';
+import { useAuth } from '@/components/AuthContext';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { register, user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -18,6 +20,12 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
   });
+
+  useEffect(() => {
+    if (user && !authLoading) {
+      router.push('/dashboard');
+    }
+  }, [user, authLoading, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -45,30 +53,9 @@ export default function RegisterPage() {
     }
 
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          password: formData.password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.message || 'Registration failed');
-        setLoading(false);
-        return;
-      }
-
-      // Store token
-      document.cookie = `auth_token=${data.token}; path=/`;
-      router.push('/dashboard');
-    } catch (err) {
-      setError('Something went wrong. Please try again.');
+      await register(formData.name, formData.email, formData.password);
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong. Please try again.');
       setLoading(false);
     }
   };

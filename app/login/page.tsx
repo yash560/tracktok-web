@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '@/components/AuthContext';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login, user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -15,6 +17,12 @@ export default function LoginPage() {
     email: '',
     password: '',
   });
+
+  useEffect(() => {
+    if (user && !authLoading) {
+      router.push('/dashboard');
+    }
+  }, [user, authLoading, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -30,25 +38,9 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.message || 'Login failed');
-        setLoading(false);
-        return;
-      }
-
-      // Store token
-      document.cookie = `auth_token=${data.token}; path=/`;
-      router.push('/dashboard');
-    } catch (err) {
-      setError('Something went wrong. Please try again.');
+      await login(formData.email, formData.password);
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong. Please try again.');
       setLoading(false);
     }
   };

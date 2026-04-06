@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     const { db } = await connectToDatabase();
 
-    const user = await db.collection('users').findOne({
+    const user = await db.collection('members').findOne({
       _id: new ObjectId(decoded.userId),
     });
 
@@ -64,7 +64,7 @@ export async function PUT(request: NextRequest) {
 
     const { db } = await connectToDatabase();
 
-    const result = await db.collection('users').updateOne(
+    const result = await db.collection('members').updateOne(
       { _id: new ObjectId(decoded.userId) },
       {
         $set: {

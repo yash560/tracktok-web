@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AuthProvider } from "@/components/AuthContext";
 
 export const metadata: Metadata = {
   title: "TrackTok - AI Expense Tracker",
@@ -29,7 +30,9 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <div className="min-h-screen">
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </div>
       </body>
     </html>
