@@ -4,16 +4,19 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Eye, EyeOff, Phone } from 'lucide-react';
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
+    phone: '',
     password: '',
+    confirmPassword: '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,17 +32,34 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password,
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.message || 'Login failed');
+        setError(data.message || 'Registration failed');
         setLoading(false);
         return;
       }
@@ -69,14 +89,14 @@ export default function LoginPage() {
               </div>
               <span className="text-2xl font-bold font-display text-primary">TrackTok</span>
             </Link>
-            <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
+            <h1 className="text-3xl font-bold mb-2">Create Account</h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Sign in to access your financial dashboard
+              Join thousands tracking their finances with AI
             </p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="card space-y-6">
+          <form onSubmit={handleSubmit} className="card space-y-4">
             {error && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
@@ -86,6 +106,26 @@ export default function LoginPage() {
                 {error}
               </motion.div>
             )}
+
+            {/* Name */}
+            <div>
+              <label htmlFor="name" className="block text-sm font-semibold mb-2">
+                Full Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  id="name"
+                  type="text"
+                  name="name"
+                  placeholder="John Doe"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="input-field pl-12"
+                />
+              </div>
+            </div>
 
             {/* Email */}
             <div>
@@ -102,6 +142,25 @@ export default function LoginPage() {
                   value={formData.email}
                   onChange={handleChange}
                   required
+                  className="input-field pl-12"
+                />
+              </div>
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label htmlFor="phone" className="block text-sm font-semibold mb-2">
+                Phone Number (Optional)
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  id="phone"
+                  type="tel"
+                  name="phone"
+                  placeholder="+1 (555) 000-0000"
+                  value={formData.phone}
+                  onChange={handleChange}
                   className="input-field pl-12"
                 />
               </div>
@@ -134,33 +193,57 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded" />
-                <span className="text-gray-600 dark:text-gray-400">Remember me</span>
+            {/* Confirm Password */}
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-semibold mb-2">
+                Confirm Password
               </label>
-              <a href="#" className="text-primary hover:underline font-semibold">
-                Forgot password?
-              </a>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  id="confirmPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  name="confirmPassword"
+                  placeholder="••••••••"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  className="input-field pl-12"
+                />
+              </div>
             </div>
+
+            {/* Terms */}
+            <label className="flex items-start gap-2 cursor-pointer text-sm">
+              <input type="checkbox" className="w-4 h-4 rounded mt-0.5" required />
+              <span className="text-gray-600 dark:text-gray-400">
+                I agree to the{' '}
+                <a href="#" className="text-primary font-semibold hover:underline">
+                  Terms of Service
+                </a>{' '}
+                and{' '}
+                <a href="#" className="text-primary font-semibold hover:underline">
+                  Privacy Policy
+                </a>
+              </span>
+            </label>
 
             {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50"
+              className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 mt-6"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? 'Creating account...' : 'Create Account'}
               {!loading && <ArrowRight className="w-5 h-5" />}
             </button>
           </form>
 
-          {/* Sign Up Link */}
+          {/* Login Link */}
           <p className="text-center mt-6 text-gray-600 dark:text-gray-400">
-            Don't have an account?{' '}
-            <Link href="/register" className="text-primary font-semibold hover:underline">
-              Sign up
+            Already have an account?{' '}
+            <Link href="/login" className="text-primary font-semibold hover:underline">
+              Sign in
             </Link>
           </p>
         </motion.div>

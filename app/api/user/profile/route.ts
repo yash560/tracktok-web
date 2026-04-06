@@ -1,6 +1,7 @@
 import { connectToDatabase } from '@/lib/mongodb';
 import { verifyToken } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
+import { ObjectId } from 'mongodb';
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,16 +18,27 @@ export async function GET(request: NextRequest) {
 
     const { db } = await connectToDatabase();
 
-    const transactions = await db
-      .collection('transactions')
-      .find({ userId: decoded.userId })
-      .sort({ date: -1 })
-      .limit(50)
-      .toArray();
+    const user = await db.collection('users').findOne({
+      _id: new ObjectId(decoded.userId),
+    });
 
-    return NextResponse.json({ transactions }, { status: 200 });
+    if (!user) {
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(
+      {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        avatar: user.avatar,
+        createdAt: user.createdAt,
+      },
+      { status: 200 }
+    );
   } catch (error) {
-    console.error('Get transactions error:', error);
+    console.error('Get profile error:', error);
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -34,7 +46,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function PUT(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
@@ -48,35 +60,31 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { amount, description, category, type, date, notes } = body;
-
-    if (!amount || !description || !category || !type) {
-      return NextResponse.json(
-        { message: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
+    const { name, phone } = body;
 
     const { db } = await connectToDatabase();
 
-    const result = await db.collection('transactions').insertOne({
-      userId: decoded.userId,
-      amount,
-      description,
-      category,
-      type,
-      date: new Date(date),
-      notes: notes || null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    const result = await db.collection('users').updateOne(
+      { _id: new ObjectId(decoded.userId) },
+      {
+        $set: {
+          ...(name && { name }),
+          ...(phone && { phone }),
+          updatedAt: new Date(),
+        },
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+    }
 
     return NextResponse.json(
-      { message: 'Transaction created', id: result.insertedId },
-      { status: 201 }
+      { message: 'Profile updated successfully' },
+      { status: 200 }
     );
   } catch (error) {
-    console.error('Create transaction error:', error);
+    console.error('Update profile error:', error);
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
