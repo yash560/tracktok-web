@@ -247,7 +247,7 @@ export default function Home() {
                   <p className="text-gray-600 dark:text-gray-400">Active Users</p>
                 </div>
                 <div>
-                  <p className="text-4xl font-bold text-primary mb-2">$2B+</p>
+                  <p className="text-4xl font-bold text-primary mb-2">₹2B+</p>
                   <p className="text-gray-600 dark:text-gray-400">Tracked Transactions</p>
                 </div>
                 <div>

@@ -29,9 +29,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         id: user._id,
-        name: user.name,
         email: user.email,
-        phone: user.phone,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        displayName: user.displayName || '',
+        nickname: user.nickname || '',
+        phoneNumber: user.phoneNumber || '',
+        gender: user.gender || '',
+        dateOfBirth: user.dateOfBirth || '',
+        countryCode: user.countryCode || '',
         avatar: user.avatar,
         createdAt: user.createdAt,
       },
@@ -60,7 +66,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, phone } = body;
+    const { firstName, lastName, displayName, nickname, phoneNumber, gender, dateOfBirth, countryCode } = body;
 
     const { db } = await connectToDatabase();
 
@@ -68,8 +74,14 @@ export async function PUT(request: NextRequest) {
       { _id: new ObjectId(decoded.userId) },
       {
         $set: {
-          ...(name && { name }),
-          ...(phone && { phone }),
+          ...(firstName && { firstName }),
+          ...(lastName && { lastName }),
+          ...(displayName && { displayName }),
+          ...(nickname && { nickname }),
+          ...(phoneNumber && { phoneNumber }),
+          ...(gender && { gender }),
+          ...(dateOfBirth && { dateOfBirth }),
+          ...(countryCode && { countryCode }),
           updatedAt: new Date(),
         },
       }

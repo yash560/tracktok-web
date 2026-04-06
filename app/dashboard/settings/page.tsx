@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Moon, 
-  Sun, 
-  Bell, 
-  Shield, 
-  Globe, 
+import {
+  Moon,
+  Sun,
+  Bell,
+  Shield,
+  Globe,
   CreditCard,
   ChevronRight,
   Database
@@ -53,14 +53,12 @@ export default function SettingsPage() {
           action: (
             <button
               onClick={toggleTheme}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                isDarkMode ? 'bg-primary' : 'bg-gray-200'
-              }`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isDarkMode ? 'bg-primary' : 'bg-gray-200'
+                }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  isDarkMode ? 'translate-x-6' : 'translate-x-1'
-                }`}
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isDarkMode ? 'translate-x-6' : 'translate-x-1'
+                  }`}
               />
             </button>
           ),
@@ -78,14 +76,12 @@ export default function SettingsPage() {
           action: (
             <button
               onClick={() => setNotifications(!notifications)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                notifications ? 'bg-primary' : 'bg-gray-200'
-              }`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notifications ? 'bg-primary' : 'bg-gray-200'
+                }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  notifications ? 'translate-x-6' : 'translate-x-1'
-                }`}
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications ? 'translate-x-6' : 'translate-x-1'
+                  }`}
               />
             </button>
           ),
@@ -98,7 +94,7 @@ export default function SettingsPage() {
         {
           id: 'currency',
           name: 'Default Currency',
-          description: 'USD ($)',
+          description: 'INR (₹)',
           icon: CreditCard,
           action: <ChevronRight className="w-5 h-5 text-gray-400" />,
         },
@@ -165,7 +161,7 @@ export default function SettingsPage() {
       <div className="card border-danger/20 bg-danger/[0.02]">
         <div className="flex items-center gap-4 mb-4">
           <div className="p-2 bg-danger/10 rounded-lg">
-             <Shield className="w-5 h-5 text-danger" />
+            <Shield className="w-5 h-5 text-danger" />
           </div>
           <h3 className="text-lg font-bold text-danger">Privacy & Security</h3>
         </div>
@@ -173,12 +169,12 @@ export default function SettingsPage() {
           Your data is encrypted and secure. nosotros never share your financial information with third parties.
         </p>
         <div className="flex gap-4">
-           <button className="px-4 py-2 bg-danger text-white rounded-lg text-sm font-bold shadow-lg shadow-danger/20 hover:bg-danger-dark transition">
-             Privacy Center
-           </button>
-           <button className="px-4 py-2 border border-gray-200 dark:border-gray-800 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">
-             Terms of Use
-           </button>
+          <button className="px-4 py-2 bg-danger text-white rounded-lg text-sm font-bold shadow-lg shadow-danger/20 hover:bg-danger-dark transition">
+            Privacy Center
+          </button>
+          <button className="px-4 py-2 border border-gray-200 dark:border-gray-800 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">
+            Terms of Use
+          </button>
         </div>
       </div>
     </div>
