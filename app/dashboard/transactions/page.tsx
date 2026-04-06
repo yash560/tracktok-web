@@ -16,11 +16,12 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { TransactionModal } from '@/components/TransactionModal';
+import { TransactionDetailModal } from '@/components/TransactionDetailModal';
 
 const CATEGORIES = [
-  'all', 'food', 'shopping', 'bills', 'salary', 'rent', 'utilities', 
-  'groceries', 'transportation', 'insurance', 'childcare', 
-  'subscriptions', 'entertainment', 'health', 'education', 
+  'all', 'food', 'shopping', 'bills', 'salary', 'rent', 'utilities',
+  'groceries', 'transportation', 'insurance', 'childcare',
+  'subscriptions', 'entertainment', 'health', 'education',
   'freelancing', 'transfer', 'other'
 ];
 
@@ -34,6 +35,7 @@ export default function TransactionsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   const fetchTransactions = useCallback(async () => {
     setLoading(true);
@@ -61,7 +63,7 @@ export default function TransactionsPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this transaction?')) return;
-    
+
     try {
       await axios.delete(`/api/transactions?id=${id}`);
       fetchTransactions();
@@ -74,6 +76,11 @@ export default function TransactionsPage() {
   const openEditModal = (t: any) => {
     setSelectedTransaction(t);
     setIsModalOpen(true);
+  };
+
+  const openDetailModal = (t: any) => {
+    setSelectedTransaction(t);
+    setShowDetailModal(true);
   };
 
   const openAddModal = () => {
@@ -113,9 +120,8 @@ export default function TransactionsPage() {
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-2 border rounded-xl transition ${
-              showFilters ? 'bg-primary text-white border-primary' : 'border-gray-200 dark:border-gray-800 hover:bg-gray-50'
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 border rounded-xl transition ${showFilters ? 'bg-primary text-white border-primary' : 'border-gray-200 dark:border-gray-800 hover:bg-gray-50'
+              }`}
           >
             <SlidersHorizontal className="w-5 h-5" />
             Filters
@@ -169,14 +175,18 @@ export default function TransactionsPage() {
                 <tr>
                   <td colSpan={6} className="py-12 text-center text-gray-500">
                     <div className="flex flex-col items-center gap-2">
-                       <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                       <span>Loading transactions...</span>
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                      <span>Loading transactions...</span>
                     </div>
                   </td>
                 </tr>
               ) : transactions.length > 0 ? (
                 transactions.map((t) => (
-                  <tr key={t._id} className="hover:bg-gray-50/50 dark:hover:bg-dark-bg/30 transition">
+                  <tr 
+                    key={t._id} 
+                    onClick={() => openDetailModal(t)}
+                    className="hover:bg-gray-50/50 dark:hover:bg-dark-bg/30 transition cursor-pointer"
+                  >
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${t.type === 'income' ? 'bg-success/10' : 'bg-danger/10'}`}>
@@ -195,14 +205,14 @@ export default function TransactionsPage() {
                       </span>
                     </td>
                     <td className="py-4 px-6">
-                        <p className="text-sm font-medium">{t.source || 'Cash'}</p>
-                        <p className="text-xs text-gray-400">{t.city || 'Unknown'}</p>
+                      <p className="text-sm font-medium">{t.source || 'Cash'}</p>
+                      <p className="text-xs text-gray-400">{t.city || 'Unknown'}</p>
                     </td>
                     <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">
                       {new Date(t.date).toLocaleDateString()}
                     </td>
                     <td className={`py-4 px-6 text-right font-bold text-lg ${t.type === 'income' ? 'text-success' : 'text-danger'}`}>
-                      {t.type === 'income' ? '+' : '-'}${Math.abs(t.amount).toFixed(2)}
+                      {t.type === 'income' ? '+' : '-'}₹{Math.abs(t.amount).toFixed(2)}
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center justify-center gap-2">
@@ -264,6 +274,12 @@ export default function TransactionsPage() {
           </div>
         </div>
       </div>
+
+      <TransactionDetailModal
+        isOpen={showDetailModal}
+        transaction={selectedTransaction}
+        onClose={() => setShowDetailModal(false)}
+      />
 
       <TransactionModal
         isOpen={isModalOpen}

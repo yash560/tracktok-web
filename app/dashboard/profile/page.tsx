@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Phone, Camera, Save, Loader2 } from 'lucide-react';
+import { User, Mail, Phone, Camera, Save, Loader2, MapPin, Calendar, Users } from 'lucide-react';
 import { useAuth } from '@/components/AuthContext';
 import axios from 'axios';
 
@@ -11,17 +11,29 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
+    displayName: '',
+    nickname: '',
+    phoneNumber: '',
     email: '',
-    phone: '',
+    gender: '',
+    dateOfBirth: '',
+    countryCode: '',
   });
 
   useEffect(() => {
     if (user) {
       setFormData({
-        name: user.name || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        displayName: user.displayName || '',
+        nickname: user.nickname || '',
+        phoneNumber: user.phoneNumber || '',
         email: user.email || '',
-        phone: user.phone || '',
+        gender: user.gender || '',
+        dateOfBirth: user.dateOfBirth || '',
+        countryCode: user.countryCode || '',
       });
     }
   }, [user]);
@@ -33,8 +45,14 @@ export default function ProfilePage() {
 
     try {
       await axios.put('/api/user/profile', {
-        name: formData.name,
-        phone: formData.phone,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        displayName: formData.displayName,
+        nickname: formData.nickname,
+        phoneNumber: formData.phoneNumber,
+        gender: formData.gender,
+        dateOfBirth: formData.dateOfBirth,
+        countryCode: formData.countryCode,
       });
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
@@ -73,23 +91,68 @@ export default function ProfilePage() {
               </button>
             </div>
             <div className="text-center">
-              <h3 className="font-bold text-lg">{user?.name}</h3>
-              <p className="text-sm text-gray-500">{user?.email}</p>
+              <h3 className="font-bold text-lg">{formData.displayName || `${formData.firstName} ${formData.lastName}` || user?.email}</h3>
+              <p className="text-sm text-gray-500">{formData.email}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Name */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold mb-2">Full Name</label>
+            {/* First Name */}
+            <div>
+              <label className="block text-sm font-semibold mb-2">First Name</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                   className="input-field pl-11"
+                  placeholder="John"
+                />
+              </div>
+            </div>
+
+            {/* Last Name */}
+            <div>
+              <label className="block text-sm font-semibold mb-2">Last Name</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  className="input-field pl-11"
+                  placeholder="Doe"
+                />
+              </div>
+            </div>
+
+            {/* Display Name */}
+            <div>
+              <label className="block text-sm font-semibold mb-2">Display Name</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={formData.displayName}
+                  onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
+                  className="input-field pl-11"
+                  placeholder="John Doe"
+                />
+              </div>
+            </div>
+
+            {/* Nickname */}
+            <div>
+              <label className="block text-sm font-semibold mb-2">Nickname</label>
+              <div className="relative">
+                <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={formData.nickname}
+                  onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
+                  className="input-field pl-11"
+                  placeholder="Johnny"
                 />
               </div>
             </div>
@@ -109,17 +172,63 @@ export default function ProfilePage() {
               <p className="text-xs text-gray-500 mt-1">Email cannot be changed for security reasons.</p>
             </div>
 
-            {/* Phone */}
-            <div className="md:col-span-2">
+            {/* Phone Number */}
+            <div>
               <label className="block text-sm font-semibold mb-2">Phone Number</label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="tel"
                   placeholder="+1 (555) 000-0000"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  value={formData.phoneNumber}
+                  onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
                   className="input-field pl-11"
+                />
+              </div>
+            </div>
+
+            {/* Gender */}
+            <div>
+              <label className="block text-sm font-semibold mb-2">Gender</label>
+              <select
+                value={formData.gender}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                className="input-field w-full"
+              >
+                <option value="">Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+                <option value="prefer-not-to-say">Prefer not to say</option>
+              </select>
+            </div>
+
+            {/* Date of Birth */}
+            <div>
+              <label className="block text-sm font-semibold mb-2">Date of Birth</label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="date"
+                  value={formData.dateOfBirth}
+                  onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                  className="input-field pl-11"
+                />
+              </div>
+            </div>
+
+            {/* Country Code */}
+            <div>
+              <label className="block text-sm font-semibold mb-2">Country Code</label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="IN, US, UK..."
+                  value={formData.countryCode}
+                  onChange={(e) => setFormData({ ...formData, countryCode: e.target.value.toUpperCase() })}
+                  maxLength={2}
+                  className="input-field pl-11 uppercase"
                 />
               </div>
             </div>

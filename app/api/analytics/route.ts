@@ -16,6 +16,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+
     const { db } = await connectToDatabase();
 
     // Fetch user specific collection name
@@ -34,18 +38,23 @@ export async function GET(request: NextRequest) {
 
     const collectionKey = member.collection;
 
-    // DEBUG: Get a few sample docs to check schema
-    const samples = await db.collection('expenses').find({ collection: collectionKey }).limit(3).toArray();
-
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    // Parse date range or default to current month
+    let dateStart, dateEnd;
+    if (startDate && endDate) {
+      dateStart = new Date(startDate);
+      dateEnd = new Date(endDate);
+      dateEnd.setHours(23, 59, 59, 999);
+    } else {
+      const now = new Date();
+      dateStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      dateEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    }
 
     const pipeline = [
       {
         $match: {
           collection: collectionKey,
-          createdAt: { $gte: startOfMonth, $lte: endOfMonth }
+          createdAt: { $gte: dateStart, $lte: dateEnd }
         }
       },
       {
@@ -55,6 +64,33 @@ export async function GET(request: NextRequest) {
               $group: {
                 _id: "$type",
                 total: { $sum: "$amount" }
+              }
+            }
+          ],
+          transactionCount: [
+            {
+              $group: {
+                _id: "$type",
+                count: { $sum: 1 }
+              }
+            }
+          ],
+          largestTransaction: [
+            {
+              $match: { type: 'debit' }
+            },
+            {
+              $sort: { amount: -1 }
+            },
+            {
+              $limit: 1
+            },
+            {
+              $project: {
+                _id: 1,
+                amount: 1,
+                receiver: 1,
+                category: 1
               }
             }
           ],
@@ -74,10 +110,23 @@ export async function GET(request: NextRequest) {
             {
               $group: {
                 _id: "$source",
-                amount: { $sum: "$amount" }
+                amount: { $sum: "$amount" },
+                count: { $sum: 1 }
               }
             },
-            { $sort: { amount: -1 } }
+            { $sort: { count: -1 } }
+          ],
+          topMerchants: [
+            { $match: { type: 'debit' } },
+            {
+              $group: {
+                _id: "$receiver",
+                amount: { $sum: "$amount" },
+                count: { $sum: 1 }
+              }
+            },
+            { $sort: { amount: -1 } },
+            { $limit: 5 }
           ],
           geography: [
             { $match: { type: 'debit' } },
@@ -94,12 +143,42 @@ export async function GET(request: NextRequest) {
     ];
 
     const results = await db.collection('expenses').aggregate(pipeline).toArray();
-    const aggregationResult = results[0] || { totals: [], categories: [], sources: [], geography: [] };
+    const aggregationResult = results[0] || { totals: [], categories: [], sources: [], geography: [], transactionCount: [], largestTransaction: [], topMerchants: [] };
 
     // Map aggregation results back to the expected response format
     const totals = aggregationResult.totals || [];
     const totalIncome = totals.find((t: any) => t._id === 'credit')?.total || 0;
     const totalExpense = totals.find((t: any) => t._id === 'debit')?.total || 0;
+
+    // Transaction counts
+    const transactionCounts = aggregationResult.transactionCount || [];
+    const expenseCount = transactionCounts.find((t: any) => t._id === 'debit')?.count || 0;
+    const incomeCount = transactionCounts.find((t: any) => t._id === 'credit')?.count || 0;
+
+    // Largest transaction
+    const largestTransaction = aggregationResult.largestTransaction?.[0] || null;
+
+    // Average transaction
+    const avgTransactionAmount = expenseCount > 0 ? totalExpense / expenseCount : 0;
+
+    // Top payment source (most frequent)
+    const topPaymentSource = aggregationResult.sources?.[0]?.source || 'Cash';
+
+    const topMerchants = (aggregationResult.topMerchants || []).map((m: any) => ({
+      name: m._id || 'Unknown',
+      amount: m.amount,
+      count: m.count
+    }));
+
+    // Calculate additional insights
+    const totalTransactions = expenseCount + incomeCount;
+    const savingsRate = totalIncome > 0 ? ((totalIncome / (totalIncome + totalExpense)) * 100).toFixed(1) : '0';
+    const topCategory = aggregationResult.categories?.[0];
+    const topCategoryPercentage = topCategory && totalExpense > 0 ? ((topCategory.amount / totalExpense) * 100).toFixed(1) : '0';
+
+    // Category diversity (high = diverse spending)
+    const categoryCount = (aggregationResult.categories || []).length;
+    const categoryDiversity = Math.min((categoryCount / 10) * 100, 100).toFixed(1);
 
     const categoryBreakdown = (aggregationResult.categories || []).map((c: any) => ({
       category: c._id || 'Uncategorized',
@@ -111,7 +190,8 @@ export async function GET(request: NextRequest) {
     const sourceAnalysis = (aggregationResult.sources || []).map((s: any) => ({
       source: s._id || 'Cash',
       amount: s.amount,
-      percentage: totalExpense > 0 ? ((s.amount / totalExpense) * 100).toFixed(1) : "0"
+      percentage: totalExpense > 0 ? ((s.amount / totalExpense) * 100).toFixed(1) : "0",
+      count: s.count
     }));
 
     const geographicInsights = (aggregationResult.geography || []).map((g: any) => ({
@@ -128,6 +208,21 @@ export async function GET(request: NextRequest) {
         categoryBreakdown,
         sourceAnalysis,
         geographicInsights,
+        transactionStats: {
+          totalExpenses: expenseCount,
+          totalIncome: incomeCount,
+          totalTransactions,
+          averageTransaction: Number.parseFloat(avgTransactionAmount.toFixed(2)),
+          largestTransaction: largestTransaction?.amount || 0,
+          largestTransactionCategory: largestTransaction?.category || 'N/A',
+          topPaymentSource,
+          topMerchants,
+          savingsRate: Number.parseFloat(savingsRate as string),
+          topCategory: topCategory?._id || 'N/A',
+          topCategoryAmount: topCategory?.amount || 0,
+          topCategoryPercentage: Number.parseFloat(topCategoryPercentage as string),
+          categoryDiversity: Number.parseFloat(categoryDiversity as string),
+        },
         period: 'current_month',
       },
       { status: 200 }
