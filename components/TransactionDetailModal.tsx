@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import {
     X,
     Calendar,
@@ -14,6 +15,7 @@ import {
     MessageSquare,
     FileText,
     Clock,
+    Eye,
 } from 'lucide-react';
 
 interface TransactionDetailModalProps {
@@ -27,11 +29,18 @@ export function TransactionDetailModal({
     transaction: txn,
     onClose,
 }: TransactionDetailModalProps) {
+    const router = useRouter();
+
     if (!txn) return null;
 
     const transaction = txn as any;
     const isIncome = transaction.type === 'income';
     const isCredit = transaction.type === 'credit';
+
+    const handleViewInvoice = () => {
+        router.push(`/invoice/${transaction.code}`);
+        onClose();
+    };
 
     return (
         <AnimatePresence>
@@ -206,6 +215,33 @@ export function TransactionDetailModal({
                                     </div>
                                 )}
 
+                                {/* Split Transaction Details */}
+                                {transaction.isSplitTransaction && transaction.split && (
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <FileText className="w-5 h-5 text-purple-600" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Split Details</p>
+                                            <div className="space-y-2">
+                                                {transaction.split.map((member: any) => (
+                                                    <div key={member.phone || member.$id} className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <p className="font-semibold text-sm">{member.name}</p>
+                                                            <p className="text-sm font-bold text-purple-600">
+                                                                ₹{Math.abs(member.amount || 0).toFixed(2)}
+                                                            </p>
+                                                        </div>
+                                                        <p className="text-xs text-gray-500">
+                                                            {member.split === 'percentage' ? `${member.value}%` : 'Fixed amount'}
+                                                        </p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Intent/Notes */}
                                 {(transaction.intent || transaction.notes) && (
                                     <div className="flex items-start gap-3">
@@ -236,11 +272,18 @@ export function TransactionDetailModal({
                                 </div>
                             </div>
 
-                            {/* Close Button */}
-                            <div className="p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-dark-bg">
+                            {/* Action Buttons */}
+                            <div className="p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-dark-bg space-y-2">
+                                <button
+                                    onClick={handleViewInvoice}
+                                    className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition font-semibold flex items-center justify-center gap-2"
+                                >
+                                    <Eye className="w-4 h-4" />
+                                    View Invoice
+                                </button>
                                 <button
                                     onClick={onClose}
-                                    className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition font-semibold"
+                                    className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition font-semibold"
                                 >
                                     Close
                                 </button>

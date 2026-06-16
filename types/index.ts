@@ -30,6 +30,79 @@ export interface Transaction {
   paymentMethod?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  isOwnTransaction?: boolean;
+  isSplitTransaction?: boolean;
+  splitAmount?: number | null;
+  splitPercentage?: number | null;
+}
+
+export interface Split {
+  contact: string;
+  value: number;
+  split: 'percentage' | 'amount';
+  amount: number;
+  name: string;
+  phone?: string | null;
+  owner?: boolean;
+  $type?: string;
+  $collection?: string;
+  $id?: string;
+  $customer_id?: string;
+  $label?: string;
+}
+
+export interface Invoice {
+  _id?: string;
+  street?: string;
+  city?: string;
+  amount: number;
+  type: 'debit' | 'credit' | 'income' | 'expense';
+  account?: string;
+  date: string;
+  receiver?: string;
+  ref_number?: string;
+  source?: string;
+  category?: string;
+  description: string;
+  intent?: string;
+  personalizedCategory?: string;
+  valid?: boolean;
+  collection?: string;
+  core_transaction?: string;
+  code?: string;
+  sms_id?: string;
+  customer_id?: string;
+  createdBy?: {
+    $type: string;
+    $collection: string;
+    $id: string;
+    $customer_id: string;
+    $label: string;
+  };
+  receivedAt?: Date;
+  updatedAt?: Date;
+  createdAt?: Date;
+  note?: string;
+  split?: Split[];
+  split_group_id?: string;
+}
+
+export interface SplitGroup {
+  _id?: string;
+  name: string;
+  owner: string;
+  customer_id: string;
+  members: string[];
+  contacts: {
+    name: string;
+    contactId: string;
+    phone?: string | null;
+  }[];
+  contactKey: string;
+  expenses: string[];
+  settledAt?: Date | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface Account {

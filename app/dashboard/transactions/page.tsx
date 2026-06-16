@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
@@ -13,6 +14,7 @@ import {
   ChevronRight,
   SlidersHorizontal,
   Receipt,
+  Eye,
 } from 'lucide-react';
 import axios from 'axios';
 import { TransactionModal } from '@/components/TransactionModal';
@@ -26,6 +28,7 @@ const CATEGORIES = [
 ];
 
 export default function TransactionsPage() {
+  const router = useRouter();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -47,7 +50,7 @@ export default function TransactionsPage() {
         ...(category !== 'all' && { category }),
       });
 
-      const response = await axios.get(`/api/transactions?${params.toString()}`);
+    const response = await axios.get(`/api/transactions?${params.toString()}`);
       setTransactions(response.data.transactions);
       setTotalPages(response.data.pagination.pages);
     } catch (error) {
@@ -86,6 +89,10 @@ export default function TransactionsPage() {
   const openAddModal = () => {
     setSelectedTransaction(null);
     setIsModalOpen(true);
+  };
+
+  const handleViewInvoice = (transactionId: string) => {
+    router.push(`/invoice/${transactionId}`);
   };
 
   return (
@@ -196,7 +203,14 @@ export default function TransactionsPage() {
                             <ArrowUpRight className="w-5 h-5 text-danger" />
                           )}
                         </div>
-                        <span className="font-semibold">{t.description}</span>
+                        <div className="flex flex-col gap-1">
+                          <span className="font-semibold">{t.description}</span>
+                          {t.isSplitTransaction && (
+                            <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full w-fit">
+                              Split with {t.split?.filter((s: any) => !s.owner).length || 0} {t.split?.filter((s: any) => !s.owner).length === 1 ? 'person' : 'people'}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="py-4 px-6">
@@ -217,16 +231,33 @@ export default function TransactionsPage() {
                     <td className="py-4 px-6">
                       <div className="flex items-center justify-center gap-2">
                         <button
+                          onClick={() => handleViewInvoice(t.code)}
+                          className="p-2 hover:bg-blue-500/10 hover:text-blue-600 rounded-lg transition text-gray-400"
+                          title="View invoice"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => openEditModal(t)}
-                          className="p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition text-gray-400"
-                          title="Edit"
+                          disabled={t.isSplitTransaction && !t.isOwnTransaction}
+                          className={`p-2 rounded-lg transition ${
+                            t.isSplitTransaction && !t.isOwnTransaction
+                              ? 'text-gray-200 dark:text-gray-700 cursor-not-allowed'
+                              : 'hover:bg-primary/10 hover:text-primary text-gray-400'
+                          }`}
+                          title={t.isSplitTransaction && !t.isOwnTransaction ? 'Cannot edit shared expenses' : 'Edit'}
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(t._id)}
-                          className="p-2 hover:bg-danger/10 hover:text-danger rounded-lg transition text-gray-400"
-                          title="Delete"
+                          disabled={t.isSplitTransaction && !t.isOwnTransaction}
+                          className={`p-2 rounded-lg transition ${
+                            t.isSplitTransaction && !t.isOwnTransaction
+                              ? 'text-gray-200 dark:text-gray-700 cursor-not-allowed'
+                              : 'hover:bg-danger/10 hover:text-danger text-gray-400'
+                          }`}
+                          title={t.isSplitTransaction && !t.isOwnTransaction ? 'Cannot delete shared expenses' : 'Delete'}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

@@ -25,21 +25,33 @@ export async function GET(request: NextRequest) {
 
     const { db } = await connectToDatabase();
 
-    // Fetch user specific collection name
+    // Fetch user specific collection name and phone
     const member = await db.collection('members').findOne({ _id: new ObjectId(decoded.userId) });
     if (!member || !member.collection) {
       return NextResponse.json({ transactions: [], pagination: { total: 0, pages: 0, page, limit } });
     }
 
     const collectionKey = member.collection;
+    const userPhone = member.phone || member.phoneNumber;
 
-    const query: any = { collection: collectionKey };
+    // Build filter conditions
+    const filterConditions: any[] = [
+      { collection: collectionKey }
+    ];
+
+    if (userPhone) {
+      filterConditions.push({ 'split.phone': userPhone });
+    }
+
+    const query: any = { $or: filterConditions };
+
     if (search) {
       query.description = { $regex: search, $options: 'i' };
     }
     if (category && category !== 'all') {
       query.category = category;
     }
+
     const totalCount = await db.collection('expenses').countDocuments(query);
     const rawExpenses = await db
       .collection('expenses')
@@ -50,11 +62,22 @@ export async function GET(request: NextRequest) {
       .toArray();
 
     // Map debit/credit to info compatible with UI
-    const transactions = rawExpenses.map(exp => ({
-      ...exp,
-      type: exp.type === 'debit' ? 'expense' : 'income',
-      amount: exp.amount
-    }));
+    const transactions = rawExpenses.map(exp => {
+      const isOwnTransaction = exp.collection === collectionKey;
+      const isSplitTransaction = !isOwnTransaction && userPhone && exp.split?.some((s: any) => s.phone === userPhone);
+
+      const splitMember = isSplitTransaction ? exp.split?.find((s: any) => s.phone === userPhone) : null;
+
+      return {
+        ...exp,
+        type: exp.type === 'debit' ? 'expense' : 'income',
+        amount: exp.amount,
+        isOwnTransaction,
+        isSplitTransaction,
+        splitAmount: splitMember?.amount || null,
+        splitPercentage: splitMember?.value || null,
+      };
+    });
 
     return NextResponse.json(
       {

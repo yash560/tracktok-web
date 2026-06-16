@@ -1,0 +1,51 @@
+import { connectToDatabase } from '@/lib/mongodb';
+import { verifyToken } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
+import { ObjectId } from 'mongodb';
+
+export async function GET(request: NextRequest) {
+  try {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
+    }
+
+    const { db } = await connectToDatabase();
+
+    // Fetch user
+    const member = await db.collection('members').findOne({ _id: new ObjectId(decoded.userId) });
+    if (!member) {
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+    }
+
+    const userPhone = member.phone || member.phoneNumber;
+
+    // Find split groups where user is a member or owner
+    const splitGroups = await db
+      .collection('split_groups')
+      .find({
+        $or: [
+          { customer_id: member.customer_id },
+          { owner: member._id.toString() },
+          { owner: member.collection },
+          { 'contacts.phone': userPhone },
+        ],
+      })
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    return NextResponse.json({ splitGroups }, { status: 200 });
+  } catch (error) {
+    console.error('Error fetching split groups:', error);
+    return NextResponse.json(
+      { message: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

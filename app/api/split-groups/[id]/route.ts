@@ -1,0 +1,62 @@
+import { connectToDatabase } from '@/lib/mongodb';
+import { verifyToken } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
+import { ObjectId } from 'mongodb';
+
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
+    }
+
+    const { db } = await connectToDatabase();
+
+    // Fetch user specific collection name and phone
+    const member = await db.collection('members').findOne({ _id: new ObjectId(decoded.userId) });
+    if (!member || !member.collection) {
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+    }
+
+    const userPhone = member.phone || member.phoneNumber;
+    const { id } = await params;
+
+    // Fetch split group
+    const splitGroup = await db.collection('split_groups').findOne({
+      _id: new ObjectId(id),
+      customer_id: member.customer_id,
+    });
+
+    if (!splitGroup) {
+      return NextResponse.json({ message: 'Split group not found' }, { status: 404 });
+    }
+
+    // Check if user is a member/contact of this split group
+    const isGroupMember = userPhone && splitGroup.contacts?.some((c: any) => c.phone === userPhone);
+    const isGroupOwner = splitGroup.owner === member._id.toString() || splitGroup.owner === member.collection;
+
+    if (!isGroupMember && !isGroupOwner) {
+      return NextResponse.json({ message: 'Access denied' }, { status: 403 });
+    }
+
+    // Fetch all expenses in this split group using the expenses array from split group
+    const expenseIds = splitGroup.expenses?.map((expId: string) => new ObjectId(expId)) || [];
+    const expenses = expenseIds.length > 0 ? await db
+      .collection('expenses')
+      .find({
+        _id: { $in: expenseIds },
+      })
+      .toArray() : [];
+
+    return NextResponse.json({ splitGroup, expenses });
+  } catch (error) {
+    console.error('Error fetching split group:', error);
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+  }
+}

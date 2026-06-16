@@ -66,6 +66,8 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
   if (!isOpen) return null;
 
+  const isSplitTransaction = transaction?.isSplitTransaction && !transaction?.isOwnTransaction;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -107,6 +109,15 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
           </button>
         </div>
 
+        {/* Split Transaction Warning */}
+        {isSplitTransaction && (
+          <div className="p-4 bg-purple-50 dark:bg-purple-900/20 border-b border-purple-200 dark:border-purple-800">
+            <p className="text-sm text-purple-800 dark:text-purple-200">
+              This is a shared expense. Only the original owner can edit it.
+            </p>
+          </div>
+        )}
+
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -114,23 +125,25 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
             <div className="md:col-span-2 flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
               <button
                 type="button"
+                disabled={isSplitTransaction}
                 onClick={() => setFormData({ ...formData, type: 'expense' })}
                 className={`flex-1 py-2 rounded-lg font-semibold transition ${
                   formData.type === 'expense'
                     ? 'bg-danger text-white shadow-md'
                     : 'text-gray-500 hover:text-gray-700'
-                }`}
+                } ${isSplitTransaction ? 'cursor-not-allowed' : ''}`}
               >
                 Expense
               </button>
               <button
                 type="button"
+                disabled={isSplitTransaction}
                 onClick={() => setFormData({ ...formData, type: 'income' })}
                 className={`flex-1 py-2 rounded-lg font-semibold transition ${
                   formData.type === 'income'
                     ? 'bg-success text-white shadow-md'
                     : 'text-gray-500 hover:text-gray-700'
-                }`}
+                } ${isSplitTransaction ? 'cursor-not-allowed' : ''}`}
               >
                 Income
               </button>
@@ -144,10 +157,11 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                 <input
                   type="text"
                   required
+                  disabled={isSplitTransaction}
                   placeholder="What was this for?"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="input-field pl-11"
+                  className="input-field pl-11 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
@@ -256,10 +270,10 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || isSplitTransaction}
               className="flex-[2] py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:bg-primary-dark transition disabled:opacity-50"
             >
-              {loading ? 'Saving...' : transaction ? 'Update Transaction' : 'Save Transaction'}
+              {isSplitTransaction ? 'View Only' : loading ? 'Saving...' : transaction ? 'Update Transaction' : 'Save Transaction'}
             </button>
           </div>
         </form>

@@ -17,6 +17,7 @@ import {
   Award,
   Percent,
   Layers,
+  Eye,
 } from 'lucide-react';
 import {
   LineChart,
@@ -34,6 +35,7 @@ import {
   Cell,
 } from 'recharts';
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
 import { TransactionDetailModal } from '@/components/TransactionDetailModal';
 
 const COLORS = ['#2F2E51', '#47468A', '#4DD69B', '#F37373', '#FBA94D', '#FB8C00', '#FBC02D', '#3F51B5', '#D81B60'];
@@ -45,6 +47,7 @@ interface DateRange {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [timeframe, setTimeframe] = useState('month');
   const [analytics, setAnalytics] = useState<any>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -108,6 +111,10 @@ export default function DashboardPage() {
       });
       setShowDatePicker(false);
     }
+  };
+
+  const handleViewInvoice = (transactionId: string) => {
+    router.push(`/invoice/${transactionId}`);
   };
 
   const getDateRangeLabel = (): string => {
@@ -686,6 +693,7 @@ export default function DashboardPage() {
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-400">Category</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-400">Date</th>
                   <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-400">Amount</th>
+                  <th className="text-center py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-400">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -719,6 +727,15 @@ export default function DashboardPage() {
                     </td>
                     <td className={`py-4 px-4 text-right font-semibold ${transaction.type === 'income' ? 'text-success' : 'text-danger'}`}>
                       {transaction.type === 'income' ? '+' : '-'}₹{Math.abs(transaction.amount).toFixed(2)}
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      <button
+                        onClick={() => handleViewInvoice(transaction.code)}
+                        className="p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition text-gray-400"
+                        title="View invoice"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
                     </td>
                   </tr>
                 ))}

@@ -17,6 +17,7 @@ export default function RegisterPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    countryCode: '+1',
     phone: '',
     password: '',
     confirmPassword: '',
@@ -28,7 +29,7 @@ export default function RegisterPage() {
     }
   }, [user, authLoading, router]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -40,6 +41,14 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    const phoneDigits = formData.phone.replace(/\D/g, '');
+
+    if (!formData.phone || phoneDigits.length !== 10) {
+      setError('Phone number must be exactly 10 digits');
+      setLoading(false);
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
@@ -54,7 +63,7 @@ export default function RegisterPage() {
     }
 
     try {
-      await register(formData.name, formData.email, formData.password);
+      await register(formData.name, formData.email, formData.password, formData.countryCode, formData.phone);
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Please try again.');
       setLoading(false);
@@ -137,20 +146,45 @@ export default function RegisterPage() {
 
             {/* Phone */}
             <div>
-              <label htmlFor="phone" className="block text-sm font-semibold mb-2">
-                Phone Number (Optional)
+              <label className="block text-sm font-semibold mb-2">
+                Phone Number
               </label>
-              <div className="relative">
-                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  id="phone"
-                  type="tel"
-                  name="phone"
-                  placeholder="+1 (555) 000-0000"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="input-field pl-12"
-                />
+              <div className="flex gap-3">
+                <div className="w-24">
+                  <select
+                    name="countryCode"
+                    value={formData.countryCode}
+                    onChange={handleChange}
+                    className="input-field"
+                  >
+                    <option value="+1">+1 (US)</option>
+                    <option value="+44">+44 (UK)</option>
+                    <option value="+91">+91 (IN)</option>
+                    <option value="+61">+61 (AU)</option>
+                    <option value="+1">+1 (CA)</option>
+                    <option value="+64">+64 (NZ)</option>
+                    <option value="+27">+27 (ZA)</option>
+                    <option value="+86">+86 (CN)</option>
+                    <option value="+81">+81 (JP)</option>
+                    <option value="+33">+33 (FR)</option>
+                    <option value="+49">+49 (DE)</option>
+                    <option value="+39">+39 (IT)</option>
+                    <option value="+34">+34 (ES)</option>
+                  </select>
+                </div>
+                <div className="flex-1 relative">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    id="phone"
+                    type="tel"
+                    name="phone"
+                    placeholder="10 digit number"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                    className="input-field pl-12"
+                  />
+                </div>
               </div>
             </div>
 

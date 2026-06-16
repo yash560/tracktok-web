@@ -10,8 +10,13 @@ import {
   Settings,
   LogOut,
   X,
+  Users,
+  ChevronDown,
 } from 'lucide-react';
 import { useAuth } from './AuthContext';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { SplitGroup } from '@/types';
 
 interface SidebarProps {
   open: boolean;
@@ -20,7 +25,31 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
   const pathname = usePathname();
-  const { logout } = useAuth();
+  const { logout, token } = useAuth();
+  const [splitGroups, setSplitGroups] = useState<SplitGroup[]>([]);
+  const [expandSplits, setExpandSplits] = useState(false);
+  const [loadingSplits, setLoadingSplits] = useState(false);
+
+  useEffect(() => {
+    const fetchSplitGroups = async () => {
+      if (!token) return;
+      setLoadingSplits(true);
+      try {
+        const response = await axios.get('/api/split-groups', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSplitGroups(response.data.splitGroups || []);
+      } catch (error) {
+        console.error('Error fetching split groups:', error);
+      } finally {
+        setLoadingSplits(false);
+      }
+    };
+
+    if (token) {
+      fetchSplitGroups();
+    }
+  }, [token]);
 
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
@@ -76,6 +105,54 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
                 </Link>
               );
             })}
+
+            {/* Split Groups Section */}
+            {splitGroups.length > 0 && (
+              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => setExpandSplits(!expandSplits)}
+                  className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                >
+                  <div className="flex items-center gap-3">
+                    <Users className="w-5 h-5" />
+                    <span className="font-semibold">Split Groups</span>
+                  </div>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform ${
+                      expandSplits ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+
+                {expandSplits && (
+                  <div className="mt-2 space-y-1 pl-2">
+                    {loadingSplits ? (
+                      <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-500">
+                        Loading...
+                      </div>
+                    ) : (
+                      splitGroups.map((group) => {
+                        const isActive = pathname === `/split-groups/${group._id}`;
+                        return (
+                          <Link
+                            key={group._id}
+                            href={`/split-groups/${group._id}`}
+                            onClick={() => setOpen(false)}
+                            className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition ${
+                              isActive
+                                ? 'bg-primary/10 text-primary dark:text-primary'
+                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }`}
+                          >
+                            <span className="font-medium truncate">{group.name}</span>
+                          </Link>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </nav>
 
           <button
