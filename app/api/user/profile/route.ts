@@ -39,6 +39,8 @@ export async function GET(request: NextRequest) {
         dateOfBirth: user.dateOfBirth || '',
         countryCode: user.countryCode || '',
         avatar: user.avatar,
+        code: user.code,
+        collection: user.collection,
         createdAt: user.createdAt,
       },
       { status: 200 }

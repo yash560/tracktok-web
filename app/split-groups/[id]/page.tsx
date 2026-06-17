@@ -34,59 +34,43 @@ interface Settlement {
 }
 
 function calculateSettlements(expenses: Invoice[], userPhone: string): Settlement[] {
-  // Track net balance between each pair: positive = owed to payer, negative = owes payer
-  const netBalances: { [key: string]: { amount: number; payerName: string; debtorName: string } } = {};
+  // Track net balance: key = "debtorPhone|creditorPhone", value = amount owed
+  const netBalances: { [key: string]: { amount: number; debtorName: string; creditorName: string } } = {};
 
   expenses.forEach((expense) => {
     if (!expense.split || expense.split.length === 0) return;
 
-    // Find who paid
-    const payer = expense.split.find((s: any) => s.owner === true);
-    if (!payer) return;
+    const owner = expense.split.find((s: any) => s.owner === true);
+    if (!owner) return;
 
-    const payerPhone = payer.phone;
-    const payerName = payer.name;
-    const isPayment = expense.category === 'payment' || expense.personalizedCategory === 'payment';
+    const ownerPhone = owner.phone;
+    const ownerAmount = owner.amount || 0;
+    const isPayment = ownerAmount === 0;
 
-    // Calculate how much each person owes to the payer
     expense.split.forEach((split: any) => {
-      if (split.phone === payerPhone) return; // Skip the payer
+      if (split.phone === ownerPhone) return;
 
-      const debtorPhone = split.phone;
-      const debtorName = split.name;
-      const amount = split.amount || 0;
+      const otherPhone = split.phone;
+      const otherAmount = split.amount || 0;
 
-      if (amount === 0) return; // Skip zero amounts
+      if (otherAmount === 0) return;
 
       if (isPayment) {
-        // Payment: payer is paying the debtor, reduce debtor's debt to payer
-        const key = `${payerPhone}|${debtorPhone}`; // Payer owes debtor
-        const reverseKey = `${debtorPhone}|${payerPhone}`; // Debtor owes payer
-
-        // Reduce the original debt
+        // Payment: owner is settling debt to otherPhone, reduce debt from owner to other
+        const reverseKey = `${ownerPhone}|${otherPhone}`;
         if (netBalances[reverseKey]) {
-          netBalances[reverseKey].amount -= amount;
+          netBalances[reverseKey].amount -= otherAmount;
           if (netBalances[reverseKey].amount <= 0) {
             delete netBalances[reverseKey];
           }
         }
       } else {
-        // Normal expense: debtor owes payer
-        const key = `${debtorPhone}|${payerPhone}`;
-        const reverseKey = `${payerPhone}|${debtorPhone}`;
-
+        // Expense: otherPhone owes owner
+        const key = `${otherPhone}|${ownerPhone}`;
         if (!netBalances[key]) {
-          netBalances[key] = { amount: 0, payerName, debtorName };
+          netBalances[key] = { amount: 0, debtorName: split.name, creditorName: owner.name };
         }
-        netBalances[key].amount += amount;
-
-        // If there's a reverse debt, net it out
-        if (netBalances[reverseKey]) {
-          netBalances[reverseKey].amount -= amount;
-          if (netBalances[reverseKey].amount <= 0) {
-            delete netBalances[reverseKey];
-          }
-        }
+        netBalances[key].amount += otherAmount;
       }
     });
   });
@@ -95,14 +79,14 @@ function calculateSettlements(expenses: Invoice[], userPhone: string): Settlemen
   const settlements: Settlement[] = [];
   Object.entries(netBalances).forEach(([key, value]) => {
     const [debtorPhone, creditorPhone] = key.split('|');
-    const { amount, debtorName, payerName } = value;
+    const { amount, debtorName, creditorName } = value;
 
-    if (amount <= 0) return; // Skip non-positive balances
+    if (amount <= 0) return;
 
     if (debtorPhone === userPhone) {
       // Current user owes someone
       settlements.push({
-        memberName: payerName,
+        memberName: creditorName,
         memberPhone: creditorPhone,
         amount,
         type: 'owes',
@@ -134,6 +118,7 @@ export default function SplitGroupPage() {
   const params = useParams();
   const router = useRouter();
   const { loading: authLoading, user } = useAuth();
+  console.log(user)
   const id = params.id as string;
   const [data, setData] = useState<SplitGroupResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -229,6 +214,7 @@ export default function SplitGroupPage() {
           receiverPhone: paymentModal.memberPhone,
           amount,
           payerPhone: user?.phone || user?.phoneNumber,
+          user_code: user?.code,
         }
       );
 
@@ -323,11 +309,10 @@ export default function SplitGroupPage() {
               </div>
               <div className="text-right">
                 <div
-                  className={`inline-block px-4 py-2 rounded-lg font-semibold flex items-center gap-2 ${
-                    isSettled
-                      ? 'bg-success/10 text-success'
-                      : 'bg-warning/10 text-warning'
-                  }`}
+                  className={`inline-block px-4 py-2 rounded-lg font-semibold flex items-center gap-2 ${isSettled
+                    ? 'bg-success/10 text-success'
+                    : 'bg-warning/10 text-warning'
+                    }`}
                 >
                   {isSettled ? (
                     <>

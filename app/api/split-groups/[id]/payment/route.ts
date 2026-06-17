@@ -15,8 +15,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
     }
 
-    const { receiverPhone, amount, payerPhone } = await request.json();
-    if (!receiverPhone || !amount || !payerPhone) {
+    const { receiverPhone, amount, payerPhone, user_code } = await request.json();
+    if (!receiverPhone || !amount || !payerPhone || !user_code) {
       return NextResponse.json(
         { message: 'Missing required fields' },
         { status: 400 }
@@ -47,9 +47,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const expenseIds = splitGroup.expenses?.map((expId: string) => new ObjectId(expId)) || [];
     const expenses = expenseIds.length > 0
       ? await db
-          .collection('expenses')
-          .find({ _id: { $in: expenseIds } })
-          .toArray()
+        .collection('expenses')
+        .find({ _id: { $in: expenseIds } })
+        .toArray()
       : [];
 
     // Calculate total owed from payerPhone to receiverPhone
@@ -94,17 +94,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const paymentExpense = {
       amount,
       type: 'debit',
-      account: 'payment',
+      account: 'tracktok',
       date: new Date().toISOString().split('T')[0],
       receiver: '', // Will get receiver name below
-      ref_number: `PAYMENT-${Date.now()}`,
+      ref_number: null,
       source: 'Payment',
-      category: 'payment',
-      description: `Payment sent by ${payerPhone}`,
-      personalizedCategory: 'payment',
+      category: 'transfer',
+      description: `Payment sent by ${payerPhone} to ${receiverPhone} for split group ${splitGroup.name}`,
+      personalizedCategory: 'split payment',
       valid: true,
-      collection: 'expense_' + Date.now(),
-      code: `PAY-${Date.now()}`,
+      collection: `expense_${user_code}`,
       sms_id: `payment-${Date.now()}`,
       customer_id: splitGroup.customer_id,
       createdBy: {
