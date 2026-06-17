@@ -17,14 +17,10 @@ import {
   TrendingDown,
   TrendingUp,
   Edit2,
-  Plus,
-  Link as LinkIcon,
 } from 'lucide-react';
 import axios from 'axios';
 import { SplitGroup, Invoice } from '@/types';
 import Link from 'next/link';
-import { LinkExpenseModal } from '@/components/LinkExpenseModal';
-import { CreateTransactionModal } from '@/components/CreateTransactionModal';
 import { DateTooltip } from '@/components/DateTooltip';
 
 interface SplitGroupResponse {
@@ -126,13 +122,6 @@ interface EditNameState {
   isProcessing: boolean;
 }
 
-interface LinkExpenseState {
-  isOpen: boolean;
-}
-
-interface CreateTransactionState {
-  isOpen: boolean;
-}
 
 export default function SplitGroupPage() {
   const params = useParams();
@@ -157,12 +146,6 @@ export default function SplitGroupPage() {
     isOpen: false,
     newName: '',
     isProcessing: false,
-  });
-  const [linkExpenseModal, setLinkExpenseModal] = useState<LinkExpenseState>({
-    isOpen: false,
-  });
-  const [createTransactionModal, setCreateTransactionModal] = useState<CreateTransactionState>({
-    isOpen: false,
   });
   const [showAllExpenses, setShowAllExpenses] = useState(false);
 
@@ -479,26 +462,6 @@ export default function SplitGroupPage() {
                 <DollarSign className="w-5 h-5 text-primary" />
                 Linked Expenses ({expenses.length})
               </h2>
-              {!isSettled && (
-                <div className="flex gap-2 w-full sm:w-auto">
-                  <button
-                    onClick={() => setCreateTransactionModal({ isOpen: true })}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition font-medium text-sm flex-1 sm:flex-initial justify-center sm:justify-start"
-                    title="Create a new transaction and link it"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Create</span>
-                  </button>
-                  <button
-                    onClick={() => setLinkExpenseModal({ isOpen: true })}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm flex-1 sm:flex-initial justify-center sm:justify-start"
-                    title="Link an existing transaction"
-                  >
-                    <LinkIcon className="w-4 h-4" />
-                    <span>Link</span>
-                  </button>
-                </div>
-              )}
             </div>
             {expenses.length === 0 ? (
               <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -837,59 +800,6 @@ export default function SplitGroupPage() {
         </div>
       )}
 
-      {/* Link Expense Modal */}
-      <LinkExpenseModal
-        isOpen={linkExpenseModal.isOpen}
-        onClose={() => setLinkExpenseModal({ isOpen: false })}
-        onSuccess={() => {
-          // Refresh split group data
-          const fetchSplitGroup = async () => {
-            try {
-              const response = await axios.get(`/api/split-groups/${id}`);
-              setData(response.data);
-
-              if (user?.phone || user?.phoneNumber) {
-                const userPhone = (user.phone || user.phoneNumber) as string;
-                const calcs = calculateSettlements(response.data.expenses, userPhone);
-                const activeSettlements = calcs.filter((s: any) => s.amount > 0);
-                setSettlements(activeSettlements);
-              }
-            } catch (err) {
-              console.error('Error refreshing split group:', err);
-            }
-          };
-          fetchSplitGroup();
-        }}
-        splitGroupId={id}
-        groupMembers={data?.splitGroup.contacts.map(c => ({ name: c.name, phone: c.phone || '' }))}
-      />
-
-      {/* Create Transaction Modal */}
-      <CreateTransactionModal
-        isOpen={createTransactionModal.isOpen}
-        onClose={() => setCreateTransactionModal({ isOpen: false })}
-        onSuccess={() => {
-          // Refresh split group data
-          const fetchSplitGroup = async () => {
-            try {
-              const response = await axios.get(`/api/split-groups/${id}`);
-              setData(response.data);
-
-              if (user?.phone || user?.phoneNumber) {
-                const userPhone = (user.phone || user.phoneNumber) as string;
-                const calcs = calculateSettlements(response.data.expenses, userPhone);
-                const activeSettlements = calcs.filter((s: any) => s.amount > 0);
-                setSettlements(activeSettlements);
-              }
-            } catch (err) {
-              console.error('Error refreshing split group:', err);
-            }
-          };
-          fetchSplitGroup();
-        }}
-        splitGroupId={id}
-        groupMembers={data?.splitGroup.contacts.map(c => ({ name: c.name, phone: c.phone || '' }))}
-      />
     </div>
   );
 }
