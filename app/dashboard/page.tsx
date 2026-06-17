@@ -38,6 +38,7 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useProtectedPage } from '@/lib/useProtectedPage';
 import { TransactionDetailModal } from '@/components/TransactionDetailModal';
+import { DateTooltip } from '@/components/DateTooltip';
 
 const COLORS = ['#2F2E51', '#47468A', '#4DD69B', '#F37373', '#FBA94D', '#FB8C00', '#FBC02D', '#3F51B5', '#D81B60'];
 
@@ -837,7 +838,9 @@ export default function DashboardPage() {
                     </td>
                     <td className="py-3 sm:py-4 px-3 sm:px-4 text-gray-600 dark:text-gray-400 capitalize text-xs sm:text-sm hidden sm:table-cell">{transaction.category}</td>
                     <td className="py-3 sm:py-4 px-3 sm:px-4 text-gray-600 dark:text-gray-400 text-xs sm:text-sm hidden md:table-cell">
-                      {new Date(transaction.date).toLocaleDateString()}
+                      <DateTooltip dateInput={transaction.date}>
+                        {new Date(transaction.date).toLocaleDateString()}
+                      </DateTooltip>
                     </td>
                     <td className={`py-3 sm:py-4 px-3 sm:px-4 text-right font-semibold text-xs sm:text-sm ${transaction.type === 'income' ? 'text-success' : 'text-danger'}`}>
                       {transaction.type === 'income' ? '+' : '-'}₹{Math.abs(transaction.amount).toFixed(0)}

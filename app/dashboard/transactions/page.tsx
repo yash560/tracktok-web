@@ -20,6 +20,7 @@ import axios from 'axios';
 import { useProtectedPage } from '@/lib/useProtectedPage';
 import { TransactionModal } from '@/components/TransactionModal';
 import { TransactionDetailModal } from '@/components/TransactionDetailModal';
+import { DateTooltip } from '@/components/DateTooltip';
 
 const CATEGORIES = [
   'all', 'food', 'shopping', 'bills', 'salary', 'rent', 'utilities',
@@ -288,7 +289,9 @@ export default function TransactionsPage() {
                       <p className="text-xs text-gray-400">{t.city || 'Unknown'}</p>
                     </td>
                     <td className="hidden md:table-cell py-3 sm:py-4 px-3 sm:px-6 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                      {new Date(t.date).toLocaleDateString()}
+                      <DateTooltip dateInput={t.date}>
+                        {new Date(t.date).toLocaleDateString()}
+                      </DateTooltip>
                     </td>
                     <td className={`py-3 sm:py-4 px-3 sm:px-6 text-right font-bold text-xs sm:text-sm md:text-lg ${t.type === 'income' ? 'text-success' : 'text-danger'}`}>
                       {t.type === 'income' ? '+' : '-'}₹{Math.abs(t.amount).toFixed(2)}

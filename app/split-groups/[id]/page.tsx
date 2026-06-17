@@ -17,10 +17,15 @@ import {
   TrendingDown,
   TrendingUp,
   Edit2,
+  Plus,
+  Link as LinkIcon,
 } from 'lucide-react';
 import axios from 'axios';
 import { SplitGroup, Invoice } from '@/types';
 import Link from 'next/link';
+import { LinkExpenseModal } from '@/components/LinkExpenseModal';
+import { CreateTransactionModal } from '@/components/CreateTransactionModal';
+import { DateTooltip } from '@/components/DateTooltip';
 
 interface SplitGroupResponse {
   splitGroup: SplitGroup;
@@ -121,6 +126,14 @@ interface EditNameState {
   isProcessing: boolean;
 }
 
+interface LinkExpenseState {
+  isOpen: boolean;
+}
+
+interface CreateTransactionState {
+  isOpen: boolean;
+}
+
 export default function SplitGroupPage() {
   const params = useParams();
   const router = useRouter();
@@ -144,6 +157,12 @@ export default function SplitGroupPage() {
     isOpen: false,
     newName: '',
     isProcessing: false,
+  });
+  const [linkExpenseModal, setLinkExpenseModal] = useState<LinkExpenseState>({
+    isOpen: false,
+  });
+  const [createTransactionModal, setCreateTransactionModal] = useState<CreateTransactionState>({
+    isOpen: false,
   });
   const [showAllExpenses, setShowAllExpenses] = useState(false);
 
@@ -285,7 +304,6 @@ export default function SplitGroupPage() {
           receiverPhone: paymentModal.memberPhone,
           amount,
           payerPhone: user?.phone || user?.phoneNumber,
-          user_code: user?.code,
         }
       );
 
@@ -415,11 +433,13 @@ export default function SplitGroupPage() {
                   Created
                 </p>
                 <p className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                  {new Date(splitGroup.createdAt || '').toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
+                  <DateTooltip dateInput={splitGroup.createdAt || ''}>
+                    {new Date(splitGroup.createdAt || '').toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </DateTooltip>
                 </p>
               </div>
               <div>
@@ -454,10 +474,32 @@ export default function SplitGroupPage() {
 
           {/* Expenses Section */}
           <div>
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-primary" />
-              Linked Expenses ({expenses.length})
-            </h2>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-primary" />
+                Linked Expenses ({expenses.length})
+              </h2>
+              {!isSettled && (
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={() => setCreateTransactionModal({ isOpen: true })}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition font-medium text-sm flex-1 sm:flex-initial justify-center sm:justify-start"
+                    title="Create a new transaction and link it"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Create</span>
+                  </button>
+                  <button
+                    onClick={() => setLinkExpenseModal({ isOpen: true })}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm flex-1 sm:flex-initial justify-center sm:justify-start"
+                    title="Link an existing transaction"
+                  >
+                    <LinkIcon className="w-4 h-4" />
+                    <span>Link</span>
+                  </button>
+                </div>
+              )}
+            </div>
             {expenses.length === 0 ? (
               <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                 <p className="text-gray-600 dark:text-gray-400">No expenses in this split group</p>
@@ -479,7 +521,9 @@ export default function SplitGroupPage() {
                             {expense.date && (
                               <div className="flex items-center gap-1 flex-shrink-0">
                                 <Calendar className="w-4 h-4" />
-                                {new Date(expense.date).toLocaleDateString()}
+                                <DateTooltip dateInput={expense.date}>
+                                  {new Date(expense.date).toLocaleDateString()}
+                                </DateTooltip>
                               </div>
                             )}
                             {expense.category && (
@@ -637,11 +681,11 @@ export default function SplitGroupPage() {
                 <div>
                   <p className="font-semibold text-success">This split has been settled</p>
                   <p className="text-sm text-success/80 mt-1">
-                    Settled on {new Date(splitGroup.settledAt).toLocaleDateString('en-US', {
+                    Settled on <DateTooltip dateInput={splitGroup.settledAt}>{new Date(splitGroup.settledAt).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',
-                    })}
+                    })}</DateTooltip>
                   </p>
                 </div>
               </div>
@@ -652,11 +696,13 @@ export default function SplitGroupPage() {
           <div className="mt-8 sm:mt-12 border-t border-gray-200 dark:border-gray-700 pt-6 sm:pt-8 text-center">
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
               Generated on{' '}
-              {new Date().toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
+              <DateTooltip dateInput={new Date()}>
+                {new Date().toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </DateTooltip>
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">TrackTok Split Group</p>
           </div>
@@ -790,6 +836,60 @@ export default function SplitGroupPage() {
           </div>
         </div>
       )}
+
+      {/* Link Expense Modal */}
+      <LinkExpenseModal
+        isOpen={linkExpenseModal.isOpen}
+        onClose={() => setLinkExpenseModal({ isOpen: false })}
+        onSuccess={() => {
+          // Refresh split group data
+          const fetchSplitGroup = async () => {
+            try {
+              const response = await axios.get(`/api/split-groups/${id}`);
+              setData(response.data);
+
+              if (user?.phone || user?.phoneNumber) {
+                const userPhone = (user.phone || user.phoneNumber) as string;
+                const calcs = calculateSettlements(response.data.expenses, userPhone);
+                const activeSettlements = calcs.filter((s: any) => s.amount > 0);
+                setSettlements(activeSettlements);
+              }
+            } catch (err) {
+              console.error('Error refreshing split group:', err);
+            }
+          };
+          fetchSplitGroup();
+        }}
+        splitGroupId={id}
+        groupMembers={data?.splitGroup.contacts.map(c => ({ name: c.name, phone: c.phone || '' }))}
+      />
+
+      {/* Create Transaction Modal */}
+      <CreateTransactionModal
+        isOpen={createTransactionModal.isOpen}
+        onClose={() => setCreateTransactionModal({ isOpen: false })}
+        onSuccess={() => {
+          // Refresh split group data
+          const fetchSplitGroup = async () => {
+            try {
+              const response = await axios.get(`/api/split-groups/${id}`);
+              setData(response.data);
+
+              if (user?.phone || user?.phoneNumber) {
+                const userPhone = (user.phone || user.phoneNumber) as string;
+                const calcs = calculateSettlements(response.data.expenses, userPhone);
+                const activeSettlements = calcs.filter((s: any) => s.amount > 0);
+                setSettlements(activeSettlements);
+              }
+            } catch (err) {
+              console.error('Error refreshing split group:', err);
+            }
+          };
+          fetchSplitGroup();
+        }}
+        splitGroupId={id}
+        groupMembers={data?.splitGroup.contacts.map(c => ({ name: c.name, phone: c.phone || '' }))}
+      />
     </div>
   );
 }

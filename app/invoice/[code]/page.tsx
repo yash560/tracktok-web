@@ -13,6 +13,7 @@ import {
 import axios from 'axios';
 import Link from 'next/link';
 import { Invoice, SplitGroup } from '@/types';
+import { DateTooltip } from '@/components/DateTooltip';
 
 interface TransactionResponse {
   transaction: Invoice;
@@ -166,11 +167,13 @@ export default function InvoicePage() {
                   Date
                 </p>
                 <p className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-                  {transactionDate.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
+                  <DateTooltip dateInput={transactionDate}>
+                    {transactionDate.toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </DateTooltip>
                 </p>
               </div>
             </div>
@@ -300,7 +303,7 @@ export default function InvoicePage() {
                       {splitGroup.name}
                     </p>
                     <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                      Created {new Date(splitGroup.createdAt || '').toLocaleDateString()}
+                      Created <DateTooltip dateInput={splitGroup.createdAt || ''}>{new Date(splitGroup.createdAt || '').toLocaleDateString()}</DateTooltip>
                     </p>
                   </div>
                 </Link>
@@ -369,11 +372,13 @@ export default function InvoicePage() {
           <div className="border-t border-gray-200 dark:border-gray-700 pt-4 sm:pt-6 md:pt-8 text-center">
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">
               Invoice generated on{' '}
-              {new Date().toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
+              <DateTooltip dateInput={new Date()}>
+                {new Date().toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </DateTooltip>
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-500">
               This is an electronic invoice record from TrackTok

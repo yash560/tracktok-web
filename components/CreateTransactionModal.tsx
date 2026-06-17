@@ -1,26 +1,25 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Calendar, DollarSign, Tag, Type, MapPin, CreditCard, Plus, Minus, Users } from 'lucide-react';
+import { X, Calendar, DollarSign, Tag, Type, MapPin, CreditCard, Plus, Minus } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '@/components/AuthContext';
 
-interface TransactionModalProps {
+interface CreateTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  transaction?: any;
+  splitGroupId: string;
+  groupMembers?: Array<{ name: string; phone: string }>;
   apiBaseUrl?: string;
 }
 
 interface SplitMember {
   name: string;
   phone: string;
-  contact: string;
   value: number;
   amount: number;
   split: 'percentage' | 'amount' | 'share';
-  owner?: boolean;
 }
 
 const CATEGORIES = [
@@ -32,16 +31,17 @@ const CATEGORIES = [
 
 const SOURCES = ['Cash', 'Credit Card', 'Debit Card', 'Bank Transfer', 'Mobile Wallet'];
 
-export const TransactionModal: React.FC<TransactionModalProps> = ({
+export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
-  transaction,
+  splitGroupId,
+  groupMembers = [],
   apiBaseUrl = 'https://webverse.thewebvale.com',
 }) => {
   const { user } = useAuth();
   const userCode = (user as any)?.code || 'DEFAULT_USER';
-  const [mode, setMode] = useState<'ai' | 'manual'>(!transaction ? 'ai' : 'manual');
+  const [mode, setMode] = useState<'ai' | 'manual'>('ai');
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [parsedData, setParsedData] = useState<any>(null);
@@ -99,19 +99,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   };
 
   useEffect(() => {
-    if (transaction) {
-      setFormData({
-        description: transaction.description,
-        amount: Math.abs(transaction.amount).toString(),
-        category: transaction.category,
-        type: transaction.type,
-        date: new Date(transaction.date).toISOString().split('T')[0],
-        source: transaction.source || 'Cash',
-        city: transaction.city || 'Mumbai',
-        notes: transaction.notes || '',
-      });
-      setMode('manual');
-    } else {
+    if (!isOpen) {
       setFormData({
         description: '',
         amount: '',
@@ -124,19 +112,17 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       });
       setShowSplit(false);
       setSplitMembers([]);
+      setContactName('');
+      setContactPhone('');
       resetAI();
     }
-  }, [transaction, isOpen]);
+  }, [isOpen]);
 
   useEffect(() => {
     if (splitMembers.length > 0) {
       calculateSplitAmounts(splitMembers);
     }
   }, [formData.amount, splitType, splitMembers.length]);
-
-  if (!isOpen) return null;
-
-  const isSplitTransaction = transaction?.isSplitTransaction && !transaction?.isOwnTransaction;
 
   const handleAddContact = () => {
     if (!contactName || !contactPhone) return;
@@ -145,11 +131,9 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     const newMember: SplitMember = {
       name: contactName,
       phone: contactPhone,
-      contact: contactName,
       value: splitType === 'percentages' ? 0 : splitType === 'shares' ? 1 : 0,
       amount: 0,
       split: splitType === 'percentages' ? 'percentage' : splitType === 'shares' ? 'share' : 'amount',
-      owner: false,
     };
 
     setSplitMembers([...splitMembers, newMember]);
@@ -190,6 +174,11 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
           m.amount = parseFloat(((amount * m.value) / total).toFixed(2));
         });
       }
+    } else if (splitType === 'amounts') {
+      // amounts type: value is the actual amount
+      members.forEach(m => {
+        m.amount = m.value;
+      });
     }
   };
 
@@ -201,6 +190,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       const payload: any = {
         ...formData,
         amount: parseFloat(formData.amount),
+        split_group_id: splitGroupId,
       };
 
       if (showSplit && splitMembers.length > 0) {
@@ -216,27 +206,37 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
             owner: true,
           },
           ...splitMembers.map(m => ({
-            ...m,
+            name: m.name,
+            phone: m.phone,
+            contact: m.name,
+            value: m.value,
+            amount: m.amount,
             split: splitType === 'percentages' ? 'percentage' : splitType === 'shares' ? 'share' : 'amount',
+            owner: false,
           })),
         ];
       }
 
-      if (transaction) {
-        await axios.put(`/api/transactions?id=${transaction._id}`, payload);
-      } else {
-        await axios.post('/api/transactions', payload);
+      const response = await axios.post('/api/transactions', payload);
+
+      // Link the transaction to split group by updating the split group's expenses array
+      if (response.data.id) {
+        await axios.post(`/api/split-groups/${splitGroupId}/expenses`, {
+          expenseId: response.data.id,
+        });
       }
 
       onSuccess();
       onClose();
     } catch (error) {
-      console.error('Failed to save transaction:', error);
-      alert('Failed to save transaction. Please try again.');
+      console.error('Failed to create transaction:', error);
+      alert('Failed to create transaction');
     } finally {
       setLoading(false);
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
@@ -245,48 +245,40 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       <div className="bg-white dark:bg-dark-card w-full max-w-2xl max-h-[calc(100vh-2rem)] rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden">
         {/* Header */}
         <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-dark-bg/50 flex-shrink-0">
-          <h2 className="text-xl font-bold">
-            {transaction ? 'Edit Transaction' : 'Add Transaction'}
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+            Create & Link Transaction
           </h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full transition">
             <X className="w-6 h-6" />
           </button>
         </div>
 
-        {isSplitTransaction && (
-          <div className="p-4 bg-purple-50 dark:bg-purple-900/20 border-b border-purple-200 dark:border-purple-800 flex-shrink-0">
-            <p className="text-sm text-purple-800 dark:text-purple-200">
-              This is a shared expense. Only the original owner can edit it.
-            </p>
-          </div>
-        )}
+        {/* Mode Toggle */}
+        <div className="px-6 pt-4 pb-0 flex gap-2 flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => setMode('ai')}
+            className={`flex-1 py-2 rounded-lg font-semibold transition ${mode === 'ai'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+              }`}
+          >
+            🤖 AI
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('manual')}
+            className={`flex-1 py-2 rounded-lg font-semibold transition ${mode === 'manual'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+              }`}
+          >
+            ✏️ Manual
+          </button>
+        </div>
 
-        {!transaction && (
-          <div className="px-6 pt-4 pb-0 flex gap-2 flex-shrink-0">
-            <button
-              type="button"
-              onClick={() => setMode('ai')}
-              className={`flex-1 py-2 rounded-lg font-semibold transition ${mode === 'ai'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
-                }`}
-            >
-              🤖 AI
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode('manual')}
-              className={`flex-1 py-2 rounded-lg font-semibold transition ${mode === 'manual'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
-                }`}
-            >
-              ✏️ Manual
-            </button>
-          </div>
-        )}
-
-        {!transaction && mode === 'ai' && stage === 'input' && (
+        {/* Form */}
+        {mode === 'ai' && stage === 'input' && (
           <div className="p-6 space-y-4 overflow-y-auto flex-1">
             <div className="space-y-4">
               <div>
@@ -334,7 +326,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
           </div>
         )}
 
-        {!transaction && mode === 'ai' && stage === 'review' && parsedData && (
+        {mode === 'ai' && stage === 'review' && parsedData && (
           <div className="p-6 space-y-4 overflow-y-auto flex-1">
             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-3">
               {parsedData.amount && (
@@ -395,7 +387,6 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                     date: parsedData.date || new Date().toISOString().split('T')[0],
                   }));
                   resetAI();
-                  setMode('manual');
                 }}
                 className="flex-[2] py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition"
               >
@@ -405,30 +396,28 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
           </div>
         )}
 
-        {(transaction || mode === 'manual') && (
+        {mode === 'manual' && (
           <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Type Toggle */}
               <div className="md:col-span-2 flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
                 <button
                   type="button"
-                  disabled={isSplitTransaction}
                   onClick={() => setFormData({ ...formData, type: 'expense' })}
                   className={`flex-1 py-2 rounded-lg font-semibold transition ${formData.type === 'expense'
                     ? 'bg-danger text-white shadow-md'
                     : 'text-gray-500 hover:text-gray-700'
-                    } ${isSplitTransaction ? 'cursor-not-allowed' : ''}`}
+                    }`}
                 >
                   Expense
                 </button>
                 <button
                   type="button"
-                  disabled={isSplitTransaction}
                   onClick={() => setFormData({ ...formData, type: 'income' })}
                   className={`flex-1 py-2 rounded-lg font-semibold transition ${formData.type === 'income'
                     ? 'bg-success text-white shadow-md'
                     : 'text-gray-500 hover:text-gray-700'
-                    } ${isSplitTransaction ? 'cursor-not-allowed' : ''}`}
+                    }`}
                 >
                   Income
                 </button>
@@ -436,24 +425,23 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
               {/* Description */}
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold mb-2">Description</label>
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Description</label>
                 <div className="relative">
                   <Type className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
                     type="text"
                     required
-                    disabled={isSplitTransaction}
                     placeholder="What was this for?"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="input-field pl-11 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full pl-11 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-primary"
                   />
                 </div>
               </div>
 
               {/* Amount */}
               <div>
-                <label className="block text-sm font-semibold mb-2">Amount</label>
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Amount</label>
                 <div className="relative">
                   <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
@@ -463,14 +451,14 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                     placeholder="0.00"
                     value={formData.amount}
                     onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                    className="input-field pl-11"
+                    className="w-full pl-11 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-primary"
                   />
                 </div>
               </div>
 
               {/* Date */}
               <div>
-                <label className="block text-sm font-semibold mb-2">Date</label>
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Date</label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
@@ -478,20 +466,20 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                     required
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="input-field pl-11"
+                    className="w-full pl-11 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-primary"
                   />
                 </div>
               </div>
 
               {/* Category */}
               <div>
-                <label className="block text-sm font-semibold mb-2">Category</label>
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Category</label>
                 <div className="relative">
                   <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="input-field pl-11 capitalize"
+                    className="w-full pl-11 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-primary capitalize"
                   >
                     {CATEGORIES.map((c) => (
                       <option key={c} value={c}>{c}</option>
@@ -502,13 +490,13 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
               {/* Source */}
               <div>
-                <label className="block text-sm font-semibold mb-2">Source</label>
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Source</label>
                 <div className="relative">
                   <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <select
                     value={formData.source}
                     onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                    className="input-field pl-11"
+                    className="w-full pl-11 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-primary"
                   >
                     {SOURCES.map((s) => (
                       <option key={s} value={s}>{s}</option>
@@ -519,7 +507,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
               {/* City */}
               <div>
-                <label className="block text-sm font-semibold mb-2">City</label>
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">City</label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
@@ -527,20 +515,20 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                     placeholder="City"
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="input-field pl-11"
+                    className="w-full pl-11 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-primary"
                   />
                 </div>
               </div>
 
               {/* Notes */}
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold mb-2">Notes (Optional)</label>
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Notes (Optional)</label>
                 <textarea
                   rows={2}
                   placeholder="Add some details..."
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="input-field resize-none"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-primary resize-none"
                 />
               </div>
 
@@ -551,7 +539,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                   onClick={() => setShowSplit(!showSplit)}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition"
                 >
-                  <Users className="w-4 h-4" />
+                  <Plus className="w-4 h-4" />
                   {showSplit ? 'Remove Split' : 'Add Split'}
                 </button>
               </div>
@@ -561,7 +549,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                 <>
                   {/* Split Type Tabs */}
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold mb-2">Split Type</label>
+                    <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Split Type</label>
                     <div className="flex gap-2 flex-wrap">
                       {(['evenly', 'amounts', 'shares', 'percentages'] as const).map((type) => (
                         <button
@@ -581,21 +569,21 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
                   {/* Add Contact */}
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold mb-2">Add Person</label>
+                    <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Add Person</label>
                     <div className="flex gap-2">
                       <input
                         type="text"
                         placeholder="Name"
                         value={contactName}
                         onChange={(e) => setContactName(e.target.value)}
-                        className="input-field flex-1"
+                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-primary"
                       />
                       <input
                         type="tel"
                         placeholder="Phone"
                         value={contactPhone}
                         onChange={(e) => setContactPhone(e.target.value)}
-                        className="input-field flex-1"
+                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-primary"
                       />
                       <button
                         type="button"
@@ -613,12 +601,12 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                       {splitMembers.map((member, idx) => (
                         <div key={idx} className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm">{member.name}</p>
+                            <p className="font-semibold text-sm text-gray-900 dark:text-white">{member.name}</p>
                             <p className="text-xs text-gray-500">{member.phone}</p>
                           </div>
 
                           {splitType === 'evenly' ? (
-                            <p className="font-semibold text-sm">₹{member.amount.toFixed(2)}</p>
+                            <p className="font-semibold text-sm text-gray-900 dark:text-white">₹{member.amount.toFixed(2)}</p>
                           ) : splitType === 'percentages' ? (
                             <div className="flex items-center gap-2">
                               <input
@@ -627,9 +615,9 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                                 max="100"
                                 value={member.value}
                                 onChange={(e) => handleSplitValueChange(idx, parseFloat(e.target.value))}
-                                className="w-16 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded"
+                                className="w-16 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                               />
-                              <span className="text-sm font-semibold">%</span>
+                              <span className="text-sm font-semibold text-gray-900 dark:text-white">%</span>
                             </div>
                           ) : (
                             <div className="flex items-center gap-2">
@@ -638,9 +626,9 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                                 min="0"
                                 value={member.value}
                                 onChange={(e) => handleSplitValueChange(idx, parseFloat(e.target.value))}
-                                className="w-16 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded"
+                                className="w-16 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                               />
-                              <span className="text-sm">{splitType === 'shares' ? 'share' : '₹'}</span>
+                              <span className="text-sm text-gray-900 dark:text-white">{splitType === 'shares' ? 'share' : '₹'}</span>
                             </div>
                           )}
 
@@ -657,23 +645,23 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                   )}
                 </>
               )}
-            </div>
 
-            <div className="pt-4 flex gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 py-3 border border-gray-200 dark:border-gray-800 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading || isSplitTransaction}
-                className="flex-[2] py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:bg-primary-dark transition disabled:opacity-50"
-              >
-                {isSplitTransaction ? 'View Only' : loading ? 'Saving...' : transaction ? 'Update Transaction' : 'Save Transaction'}
-              </button>
+              <div className="pt-4 flex gap-3 md:col-span-2">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 py-3 border border-gray-200 dark:border-gray-800 rounded-xl font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-[2] py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:bg-primary-dark transition disabled:opacity-50"
+                >
+                  {loading ? 'Creating...' : 'Create & Link'}
+                </button>
+              </div>
             </div>
           </form>
         )}

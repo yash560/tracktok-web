@@ -17,6 +17,7 @@ import {
     Clock,
     Eye,
 } from 'lucide-react';
+import { DateTooltip } from './DateTooltip';
 
 interface TransactionDetailModalProps {
     readonly isOpen: boolean;
@@ -120,19 +121,25 @@ export function TransactionDetailModal({
                                     <div className="flex-1">
                                         <p className="text-sm text-gray-600 dark:text-gray-400">Date</p>
                                         <p className="font-semibold">
-                                            {transaction.date
-                                                ? new Date(transaction.date).toLocaleDateString('en-US', {
-                                                    year: 'numeric',
-                                                    month: 'long',
-                                                    day: 'numeric',
-                                                })
-                                                : new Date(
-                                                    transaction.createdAt || transaction.receivedAt
-                                                ).toLocaleDateString('en-US', {
-                                                    year: 'numeric',
-                                                    month: 'long',
-                                                    day: 'numeric',
-                                                })}
+                                            {transaction.date ? (
+                                                <DateTooltip dateInput={transaction.date}>
+                                                    {new Date(transaction.date).toLocaleDateString('en-US', {
+                                                        year: 'numeric',
+                                                        month: 'long',
+                                                        day: 'numeric',
+                                                    })}
+                                                </DateTooltip>
+                                            ) : (
+                                                <DateTooltip dateInput={transaction.createdAt || transaction.receivedAt}>
+                                                    {new Date(
+                                                        transaction.createdAt || transaction.receivedAt
+                                                    ).toLocaleDateString('en-US', {
+                                                        year: 'numeric',
+                                                        month: 'long',
+                                                        day: 'numeric',
+                                                    })}
+                                                </DateTooltip>
+                                            )}
                                         </p>
                                     </div>
                                 </div>
@@ -264,12 +271,14 @@ export function TransactionDetailModal({
                                     <Clock className="w-4 h-4" />
                                     <span>
                                         Created{' '}
-                                        {new Date(transaction.createdAt || new Date()).toLocaleDateString()}{' '}
-                                        at{' '}
-                                        {new Date(transaction.createdAt || new Date()).toLocaleTimeString(
-                                            'en-US',
-                                            { hour: '2-digit', minute: '2-digit' }
-                                        )}
+                                        <DateTooltip dateInput={transaction.createdAt || new Date()}>
+                                            {new Date(transaction.createdAt || new Date()).toLocaleDateString()}{' '}
+                                            at{' '}
+                                            {new Date(transaction.createdAt || new Date()).toLocaleTimeString(
+                                                'en-US',
+                                                { hour: '2-digit', minute: '2-digit' }
+                                            )}
+                                        </DateTooltip>
                                     </span>
                                 </div>
                             </div>
