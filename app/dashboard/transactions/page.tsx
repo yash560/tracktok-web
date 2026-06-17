@@ -35,6 +35,9 @@ export default function TransactionsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
+  const [minAmount, setMinAmount] = useState('');
+  const [maxAmount, setMaxAmount] = useState('');
+  const [contact, setContact] = useState('all');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,6 +53,9 @@ export default function TransactionsPage() {
         limit: '15',
         ...(search && { search }),
         ...(category !== 'all' && { category }),
+        ...(minAmount && { minAmount }),
+        ...(maxAmount && { maxAmount }),
+        ...(contact !== 'all' && { contact }),
       });
 
     const response = await axios.get(`/api/transactions?${params.toString()}`);
@@ -62,7 +68,7 @@ export default function TransactionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, category]);
+  }, [page, search, category, minAmount, maxAmount, contact]);
 
   useEffect(() => {
     fetchTransactions();
@@ -147,7 +153,7 @@ export default function TransactionsPage() {
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden"
             >
-              <div className="pt-4 border-t border-gray-100 dark:border-gray-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              <div className="pt-4 border-t border-gray-100 dark:border-gray-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs sm:text-sm font-semibold mb-2">Category</label>
                   <select
@@ -160,8 +166,63 @@ export default function TransactionsPage() {
                     ))}
                   </select>
                 </div>
-                {/* Future: Add Date Range / Source / City Filters */}
+
+                <div>
+                  <label className="block text-xs sm:text-sm font-semibold mb-2">Min Amount</label>
+                  <input
+                    type="number"
+                    placeholder="₹0"
+                    value={minAmount}
+                    onChange={(e) => setMinAmount(e.target.value)}
+                    className="input-field px-3 sm:px-4 text-xs sm:text-sm md:text-base"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-sm font-semibold mb-2">Max Amount</label>
+                  <input
+                    type="number"
+                    placeholder="₹∞"
+                    value={maxAmount}
+                    onChange={(e) => setMaxAmount(e.target.value)}
+                    className="input-field px-3 sm:px-4 text-xs sm:text-sm md:text-base"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-sm font-semibold mb-2">Contact</label>
+                  <select
+                    value={contact}
+                    onChange={(e) => setContact(e.target.value)}
+                    className="input-field px-3 sm:px-4 text-xs sm:text-sm md:text-base"
+                  >
+                    <option value="all">All Contacts</option>
+                    {transactions
+                      .filter(t => t.split && t.split.length > 0)
+                      .flatMap(t => t.split.map((s: any) => s.name))
+                      .filter((v, i, a) => a.indexOf(v) === i)
+                      .map(name => (
+                        <option key={name} value={name}>{name}</option>
+                      ))}
+                  </select>
+                </div>
               </div>
+
+              {(category !== 'all' || minAmount || maxAmount || contact !== 'all') && (
+                <div className="pt-3 border-t border-gray-100 dark:border-gray-800">
+                  <button
+                    onClick={() => {
+                      setCategory('all');
+                      setMinAmount('');
+                      setMaxAmount('');
+                      setContact('all');
+                    }}
+                    className="text-xs text-primary hover:underline font-semibold"
+                  >
+                    Clear Filters
+                  </button>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

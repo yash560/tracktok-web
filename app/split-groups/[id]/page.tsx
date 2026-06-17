@@ -235,12 +235,7 @@ export default function SplitGroupPage() {
     try {
       const response = await axios.patch(
         `/api/split-groups/${id}`,
-        { name: editNameModal.newName.trim() },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
-          },
-        }
+        { name: editNameModal.newName.trim() }
       );
 
       if (response.status === 200 && data) {

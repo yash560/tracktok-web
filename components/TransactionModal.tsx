@@ -1,20 +1,30 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Calendar, DollarSign, Tag, Type, MapPin, CreditCard } from 'lucide-react';
+import { X, Calendar, DollarSign, Tag, Type, MapPin, CreditCard, Plus, Minus, Users } from 'lucide-react';
 import axios from 'axios';
 
 interface TransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  transaction?: any; // If provided, we are in edit mode
+  transaction?: any;
+}
+
+interface SplitMember {
+  name: string;
+  phone: string;
+  contact: string;
+  value: number;
+  amount: number;
+  split: 'percentage' | 'amount' | 'share';
+  owner?: boolean;
 }
 
 const CATEGORIES = [
-  'food', 'shopping', 'bills', 'salary', 'rent', 'utilities', 
-  'groceries', 'transportation', 'insurance', 'childcare', 
-  'subscriptions', 'entertainment', 'health', 'education', 
+  'food', 'shopping', 'bills', 'salary', 'rent', 'utilities',
+  'groceries', 'transportation', 'insurance', 'childcare',
+  'subscriptions', 'entertainment', 'health', 'education',
   'freelancing', 'transfer', 'other'
 ];
 
@@ -37,6 +47,12 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     city: 'Mumbai',
     notes: '',
   });
+
+  const [showSplit, setShowSplit] = useState(false);
+  const [splitType, setSplitType] = useState<'evenly' | 'amounts' | 'shares' | 'percentages'>('evenly');
+  const [splitMembers, setSplitMembers] = useState<SplitMember[]>([]);
+  const [contactName, setContactName] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
 
   useEffect(() => {
     if (transaction) {
@@ -61,22 +77,104 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         city: 'Mumbai',
         notes: '',
       });
+      setShowSplit(false);
+      setSplitMembers([]);
     }
   }, [transaction, isOpen]);
+
+  useEffect(() => {
+    if (splitMembers.length > 0) {
+      calculateSplitAmounts(splitMembers);
+    }
+  }, [formData.amount, splitType, splitMembers.length]);
 
   if (!isOpen) return null;
 
   const isSplitTransaction = transaction?.isSplitTransaction && !transaction?.isOwnTransaction;
+
+  const handleAddContact = () => {
+    if (!contactName || !contactPhone) return;
+
+    const amount = parseFloat(formData.amount);
+    const newMember: SplitMember = {
+      name: contactName,
+      phone: contactPhone,
+      contact: contactName,
+      value: splitType === 'percentages' ? 0 : splitType === 'shares' ? 1 : 0,
+      amount: 0,
+      split: splitType === 'percentages' ? 'percentage' : splitType === 'shares' ? 'share' : 'amount',
+      owner: false,
+    };
+
+    setSplitMembers([...splitMembers, newMember]);
+    setContactName('');
+    setContactPhone('');
+  };
+
+  const handleRemoveContact = (index: number) => {
+    setSplitMembers(splitMembers.filter((_, i) => i !== index));
+  };
+
+  const handleSplitValueChange = (index: number, value: number) => {
+    const updated = [...splitMembers];
+    updated[index].value = value;
+    setSplitMembers(updated);
+    calculateSplitAmounts(updated);
+  };
+
+  const calculateSplitAmounts = (members: SplitMember[]) => {
+    const amount = parseFloat(formData.amount) || 0;
+
+    if (splitType === 'evenly') {
+      const share = amount / (members.length + 1);
+      members.forEach(m => {
+        m.amount = parseFloat(share.toFixed(2));
+      });
+    } else if (splitType === 'percentages') {
+      const total = members.reduce((sum, m) => sum + m.value, 0);
+      if (total > 0) {
+        members.forEach(m => {
+          m.amount = parseFloat(((amount * m.value) / total).toFixed(2));
+        });
+      }
+    } else if (splitType === 'shares') {
+      const total = members.reduce((sum, m) => sum + m.value, 0);
+      if (total > 0) {
+        members.forEach(m => {
+          m.amount = parseFloat(((amount * m.value) / total).toFixed(2));
+        });
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const payload = {
+      const payload: any = {
         ...formData,
         amount: parseFloat(formData.amount),
       };
+
+      if (showSplit && splitMembers.length > 0) {
+        const userSplitAmount = parseFloat(formData.amount) - splitMembers.reduce((sum, m) => sum + m.amount, 0);
+        payload.split = [
+          {
+            name: 'You',
+            phone: 'self',
+            contact: 'me',
+            value: splitType === 'percentages' ? 100 - splitMembers.reduce((sum, m) => sum + m.value, 0) : splitType === 'shares' ? 1 : 0,
+            amount: userSplitAmount,
+            split: splitType === 'percentages' ? 'percentage' : splitType === 'shares' ? 'share' : 'amount',
+            owner: true,
+          },
+          ...splitMembers.map(m => ({
+            ...m,
+            split: splitType === 'percentages' ? 'percentage' : splitType === 'shares' ? 'share' : 'amount',
+          })),
+        ];
+      }
 
       if (transaction) {
         await axios.put(`/api/transactions?id=${transaction._id}`, payload);
@@ -97,8 +195,8 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      
-      <div className="bg-white dark:bg-dark-card w-full max-w-lg max-h-[calc(100vh-2rem)] rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden">
+
+      <div className="bg-white dark:bg-dark-card w-full max-w-2xl max-h-[calc(100vh-2rem)] rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden">
         {/* Header */}
         <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-dark-bg/50 flex-shrink-0">
           <h2 className="text-xl font-bold">
@@ -109,7 +207,6 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
           </button>
         </div>
 
-        {/* Split Transaction Warning */}
         {isSplitTransaction && (
           <div className="p-4 bg-purple-50 dark:bg-purple-900/20 border-b border-purple-200 dark:border-purple-800 flex-shrink-0">
             <p className="text-sm text-purple-800 dark:text-purple-200">
@@ -251,13 +348,128 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
             <div className="md:col-span-2">
               <label className="block text-sm font-semibold mb-2">Notes (Optional)</label>
               <textarea
-                rows={3}
+                rows={2}
                 placeholder="Add some details..."
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 className="input-field resize-none"
               />
             </div>
+
+            {/* Split Toggle */}
+            <div className="md:col-span-2">
+              <button
+                type="button"
+                onClick={() => setShowSplit(!showSplit)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition"
+              >
+                <Users className="w-4 h-4" />
+                {showSplit ? 'Remove Split' : 'Add Split'}
+              </button>
+            </div>
+
+            {/* Split Section */}
+            {showSplit && (
+              <>
+                {/* Split Type Tabs */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold mb-2">Split Type</label>
+                  <div className="flex gap-2 flex-wrap">
+                    {(['evenly', 'amounts', 'shares', 'percentages'] as const).map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setSplitType(type)}
+                        className={`px-3 py-2 rounded-lg font-semibold text-sm transition capitalize ${
+                          splitType === type
+                            ? 'bg-primary text-white'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Add Contact */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold mb-2">Add Person</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Name"
+                      value={contactName}
+                      onChange={(e) => setContactName(e.target.value)}
+                      className="input-field flex-1"
+                    />
+                    <input
+                      type="tel"
+                      placeholder="Phone"
+                      value={contactPhone}
+                      onChange={(e) => setContactPhone(e.target.value)}
+                      className="input-field flex-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddContact}
+                      className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition"
+                    >
+                      <Plus className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Split Members */}
+                {splitMembers.length > 0 && (
+                  <div className="md:col-span-2 space-y-2">
+                    {splitMembers.map((member, idx) => (
+                      <div key={idx} className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm">{member.name}</p>
+                          <p className="text-xs text-gray-500">{member.phone}</p>
+                        </div>
+
+                        {splitType === 'evenly' ? (
+                          <p className="font-semibold text-sm">₹{member.amount.toFixed(2)}</p>
+                        ) : splitType === 'percentages' ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={member.value}
+                              onChange={(e) => handleSplitValueChange(idx, parseFloat(e.target.value))}
+                              className="w-16 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded"
+                            />
+                            <span className="text-sm font-semibold">%</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              min="0"
+                              value={member.value}
+                              onChange={(e) => handleSplitValueChange(idx, parseFloat(e.target.value))}
+                              className="w-16 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded"
+                            />
+                            <span className="text-sm">{splitType === 'shares' ? 'share' : '₹'}</span>
+                          </div>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveContact(idx)}
+                          className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 rounded"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           <div className="pt-4 flex gap-3">

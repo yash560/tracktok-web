@@ -22,6 +22,9 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
     const search = searchParams.get('search');
     const category = searchParams.get('category');
+    const minAmount = searchParams.get('minAmount');
+    const maxAmount = searchParams.get('maxAmount');
+    const contact = searchParams.get('contact');
 
     const { db } = await connectToDatabase();
 
@@ -50,6 +53,22 @@ export async function GET(request: NextRequest) {
     }
     if (category && category !== 'all') {
       query.category = category;
+    }
+
+    // Amount range filter
+    if (minAmount || maxAmount) {
+      query.amount = {};
+      if (minAmount) {
+        query.amount.$gte = Number.parseFloat(minAmount);
+      }
+      if (maxAmount) {
+        query.amount.$lte = Number.parseFloat(maxAmount);
+      }
+    }
+
+    // Contact filter (for split transactions)
+    if (contact && contact !== 'all') {
+      query['split.name'] = contact;
     }
 
     const totalCount = await db.collection('expenses').countDocuments(query);
@@ -114,7 +133,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { amount, description, category, type, date, notes, source, city } = body;
+    const { amount, description, category, type, date, notes, source, city, split } = body;
 
     if (!amount || !description || !category || !type) {
       return NextResponse.json(
@@ -133,6 +152,20 @@ export async function POST(request: NextRequest) {
 
     const collectionKey = member.collection;
 
+    // Process split array if provided
+    let splitArray: any[] = [];
+    if (split && Array.isArray(split) && split.length > 0) {
+      splitArray = split.map((s: any) => ({
+        name: s.name,
+        phone: s.phone,
+        contact: s.contact,
+        value: s.value,
+        amount: s.amount,
+        split: s.split,
+        owner: s.owner || false,
+      }));
+    }
+
     const result = await db.collection('expenses').insertOne({
       collection: collectionKey,
       amount,
@@ -145,6 +178,7 @@ export async function POST(request: NextRequest) {
       city: city || 'Unknown',
       customer_id: member.customer_id || 'webverse',
       valid: true,
+      split: splitArray.length > 0 ? splitArray : undefined,
       createdAt: new Date(),
       updatedAt: new Date(),
     });

@@ -61,6 +61,11 @@ export default function DashboardPage() {
   const [customEnd, setCustomEnd] = useState<string>('');
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [showTransactionDetail, setShowTransactionDetail] = useState(false);
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [filterMinAmount, setFilterMinAmount] = useState('');
+  const [filterMaxAmount, setFilterMaxAmount] = useState('');
+  const [filterContact, setFilterContact] = useState('all');
+  const [showFilters, setShowFilters] = useState(false);
 
   // Helper function to get date range based on selection
   const getDateRange = (range: DateRange): { start: Date; end: Date } => {
@@ -157,9 +162,16 @@ export default function DashboardPage() {
         const startStr = start.toISOString().split('T')[0];
         const endStr = end.toISOString().split('T')[0];
 
+        const params = new URLSearchParams();
+        params.append('limit', '10');
+        if (filterCategory !== 'all') params.append('category', filterCategory);
+        if (filterMinAmount) params.append('minAmount', filterMinAmount);
+        if (filterMaxAmount) params.append('maxAmount', filterMaxAmount);
+        if (filterContact !== 'all') params.append('contact', filterContact);
+
         const [analyticsRes, transactionsRes, monthlyRes] = await Promise.all([
           axios.get(`/api/analytics?startDate=${startStr}&endDate=${endStr}`),
-          axios.get('/api/transactions?limit=10'),
+          axios.get(`/api/transactions?${params.toString()}`),
           axios.get('/api/analytics/monthly'),
         ]);
 
@@ -176,7 +188,7 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, [dateRange]);
+  }, [dateRange, filterCategory, filterMinAmount, filterMaxAmount, filterContact]);
 
   if (loading) {
     return (
@@ -692,7 +704,99 @@ export default function DashboardPage() {
       <motion.div variants={item} className="card">
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <h3 className="text-base sm:text-lg font-bold">Recent Transactions</h3>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="text-sm px-3 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition font-semibold"
+          >
+            {showFilters ? 'Hide Filters' : 'Show Filters'}
+          </button>
         </div>
+
+        {/* Filter Section */}
+        {showFilters && (
+          <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {/* Category Filter */}
+              <div>
+                <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 block">Category</label>
+                <select
+                  value={filterCategory}
+                  onChange={(e) => setFilterCategory(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="all">All Categories</option>
+                  <option value="food">Food</option>
+                  <option value="shopping">Shopping</option>
+                  <option value="bills">Bills</option>
+                  <option value="rent">Rent</option>
+                  <option value="utilities">Utilities</option>
+                  <option value="groceries">Groceries</option>
+                  <option value="transportation">Transportation</option>
+                  <option value="entertainment">Entertainment</option>
+                  <option value="health">Health</option>
+                  <option value="education">Education</option>
+                </select>
+              </div>
+
+              {/* Min Amount */}
+              <div>
+                <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 block">Min Amount</label>
+                <input
+                  type="number"
+                  placeholder="₹0"
+                  value={filterMinAmount}
+                  onChange={(e) => setFilterMinAmount(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+
+              {/* Max Amount */}
+              <div>
+                <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 block">Max Amount</label>
+                <input
+                  type="number"
+                  placeholder="₹∞"
+                  value={filterMaxAmount}
+                  onChange={(e) => setFilterMaxAmount(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+
+              {/* Contact Filter */}
+              <div>
+                <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 block">Contact</label>
+                <select
+                  value={filterContact}
+                  onChange={(e) => setFilterContact(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="all">All Contacts</option>
+                  {transactions
+                    .filter(t => t.split && t.split.length > 0)
+                    .flatMap(t => t.split.map((s: any) => s.name))
+                    .filter((v, i, a) => a.indexOf(v) === i)
+                    .map(name => (
+                      <option key={name} value={name}>{name}</option>
+                    ))}
+                </select>
+              </div>
+            </div>
+
+            {(filterCategory !== 'all' || filterMinAmount || filterMaxAmount || filterContact !== 'all') && (
+              <button
+                onClick={() => {
+                  setFilterCategory('all');
+                  setFilterMinAmount('');
+                  setFilterMaxAmount('');
+                  setFilterContact('all');
+                }}
+                className="text-xs text-primary hover:underline font-semibold"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="overflow-x-auto -mx-4 sm:mx-0">
           {transactions && transactions.length > 0 ? (
