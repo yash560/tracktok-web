@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthContext';
+import { useProtectedPage } from '@/lib/useProtectedPage';
 import {
   ArrowLeft,
   Users,
@@ -11,11 +12,11 @@ import {
   CheckCircle,
   AlertCircle,
   Eye,
-  Download,
   Printer,
   Send,
   TrendingDown,
   TrendingUp,
+  Edit2,
 } from 'lucide-react';
 import axios from 'axios';
 import { SplitGroup, Invoice } from '@/types';
@@ -114,11 +115,17 @@ interface PaymentState {
   isProcessing: boolean;
 }
 
+interface EditNameState {
+  isOpen: boolean;
+  newName: string;
+  isProcessing: boolean;
+}
+
 export default function SplitGroupPage() {
   const params = useParams();
   const router = useRouter();
   const { loading: authLoading, user } = useAuth();
-  console.log(user)
+  useProtectedPage();
   const id = params.id as string;
   const [data, setData] = useState<SplitGroupResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -133,6 +140,12 @@ export default function SplitGroupPage() {
     isProcessing: false,
   });
   const [paymentSuccess, setPaymentSuccess] = useState<string | null>(null);
+  const [editNameModal, setEditNameModal] = useState<EditNameState>({
+    isOpen: false,
+    newName: '',
+    isProcessing: false,
+  });
+  const [showAllExpenses, setShowAllExpenses] = useState(false);
 
   useEffect(() => {
     const fetchSplitGroup = async () => {
@@ -150,8 +163,10 @@ export default function SplitGroupPage() {
 
           setSettlements(activeSettlements);
         }
-      } catch (err) {
-        setError('Failed to load split group');
+      } catch (err: any) {
+        if (err.response?.status !== 401) {
+          setError('Failed to load split group');
+        }
         console.error('Error fetching split group:', err);
       } finally {
         setLoading(false);
@@ -160,6 +175,8 @@ export default function SplitGroupPage() {
 
     if (id && !authLoading && user) {
       fetchSplitGroup();
+    } else if (id && !authLoading && !user) {
+      setLoading(false);
     }
   }, [id, authLoading, user]);
 
@@ -184,6 +201,65 @@ export default function SplitGroupPage() {
       isProcessing: false,
     });
     setPaymentSuccess(null);
+  };
+
+  const openEditNameModal = () => {
+    setEditNameModal({
+      isOpen: true,
+      newName: data?.splitGroup.name || '',
+      isProcessing: false,
+    });
+  };
+
+  const closeEditNameModal = () => {
+    setEditNameModal({
+      isOpen: false,
+      newName: '',
+      isProcessing: false,
+    });
+  };
+
+  const handleSaveName = async () => {
+    if (!editNameModal.newName || editNameModal.newName.trim().length === 0) {
+      alert('Split group name cannot be empty');
+      return;
+    }
+
+    if (editNameModal.newName === data?.splitGroup.name) {
+      closeEditNameModal();
+      return;
+    }
+
+    setEditNameModal((prev) => ({ ...prev, isProcessing: true }));
+
+    try {
+      const response = await axios.patch(
+        `/api/split-groups/${id}`,
+        { name: editNameModal.newName.trim() },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+          },
+        }
+      );
+
+      if (response.status === 200 && data) {
+        setData({
+          ...data,
+          splitGroup: {
+            ...data.splitGroup,
+            name: editNameModal.newName.trim(),
+          },
+        });
+        closeEditNameModal();
+      }
+    } catch (err: any) {
+      console.error('Error updating split group name:', err);
+      const errorMsg = err.response?.data?.message || err.message || 'Failed to update name';
+      alert(errorMsg);
+    } finally {
+      setEditNameModal((prev) => ({ ...prev, isProcessing: false }));
+    }
   };
 
   const handlePayment = async () => {
@@ -271,7 +347,7 @@ export default function SplitGroupPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-dark-bg p-4 md:p-8">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <button
             onClick={() => router.back()}
             className="flex items-center gap-2 text-primary hover:text-primary-dark transition"
@@ -281,8 +357,8 @@ export default function SplitGroupPage() {
           </button>
           <div className="flex gap-2">
             <button
-              onClick={() => window.print()}
-              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+              onClick={() => globalThis.print()}
+              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition text-sm"
               title="Print"
             >
               <Printer className="w-5 h-5" />
@@ -292,49 +368,58 @@ export default function SplitGroupPage() {
         </div>
 
         {/* Main Content */}
-        <div className="bg-white dark:bg-dark-card rounded-2xl shadow-lg p-8 md:p-12">
+        <div className="bg-white dark:bg-dark-card rounded-2xl shadow-lg p-4 sm:p-8 md:p-12">
           {/* Split Group Header */}
           <div className="border-b-2 border-gray-200 dark:border-gray-700 pb-8 mb-8">
-            <div className="flex items-start justify-between mb-6">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <Users className="w-6 h-6 text-primary" />
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-4 mb-6">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
+                  <Users className="w-5 sm:w-6 h-5 sm:h-6 text-primary flex-shrink-0" />
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
                     {splitGroup.name}
                   </h1>
+                  <button
+                    onClick={openEditNameModal}
+                    className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+                    title="Edit split group name"
+                  >
+                    <Edit2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                  </button>
                 </div>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
                   Split group with {splitGroup.contacts.length} members
                 </p>
               </div>
-              <div className="text-right">
+              <div className="flex-shrink-0">
                 <div
-                  className={`inline-block px-4 py-2 rounded-lg font-semibold flex items-center gap-2 ${isSettled
+                  className={`inline-block px-3 sm:px-4 py-2 rounded-lg font-semibold flex items-center gap-2 text-sm sm:text-base ${isSettled
                     ? 'bg-success/10 text-success'
                     : 'bg-warning/10 text-warning'
                     }`}
                 >
                   {isSettled ? (
                     <>
-                      <CheckCircle className="w-5 h-5" />
-                      SETTLED
+                      <CheckCircle className="w-4 sm:w-5 h-4 sm:h-5" />
+                      <span className="hidden sm:inline">SETTLED</span>
+                      <span className="sm:hidden">SETTLED</span>
                     </>
                   ) : (
                     <>
-                      <AlertCircle className="w-5 h-5" />
-                      ACTIVE
+                      <AlertCircle className="w-4 sm:w-5 h-4 sm:h-5" />
+                      <span className="hidden sm:inline">ACTIVE</span>
+                      <span className="sm:hidden">ACTIVE</span>
                     </>
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div>
-                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase mb-2">
+                <p className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase mb-2">
                   Created
                 </p>
-                <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                <p className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
                   {new Date(splitGroup.createdAt || '').toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
@@ -343,21 +428,21 @@ export default function SplitGroupPage() {
                 </p>
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase mb-2">
+                <p className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase mb-2">
                   Total Amount
                 </p>
-                <p className="text-lg font-bold text-danger">₹{totalAmount.toFixed(2)}</p>
+                <p className="text-base sm:text-lg font-bold text-danger">₹{totalAmount.toFixed(2)}</p>
               </div>
             </div>
           </div>
 
           {/* Members Section */}
           <div className="mb-12">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
               <Users className="w-5 h-5 text-primary" />
               Group Members
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {splitGroup.contacts.map((contact) => (
                 <div
                   key={contact.contactId}
@@ -374,7 +459,7 @@ export default function SplitGroupPage() {
 
           {/* Expenses Section */}
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-primary" />
               Linked Expenses ({expenses.length})
             </h2>
@@ -383,73 +468,93 @@ export default function SplitGroupPage() {
                 <p className="text-gray-600 dark:text-gray-400">No expenses in this split group</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {expenses.map((expense) => (
-                  <div
-                    key={expense._id}
-                    className="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary dark:hover:border-primary transition"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 dark:text-white text-lg mb-2">
-                          {expense.description}
-                        </h3>
-                        <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
-                          {expense.date && (
-                            <div className="flex items-center gap-1">
-                              <Calendar className="w-4 h-4" />
-                              {new Date(expense.date).toLocaleDateString()}
-                            </div>
-                          )}
-                          {expense.category && (
-                            <div className="inline-block px-2 py-1 bg-blue-100 dark:bg-blue-900/30 rounded text-blue-700 dark:text-blue-400 text-xs font-medium capitalize">
-                              {expense.category}
+              <>
+                <div className="space-y-4">
+                  {(showAllExpenses ? expenses : expenses.slice(0, 2)).map((expense) => (
+                    <div
+                      key={expense._id}
+                      className="p-4 sm:p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary dark:hover:border-primary transition"
+                    >
+                      <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-900 dark:text-white text-base sm:text-lg mb-2 break-words">
+                            {expense.description}
+                          </h3>
+                          <div className="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3">
+                            {expense.date && (
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                <Calendar className="w-4 h-4" />
+                                {new Date(expense.date).toLocaleDateString()}
+                              </div>
+                            )}
+                            {expense.category && (
+                              <div className="inline-block px-2 py-1 bg-blue-100 dark:bg-blue-900/30 rounded text-blue-700 dark:text-blue-400 text-xs font-medium capitalize flex-shrink-0">
+                                {expense.category}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Split breakdown for this expense */}
+                          {expense.split && expense.split.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                              <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase mb-2">
+                                Split:
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {expense.split.map((split) => (
+                                  <span
+                                    key={split.$id || split.name}
+                                    className="text-xs px-2 py-1 bg-white dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 break-words"
+                                  >
+                                    {split.name}: ₹{split.amount.toFixed(2)}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
                           )}
                         </div>
 
-                        {/* Split breakdown for this expense */}
-                        {expense.split && expense.split.length > 0 && (
-                          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                            <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase mb-2">
-                              Split:
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                              {expense.split.map((split) => (
-                                <span
-                                  key={split.$id || split.name}
-                                  className="text-xs px-2 py-1 bg-white dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
-                                >
-                                  {split.name}: ₹{split.amount.toFixed(2)}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-danger mb-3">
-                          ₹{expense.amount.toFixed(2)}
-                        </p>
-                        <Link
-                          href={`/invoice/${expense.code || expense._id}`}
-                          className="inline-flex items-center gap-1 px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition text-sm font-medium"
-                        >
-                          <Eye className="w-4 h-4" />
-                          View
-                        </Link>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-xl sm:text-2xl font-bold text-danger mb-3">
+                            ₹{expense.amount.toFixed(2)}
+                          </p>
+                          <Link
+                            href={`/invoice/${expense.code || expense._id}`}
+                            className="inline-flex items-center gap-1 px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition text-xs sm:text-sm font-medium whitespace-nowrap"
+                          >
+                            <Eye className="w-4 h-4" />
+                            <span>View</span>
+                          </Link>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+
+                {!showAllExpenses && expenses.length > 2 && (
+                  <button
+                    onClick={() => setShowAllExpenses(true)}
+                    className="mt-6 w-full sm:w-auto px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition font-medium text-sm sm:text-base"
+                  >
+                    View All {expenses.length} Expenses
+                  </button>
+                )}
+
+                {showAllExpenses && expenses.length > 2 && (
+                  <button
+                    onClick={() => setShowAllExpenses(false)}
+                    className="mt-6 w-full sm:w-auto px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition font-medium text-sm sm:text-base"
+                  >
+                    Show Less
+                  </button>
+                )}
+              </>
             )}
           </div>
 
           {/* Settlement Summary Section */}
           <div className="my-12">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-primary" />
               Settlement Status
             </h2>
@@ -462,10 +567,10 @@ export default function SplitGroupPage() {
             ) : (
               <div className="space-y-4">
                 {/* You Owe Section */}
-                {settlements.filter((s) => s.type === 'owes').length > 0 && (
-                  <div className="p-6 bg-warning/10 border border-warning/30 rounded-lg">
-                    <h3 className="font-semibold text-warning mb-4 flex items-center gap-2">
-                      <TrendingDown className="w-5 h-5" />
+                {settlements.some((s) => s.type === 'owes') && (
+                  <div className="p-4 sm:p-6 bg-warning/10 border border-warning/30 rounded-lg">
+                    <h3 className="font-semibold text-warning mb-4 flex items-center gap-2 text-sm sm:text-base">
+                      <TrendingDown className="w-5 h-5 flex-shrink-0" />
                       You Owe
                     </h3>
                     <div className="space-y-3">
@@ -474,10 +579,10 @@ export default function SplitGroupPage() {
                         .map((settlement) => (
                           <div
                             key={`${settlement.memberPhone}-owes`}
-                            className="flex items-center justify-between p-4 bg-white dark:bg-gray-700 rounded-lg"
+                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 sm:p-4 bg-white dark:bg-gray-700 rounded-lg"
                           >
-                            <div>
-                              <p className="font-semibold text-gray-900 dark:text-white">
+                            <div className="min-w-0">
+                              <p className="font-semibold text-gray-900 dark:text-white truncate">
                                 {settlement.memberName}
                               </p>
                               <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -486,7 +591,7 @@ export default function SplitGroupPage() {
                             </div>
                             <button
                               onClick={() => openPaymentModal(settlement.memberName, settlement.memberPhone, settlement.amount)}
-                              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 w-full sm:w-auto"
                             >
                               <Send className="w-4 h-4" />
                               Pay
@@ -498,10 +603,10 @@ export default function SplitGroupPage() {
                 )}
 
                 {/* You Are Owed Section */}
-                {settlements.filter((s) => s.type === 'owed').length > 0 && (
-                  <div className="p-6 bg-success/10 border border-success/30 rounded-lg">
-                    <h3 className="font-semibold text-success mb-4 flex items-center gap-2">
-                      <TrendingUp className="w-5 h-5" />
+                {settlements.some((s) => s.type === 'owed') && (
+                  <div className="p-4 sm:p-6 bg-success/10 border border-success/30 rounded-lg">
+                    <h3 className="font-semibold text-success mb-4 flex items-center gap-2 text-sm sm:text-base">
+                      <TrendingUp className="w-5 h-5 flex-shrink-0" />
                       You Are Owed
                     </h3>
                     <div className="space-y-3">
@@ -510,10 +615,10 @@ export default function SplitGroupPage() {
                         .map((settlement) => (
                           <div
                             key={`${settlement.memberPhone}-owed`}
-                            className="flex items-center justify-between p-4 bg-white dark:bg-gray-700 rounded-lg"
+                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 sm:p-4 bg-white dark:bg-gray-700 rounded-lg"
                           >
-                            <div>
-                              <p className="font-semibold text-gray-900 dark:text-white">
+                            <div className="min-w-0">
+                              <p className="font-semibold text-gray-900 dark:text-white truncate">
                                 {settlement.memberName}
                               </p>
                               <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -549,8 +654,8 @@ export default function SplitGroupPage() {
           )}
 
           {/* Footer */}
-          <div className="mt-12 border-t border-gray-200 dark:border-gray-700 pt-8 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="mt-8 sm:mt-12 border-t border-gray-200 dark:border-gray-700 pt-6 sm:pt-8 text-center">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
               Generated on{' '}
               {new Date().toLocaleDateString('en-US', {
                 year: 'numeric',
@@ -637,6 +742,56 @@ export default function SplitGroupPage() {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Edit Name Modal */}
+      {editNameModal.isOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-dark-card rounded-2xl shadow-2xl max-w-md w-full p-8">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+              Edit Split Group Name
+            </h3>
+
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="group-name" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Group Name
+                </label>
+                <input
+                  id="group-name"
+                  type="text"
+                  value={editNameModal.newName}
+                  onChange={(e) =>
+                    setEditNameModal((prev) => ({
+                      ...prev,
+                      newName: e.target.value,
+                    }))
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-primary"
+                  placeholder="Enter group name"
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={closeEditNameModal}
+                  disabled={editNameModal.isProcessing}
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition font-medium disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveName}
+                  disabled={editNameModal.isProcessing}
+                  className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition font-medium disabled:opacity-50"
+                >
+                  {editNameModal.isProcessing ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

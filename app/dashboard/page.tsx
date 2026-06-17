@@ -36,6 +36,7 @@ import {
 } from 'recharts';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import { useProtectedPage } from '@/lib/useProtectedPage';
 import { TransactionDetailModal } from '@/components/TransactionDetailModal';
 
 const COLORS = ['#2F2E51', '#47468A', '#4DD69B', '#F37373', '#FBA94D', '#FB8C00', '#FBC02D', '#3F51B5', '#D81B60'];
@@ -48,6 +49,7 @@ interface DateRange {
 
 export default function DashboardPage() {
   const router = useRouter();
+  useProtectedPage();
   const [timeframe, setTimeframe] = useState('month');
   const [analytics, setAnalytics] = useState<any>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -164,8 +166,10 @@ export default function DashboardPage() {
         setAnalytics(analyticsRes.data);
         setTransactions(transactionsRes.data.transactions);
         setMonthlyTrend(monthlyRes.data.data);
-      } catch (error) {
-        console.error('Failed to fetch dashboard data:', error);
+      } catch (error: any) {
+        if (error.response?.status !== 401) {
+          console.error('Failed to fetch dashboard data:', error);
+        }
       } finally {
         setLoading(false);
       }
@@ -202,36 +206,36 @@ export default function DashboardPage() {
       variants={container}
       initial="hidden"
       animate="show"
-      className="space-y-8"
+      className="space-y-6 sm:space-y-8"
     >
       {/* Date Range Selector */}
       <motion.div variants={item} className="relative">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl overflow-hidden shadow-lg flex-shrink-0">
+        <div className="flex flex-col gap-4 sm:gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl overflow-hidden shadow-lg flex-shrink-0">
               <Image src="/logo.png" alt="TrackTok Logo" width={48} height={48} className="w-full h-full object-cover" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">Track your finances here</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Track your finances here</p>
             </div>
           </div>
 
           <div className="relative">
             <button
               onClick={() => setShowDatePicker(!showDatePicker)}
-              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition w-full sm:w-auto"
             >
-              <Calendar className="w-5 h-5 text-primary" />
-              <span className="font-medium text-gray-700 dark:text-gray-300">{getDateRangeLabel()}</span>
+              <Calendar className="w-4 sm:w-5 h-4 sm:h-5 text-primary flex-shrink-0" />
+              <span className="font-medium text-xs sm:text-sm text-gray-700 dark:text-gray-300 truncate">{getDateRangeLabel()}</span>
             </button>
 
             {showDatePicker && (
-              <div className="absolute right-0 mt-2 bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 w-64">
-                <div className="p-4 space-y-2">
+              <div className="absolute right-0 mt-2 bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 w-full sm:w-64 max-w-xs">
+                <div className="p-3 sm:p-4 space-y-2">
                   <button
                     onClick={() => handleDateRangeChange('current-month')}
-                    className={`w-full text-left px-3 py-2 rounded-lg transition ${dateRange.type === 'current-month'
+                    className={`w-full text-left px-2 sm:px-3 py-2 text-xs sm:text-sm rounded-lg transition ${dateRange.type === 'current-month'
                       ? 'bg-primary text-white'
                       : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                       }`}
@@ -240,7 +244,7 @@ export default function DashboardPage() {
                   </button>
                   <button
                     onClick={() => handleDateRangeChange('last-month')}
-                    className={`w-full text-left px-3 py-2 rounded-lg transition ${dateRange.type === 'last-month'
+                    className={`w-full text-left px-2 sm:px-3 py-2 text-xs sm:text-sm rounded-lg transition ${dateRange.type === 'last-month'
                       ? 'bg-primary text-white'
                       : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                       }`}
@@ -249,7 +253,7 @@ export default function DashboardPage() {
                   </button>
                   <button
                     onClick={() => handleDateRangeChange('last-3-months')}
-                    className={`w-full text-left px-3 py-2 rounded-lg transition ${dateRange.type === 'last-3-months'
+                    className={`w-full text-left px-2 sm:px-3 py-2 text-xs sm:text-sm rounded-lg transition ${dateRange.type === 'last-3-months'
                       ? 'bg-primary text-white'
                       : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                       }`}
@@ -258,7 +262,7 @@ export default function DashboardPage() {
                   </button>
                   <button
                     onClick={() => handleDateRangeChange('last-6-months')}
-                    className={`w-full text-left px-3 py-2 rounded-lg transition ${dateRange.type === 'last-6-months'
+                    className={`w-full text-left px-2 sm:px-3 py-2 text-xs sm:text-sm rounded-lg transition ${dateRange.type === 'last-6-months'
                       ? 'bg-primary text-white'
                       : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                       }`}
@@ -267,7 +271,7 @@ export default function DashboardPage() {
                   </button>
                   <button
                     onClick={() => handleDateRangeChange('last-12-months')}
-                    className={`w-full text-left px-3 py-2 rounded-lg transition ${dateRange.type === 'last-12-months'
+                    className={`w-full text-left px-2 sm:px-3 py-2 text-xs sm:text-sm rounded-lg transition ${dateRange.type === 'last-12-months'
                       ? 'bg-primary text-white'
                       : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                       }`}
@@ -276,7 +280,7 @@ export default function DashboardPage() {
                   </button>
                   <button
                     onClick={() => handleDateRangeChange('all-time')}
-                    className={`w-full text-left px-3 py-2 rounded-lg transition ${dateRange.type === 'all-time'
+                    className={`w-full text-left px-2 sm:px-3 py-2 text-xs sm:text-sm rounded-lg transition ${dateRange.type === 'all-time'
                       ? 'bg-primary text-white'
                       : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                       }`}
@@ -291,17 +295,17 @@ export default function DashboardPage() {
                         type="date"
                         value={customStart}
                         onChange={(e) => setCustomStart(e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-2 py-1 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       />
                       <input
                         type="date"
                         value={customEnd}
                         onChange={(e) => setCustomEnd(e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-2 py-1 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       />
                       <button
                         onClick={handleCustomDateSubmit}
-                        className="w-full px-3 py-1 bg-primary text-white text-sm rounded hover:bg-primary-dark transition"
+                        className="w-full px-2 sm:px-3 py-2 bg-primary text-white text-xs sm:text-sm rounded hover:bg-primary-dark transition"
                       >
                         Apply
                       </button>
@@ -315,62 +319,62 @@ export default function DashboardPage() {
       </motion.div>
       {/* Balance Section */}
       <motion.div variants={item}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Total Balance */}
           <div className="card bg-gradient-to-br from-primary to-primary-light text-white">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Total Balance</h3>
-              <Wallet className="w-8 h-8 opacity-80" />
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h3 className="text-base sm:text-lg font-semibold">Total Balance</h3>
+              <Wallet className="w-6 sm:w-8 h-6 sm:h-8 opacity-80" />
             </div>
-            <p className="text-4xl font-bold font-display mb-2">
+            <p className="text-3xl sm:text-4xl font-bold font-display mb-2">
               ₹{analytics?.balance?.toFixed(2) || '0.00'}
             </p>
-            <p className="text-white/80 text-sm">Across all accounts</p>
+            <p className="text-white/80 text-xs sm:text-sm">Across all accounts</p>
           </div>
 
           {/* Income */}
           <div className="card">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Income</h3>
-              <div className="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-success" />
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h3 className="text-base sm:text-lg font-semibold">Income</h3>
+              <div className="w-8 sm:w-10 h-8 sm:h-10 bg-success/10 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-5 sm:w-6 h-5 sm:h-6 text-success" />
               </div>
             </div>
-            <p className="text-3xl font-bold text-success font-display">
+            <p className="text-2xl sm:text-3xl font-bold text-success font-display">
               ₹{analytics?.totalIncome?.toFixed(2) || '0.00'}
             </p>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">For selected period</p>
+            <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">For selected period</p>
           </div>
 
           {/* Expense */}
           <div className="card">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Expenses</h3>
-              <div className="w-10 h-10 bg-danger/10 rounded-lg flex items-center justify-center">
-                <TrendingDown className="w-6 h-6 text-danger" />
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h3 className="text-base sm:text-lg font-semibold">Expenses</h3>
+              <div className="w-8 sm:w-10 h-8 sm:h-10 bg-danger/10 rounded-lg flex items-center justify-center">
+                <TrendingDown className="w-5 sm:w-6 h-5 sm:h-6 text-danger" />
               </div>
             </div>
-            <p className="text-3xl font-bold text-danger font-display">
+            <p className="text-2xl sm:text-3xl font-bold text-danger font-display">
               ₹{analytics?.totalExpense?.toFixed(2) || '0.00'}
             </p>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">For selected period</p>
+            <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">For selected period</p>
           </div>
         </div>
       </motion.div>
 
       {/* Key Metrics Section */}
-      <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Average Transaction */}
         <div className="card hover:shadow-lg transition-shadow">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Avg. Transaction</p>
-              <p className="text-2xl font-bold text-primary mt-1">
+          <div className="flex items-start justify-between gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">Avg. Transaction</p>
+              <p className="text-xl sm:text-2xl font-bold text-primary mt-1 truncate">
                 ₹{analytics?.transactionStats?.averageTransaction?.toFixed(0) || '0'}
               </p>
             </div>
-            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-              <Zap className="w-5 h-5 text-primary" />
+            <div className="w-8 sm:w-10 h-8 sm:h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Zap className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
             </div>
           </div>
           <p className="text-xs text-gray-500">Average of all transactions</p>
@@ -378,15 +382,15 @@ export default function DashboardPage() {
 
         {/* Largest Transaction */}
         <div className="card hover:shadow-lg transition-shadow">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Largest Expense</p>
-              <p className="text-2xl font-bold text-danger mt-1">
+          <div className="flex items-start justify-between gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">Largest Expense</p>
+              <p className="text-xl sm:text-2xl font-bold text-danger mt-1 truncate">
                 ₹{analytics?.transactionStats?.largestTransaction?.toFixed(0) || '0'}
               </p>
             </div>
-            <div className="w-10 h-10 bg-danger/10 rounded-lg flex items-center justify-center">
-              <Award className="w-5 h-5 text-danger" />
+            <div className="w-8 sm:w-10 h-8 sm:h-10 bg-danger/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Award className="w-4 sm:w-5 h-4 sm:h-5 text-danger" />
             </div>
           </div>
           <p className="text-xs text-gray-500">{analytics?.transactionStats?.largestTransactionCategory || 'N/A'}</p>
@@ -394,15 +398,15 @@ export default function DashboardPage() {
 
         {/* Total Transactions */}
         <div className="card hover:shadow-lg transition-shadow">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Total Expenses</p>
-              <p className="text-2xl font-bold text-blue-600 mt-1">
+          <div className="flex items-start justify-between gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">Total Expenses</p>
+              <p className="text-xl sm:text-2xl font-bold text-blue-600 mt-1 truncate">
                 {analytics?.transactionStats?.totalExpenses || '0'}
               </p>
             </div>
-            <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
-              <ShoppingCart className="w-5 h-5 text-blue-600" />
+            <div className="w-8 sm:w-10 h-8 sm:h-10 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <ShoppingCart className="w-4 sm:w-5 h-4 sm:h-5 text-blue-600" />
             </div>
           </div>
           <p className="text-xs text-gray-500">Number of transactions</p>
@@ -410,15 +414,15 @@ export default function DashboardPage() {
 
         {/* Top Payment Method */}
         <div className="card hover:shadow-lg transition-shadow">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Top Payment</p>
-              <p className="text-2xl font-bold text-purple-600 mt-1 truncate">
+          <div className="flex items-start justify-between gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">Top Payment</p>
+              <p className="text-xl sm:text-2xl font-bold text-purple-600 mt-1 truncate">
                 {analytics?.transactionStats?.topPaymentSource || 'N/A'}
               </p>
             </div>
-            <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
-              <CreditCard className="w-5 h-5 text-purple-600" />
+            <div className="w-8 sm:w-10 h-8 sm:h-10 bg-purple-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <CreditCard className="w-4 sm:w-5 h-4 sm:h-5 text-purple-600" />
             </div>
           </div>
           <p className="text-xs text-gray-500">Most used payment method</p>
@@ -426,18 +430,18 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* Advanced Metrics Section */}
-      <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {/* Savings Rate */}
         <div className="card hover:shadow-lg transition-shadow">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Savings Rate</p>
-              <p className="text-2xl font-bold text-green-600 mt-1">
+          <div className="flex items-start justify-between gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">Savings Rate</p>
+              <p className="text-xl sm:text-2xl font-bold text-green-600 mt-1">
                 {analytics?.transactionStats?.savingsRate?.toFixed(1) || '0'}%
               </p>
             </div>
-            <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
-              <Percent className="w-5 h-5 text-green-600" />
+            <div className="w-8 sm:w-10 h-8 sm:h-10 bg-green-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Percent className="w-4 sm:w-5 h-4 sm:h-5 text-green-600" />
             </div>
           </div>
           <p className="text-xs text-gray-500">Income vs total amount ({analytics?.totalIncome?.toFixed(0)} of {(analytics?.totalIncome + analytics?.totalExpense)?.toFixed(0)})</p>
@@ -445,15 +449,15 @@ export default function DashboardPage() {
 
         {/* Top Category */}
         <div className="card hover:shadow-lg transition-shadow">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Top Category</p>
-              <p className="text-2xl font-bold text-orange-600 mt-1 capitalize truncate">
+          <div className="flex items-start justify-between gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">Top Category</p>
+              <p className="text-xl sm:text-2xl font-bold text-orange-600 mt-1 capitalize truncate">
                 {analytics?.transactionStats?.topCategory || 'N/A'}
               </p>
             </div>
-            <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
-              <Award className="w-5 h-5 text-orange-600" />
+            <div className="w-8 sm:w-10 h-8 sm:h-10 bg-orange-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Award className="w-4 sm:w-5 h-4 sm:h-5 text-orange-600" />
             </div>
           </div>
           <p className="text-xs text-gray-500">₹{analytics?.transactionStats?.topCategoryAmount?.toFixed(0) || '0'} ({analytics?.transactionStats?.topCategoryPercentage?.toFixed(1)}% of spending)</p>
@@ -461,15 +465,15 @@ export default function DashboardPage() {
 
         {/* Category Diversity */}
         <div className="card hover:shadow-lg transition-shadow">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Diversity Score</p>
-              <p className="text-2xl font-bold text-indigo-600 mt-1">
+          <div className="flex items-start justify-between gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">Diversity Score</p>
+              <p className="text-xl sm:text-2xl font-bold text-indigo-600 mt-1">
                 {analytics?.transactionStats?.categoryDiversity?.toFixed(0) || '0'}%
               </p>
             </div>
-            <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center">
-              <Layers className="w-5 h-5 text-indigo-600" />
+            <div className="w-8 sm:w-10 h-8 sm:h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Layers className="w-4 sm:w-5 h-4 sm:h-5 text-indigo-600" />
             </div>
           </div>
           <div className="space-y-2">
@@ -487,22 +491,22 @@ export default function DashboardPage() {
       {/* Top Merchants Section */}
       {analytics?.transactionStats?.topMerchants && analytics.transactionStats.topMerchants.length > 0 && (
         <motion.div variants={item} className="card">
-          <h3 className="text-lg font-bold mb-6">Top Merchants</h3>
-          <div className="space-y-4">
+          <h3 className="text-base sm:text-lg font-bold mb-4 sm:mb-6">Top Merchants</h3>
+          <div className="space-y-3 sm:space-y-4">
             {analytics.transactionStats.topMerchants.map((merchant: any, index: number) => (
-              <div key={merchant.name} className="flex items-center justify-between">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center font-semibold text-sm text-primary">
+              <div key={merchant.name} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <div className="w-7 sm:w-8 h-7 sm:h-8 bg-primary/10 rounded-lg flex items-center justify-center font-semibold text-xs sm:text-sm text-primary flex-shrink-0">
                     {index + 1}
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-sm truncate">{merchant.name}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-xs sm:text-sm truncate">{merchant.name}</p>
                     <p className="text-xs text-gray-500">{merchant.count} transaction{merchant.count > 1 ? 's' : ''}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-sm">₹{merchant.amount.toFixed(0)}</p>
-                  <div className="w-16 bg-gray-100 dark:bg-gray-800 rounded-full h-1.5 mt-1">
+                  <p className="font-bold text-xs sm:text-sm">₹{merchant.amount.toFixed(0)}</p>
+                  <div className="w-12 sm:w-16 bg-gray-100 dark:bg-gray-800 rounded-full h-1.5 mt-1">
                     <div
                       className="bg-primary h-1.5 rounded-full"
                       style={{ width: `${(merchant.amount / (analytics.transactionStats.topMerchants[0]?.amount || 1)) * 100}%` }}
@@ -516,17 +520,17 @@ export default function DashboardPage() {
       )}
 
       {/* Charts Section */}
-      <motion.div variants={item} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <motion.div variants={item} className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Monthly Trend Chart */}
         <div className="lg:col-span-2 card">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold">Monthly Trend</h3>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <h3 className="text-base sm:text-lg font-bold">Monthly Trend</h3>
             <div className="flex gap-2">
               {['month', 'year'].map((period) => (
                 <button
                   key={period}
                   onClick={() => setTimeframe(period)}
-                  className={`px-3 py-1 text-sm rounded-lg transition ${timeframe === period
+                  className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded-lg transition ${timeframe === period
                     ? 'bg-primary text-white'
                     : 'bg-gray-100 dark:bg-dark-card text-gray-600 dark:text-gray-400 hover:bg-gray-200'
                     }`}
@@ -537,25 +541,27 @@ export default function DashboardPage() {
             </div>
           </div>
           {monthlyTrend && monthlyTrend.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={monthlyTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
-                <XAxis dataKey="month" stroke="#999" />
-                <YAxis stroke="#999" />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="income" stroke="#4DD69B" strokeWidth={2} dot={{ fill: '#4DD69B', r: 5 }} />
-                <Line type="monotone" dataKey="expense" stroke="#F37373" strokeWidth={2} dot={{ fill: '#F37373', r: 5 }} />
-              </LineChart>
-            </ResponsiveContainer>
+            <div className="w-full overflow-x-auto -mx-4 sm:mx-0">
+              <ResponsiveContainer width="100%" height={250} minWidth={280}>
+                <LineChart data={monthlyTrend}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+                  <XAxis dataKey="month" stroke="#999" tick={{ fontSize: 12 }} />
+                  <YAxis stroke="#999" tick={{ fontSize: 12 }} />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="income" stroke="#4DD69B" strokeWidth={2} dot={{ fill: '#4DD69B', r: 4 }} />
+                  <Line type="monotone" dataKey="expense" stroke="#F37373" strokeWidth={2} dot={{ fill: '#F37373', r: 4 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
-            <div className="h-[300px] flex items-center justify-center">
+            <div className="h-[250px] flex items-center justify-center">
               <div className="text-center">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <TrendingUp className="w-8 h-8 text-primary" />
+                <div className="w-12 sm:w-16 h-12 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                  <TrendingUp className="w-6 sm:w-8 h-6 sm:h-8 text-primary" />
                 </div>
-                <p className="text-gray-600 dark:text-gray-400 font-medium">No trend data available</p>
-                <p className="text-sm text-gray-500 mt-1">Monthly trends will appear after you add transactions</p>
+                <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 font-medium">No trend data available</p>
+                <p className="text-xs text-gray-500 mt-1">Monthly trends will appear after you add transactions</p>
               </div>
             </div>
           )}
@@ -563,47 +569,49 @@ export default function DashboardPage() {
 
         {/* Spending by Category */}
         <div className="card">
-          <h3 className="text-lg font-bold mb-6">Spending by Category</h3>
+          <h3 className="text-base sm:text-lg font-bold mb-4 sm:mb-6">Spending by Category</h3>
           {analytics?.categoryBreakdown && analytics.categoryBreakdown.length > 0 ? (
             <>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={analytics?.categoryBreakdown}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    dataKey="amount"
-                    nameKey="category"
-                  >
-                    {analytics?.categoryBreakdown?.map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="mt-4 space-y-2 h-[150px] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="w-full overflow-x-auto -mx-4 sm:mx-0">
+                <ResponsiveContainer width="100%" height={250} minWidth={280}>
+                  <PieChart>
+                    <Pie
+                      data={analytics?.categoryBreakdown}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={40}
+                      outerRadius={70}
+                      dataKey="amount"
+                      nameKey="category"
+                    >
+                      {analytics?.categoryBreakdown?.map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="mt-3 sm:mt-4 space-y-2 h-[150px] overflow-y-auto pr-2 custom-scrollbar">
                 {analytics?.categoryBreakdown?.map((cat: any, index: number) => (
-                  <div key={cat.category} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                      <span className="text-gray-600 dark:text-gray-400 capitalize">{cat.category}</span>
+                  <div key={cat.category} className="flex items-center justify-between text-xs sm:text-sm">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                      <span className="text-gray-600 dark:text-gray-400 capitalize truncate">{cat.category}</span>
                     </div>
-                    <span className="font-semibold">₹{cat.amount.toFixed(2)}</span>
+                    <span className="font-semibold flex-shrink-0 ml-2">₹{cat.amount.toFixed(0)}</span>
                   </div>
                 ))}
               </div>
             </>
           ) : (
-            <div className="h-[300px] flex items-center justify-center">
+            <div className="h-[250px] flex items-center justify-center">
               <div className="text-center">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <ShoppingCart className="w-8 h-8 text-primary" />
+                <div className="w-12 sm:w-16 h-12 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                  <ShoppingCart className="w-6 sm:w-8 h-6 sm:h-8 text-primary" />
                 </div>
-                <p className="text-gray-600 dark:text-gray-400 font-medium">No spending data</p>
-                <p className="text-sm text-gray-500 mt-1">Add transactions to see category breakdown</p>
+                <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 font-medium">No spending data</p>
+                <p className="text-xs text-gray-500 mt-1">Add transactions to see category breakdown</p>
               </div>
             </div>
           )}
@@ -611,31 +619,33 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* Analysis Section (Source & Geographic) */}
-      <motion.div variants={item} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <motion.div variants={item} className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Source Analysis */}
         <div className="card">
-          <div className="flex items-center gap-3 mb-6">
-            <CreditCard className="w-6 h-6 text-primary" />
-            <h3 className="text-lg font-bold">Source Analysis</h3>
+          <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <CreditCard className="w-5 sm:w-6 h-5 sm:h-6 text-primary flex-shrink-0" />
+            <h3 className="text-base sm:text-lg font-bold">Source Analysis</h3>
           </div>
           {analytics?.sourceAnalysis && analytics.sourceAnalysis.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={analytics?.sourceAnalysis}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
-                <XAxis dataKey="source" stroke="#999" />
-                <YAxis stroke="#999" />
-                <Tooltip />
-                <Bar dataKey="amount" fill="#47468A" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="w-full overflow-x-auto -mx-4 sm:mx-0">
+              <ResponsiveContainer width="100%" height={200} minWidth={280}>
+                <BarChart data={analytics?.sourceAnalysis}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+                  <XAxis dataKey="source" stroke="#999" tick={{ fontSize: 12 }} />
+                  <YAxis stroke="#999" tick={{ fontSize: 12 }} />
+                  <Tooltip />
+                  <Bar dataKey="amount" fill="#47468A" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
-            <div className="h-[250px] flex items-center justify-center">
+            <div className="h-[200px] flex items-center justify-center">
               <div className="text-center">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <CreditCard className="w-8 h-8 text-primary" />
+                <div className="w-12 sm:w-16 h-12 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                  <CreditCard className="w-6 sm:w-8 h-6 sm:h-8 text-primary" />
                 </div>
-                <p className="text-gray-600 dark:text-gray-400 font-medium">No payment source data</p>
-                <p className="text-sm text-gray-500 mt-1">Data will appear as you add transactions</p>
+                <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 font-medium">No payment source data</p>
+                <p className="text-xs text-gray-500 mt-1">Data will appear as you add transactions</p>
               </div>
             </div>
           )}
@@ -643,17 +653,17 @@ export default function DashboardPage() {
 
         {/* Geographic Insights */}
         <div className="card">
-          <div className="flex items-center gap-3 mb-6">
-            <MapPin className="w-6 h-6 text-primary" />
-            <h3 className="text-lg font-bold">Geographic Insights</h3>
+          <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <MapPin className="w-5 sm:w-6 h-5 sm:h-6 text-primary flex-shrink-0" />
+            <h3 className="text-base sm:text-lg font-bold">Geographic Insights</h3>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {analytics?.geographicInsights?.length > 0 ? (
               analytics.geographicInsights.map((insight: any, index: number) => (
                 <div key={insight.city} className="space-y-2">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="font-semibold">{insight.city}</span>
-                    <span className="text-gray-600">₹{insight.amount.toFixed(2)}</span>
+                  <div className="flex justify-between text-xs sm:text-sm mb-1 gap-2">
+                    <span className="font-semibold truncate">{insight.city}</span>
+                    <span className="text-gray-600 dark:text-gray-400 flex-shrink-0">₹{insight.amount.toFixed(0)}</span>
                   </div>
                   <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
                     <div
@@ -664,13 +674,13 @@ export default function DashboardPage() {
                 </div>
               ))
             ) : (
-              <div className="h-[250px] flex items-center justify-center">
+              <div className="h-[200px] flex items-center justify-center">
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <MapPin className="w-8 h-8 text-primary" />
+                  <div className="w-12 sm:w-16 h-12 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                    <MapPin className="w-6 sm:w-8 h-6 sm:h-8 text-primary" />
                   </div>
-                  <p className="text-gray-600 dark:text-gray-400 font-medium">No location data</p>
-                  <p className="text-sm text-gray-500 mt-1">Transactions with location will appear here</p>
+                  <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 font-medium">No location data</p>
+                  <p className="text-xs text-gray-500 mt-1">Transactions with location will appear here</p>
                 </div>
               </div>
             )}
@@ -680,20 +690,20 @@ export default function DashboardPage() {
 
       {/* Recent Transactions */}
       <motion.div variants={item} className="card">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-bold">Recent Transactions</h3>
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <h3 className="text-base sm:text-lg font-bold">Recent Transactions</h3>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto -mx-4 sm:mx-0">
           {transactions && transactions.length > 0 ? (
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-800">
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-400">Description</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-400">Category</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-400">Date</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-400">Amount</th>
-                  <th className="text-center py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-400">Action</th>
+                  <th className="text-left py-2 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400">Description</th>
+                  <th className="text-left py-2 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400 hidden sm:table-cell">Category</th>
+                  <th className="text-left py-2 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400 hidden md:table-cell">Date</th>
+                  <th className="text-right py-2 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400">Amount</th>
+                  <th className="text-center py-2 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -706,35 +716,35 @@ export default function DashboardPage() {
                     }}
                     className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-dark-card/50 transition cursor-pointer"
                   >
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${transaction.type === 'income' ? 'bg-success/10' : 'bg-danger/10'}`}>
+                    <td className="py-3 sm:py-4 px-3 sm:px-4">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className={`w-8 sm:w-10 h-8 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${transaction.type === 'income' ? 'bg-success/10' : 'bg-danger/10'}`}>
                           {transaction.type === 'income' ? (
-                            <ArrowDownLeft className="w-5 h-5 text-success" />
+                            <ArrowDownLeft className="w-4 sm:w-5 h-4 sm:h-5 text-success" />
                           ) : (
-                            <ArrowUpRight className="w-5 h-5 text-danger" />
+                            <ArrowUpRight className="w-4 sm:w-5 h-4 sm:h-5 text-danger" />
                           )}
                         </div>
-                        <div>
-                          <p className="font-semibold">{transaction.description}</p>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-xs sm:text-sm truncate">{transaction.description}</p>
                           <p className="text-xs text-gray-400">{transaction.source || 'Cash'}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 px-4 text-gray-600 dark:text-gray-400 capitalize">{transaction.category}</td>
-                    <td className="py-4 px-4 text-gray-600 dark:text-gray-400 text-sm">
+                    <td className="py-3 sm:py-4 px-3 sm:px-4 text-gray-600 dark:text-gray-400 capitalize text-xs sm:text-sm hidden sm:table-cell">{transaction.category}</td>
+                    <td className="py-3 sm:py-4 px-3 sm:px-4 text-gray-600 dark:text-gray-400 text-xs sm:text-sm hidden md:table-cell">
                       {new Date(transaction.date).toLocaleDateString()}
                     </td>
-                    <td className={`py-4 px-4 text-right font-semibold ${transaction.type === 'income' ? 'text-success' : 'text-danger'}`}>
-                      {transaction.type === 'income' ? '+' : '-'}₹{Math.abs(transaction.amount).toFixed(2)}
+                    <td className={`py-3 sm:py-4 px-3 sm:px-4 text-right font-semibold text-xs sm:text-sm ${transaction.type === 'income' ? 'text-success' : 'text-danger'}`}>
+                      {transaction.type === 'income' ? '+' : '-'}₹{Math.abs(transaction.amount).toFixed(0)}
                     </td>
-                    <td className="py-4 px-4 text-center">
+                    <td className="py-3 sm:py-4 px-3 sm:px-4 text-center">
                       <button
                         onClick={() => handleViewInvoice(transaction.code)}
-                        className="p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition text-gray-400"
+                        className="p-1.5 sm:p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition text-gray-400"
                         title="View invoice"
                       >
-                        <Eye className="w-4 h-4" />
+                        <Eye className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                       </button>
                     </td>
                   </tr>
@@ -742,12 +752,12 @@ export default function DashboardPage() {
               </tbody>
             </table>
           ) : (
-            <div className="flex flex-col items-center justify-center py-12">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <Wallet className="w-8 h-8 text-primary" />
+            <div className="flex flex-col items-center justify-center py-8 sm:py-12 px-4">
+              <div className="w-12 sm:w-16 h-12 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mb-2 sm:mb-4">
+                <Wallet className="w-6 sm:w-8 h-6 sm:h-8 text-primary" />
               </div>
-              <p className="text-gray-600 dark:text-gray-400 font-medium">No transactions yet</p>
-              <p className="text-sm text-gray-500 mt-1">Your transactions will appear here</p>
+              <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 font-medium">No transactions yet</p>
+              <p className="text-xs text-gray-500 mt-1">Your transactions will appear here</p>
             </div>
           )}
         </div>

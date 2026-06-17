@@ -90,6 +90,20 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       );
     }
 
+    // Generate next payment code
+    const lastPayment = await db
+      .collection('expenses')
+      .findOne(
+        { source: 'Payment', customer_id: splitGroup.customer_id },
+        { sort: { createdAt: -1 } }
+      );
+
+    let nextCode = '000001';
+    if (lastPayment?.ref_number) {
+      const lastCodeNum = Number.parseInt(lastPayment.ref_number, 10);
+      nextCode = String(lastCodeNum + 1).padStart(6, '0');
+    }
+
     // Create expense record for payment (receiver gets 100%)
     const paymentExpense = {
       amount,
@@ -97,7 +111,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       account: 'tracktok',
       date: new Date().toISOString().split('T')[0],
       receiver: '', // Will get receiver name below
-      ref_number: null,
+      ref_number: nextCode,
       source: 'Payment',
       category: 'transfer',
       description: `Payment sent by ${payerPhone} to ${receiverPhone} for split group ${splitGroup.name}`,

@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { User, Mail, Phone, Camera, Save, Loader2, MapPin, Calendar, Users } from 'lucide-react';
 import { useAuth } from '@/components/AuthContext';
+import { useProtectedPage } from '@/lib/useProtectedPage';
 import axios from 'axios';
 
 export default function ProfilePage() {
   const { user } = useAuth();
+  useProtectedPage();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
@@ -65,43 +67,43 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
+    <div className="px-4 sm:px-6 md:px-12 max-w-2xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-bold font-display">Your Profile</h1>
-        <p className="text-gray-600 dark:text-gray-400">Manage your personal information and account security</p>
+        <h1 className="text-2xl sm:text-3xl font-bold font-display">Your Profile</h1>
+        <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400">Manage your personal information and account security</p>
       </div>
 
       <div className="card">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Avatar Section */}
-          <div className="flex flex-col items-center gap-4 py-6">
+          <div className="flex flex-col items-center gap-4 sm:gap-6 py-6">
             <div className="relative group">
-              <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center border-4 border-white dark:border-dark-card shadow-xl overflow-hidden">
+              <div className="w-12 sm:w-16 h-12 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center border-4 border-white dark:border-dark-card shadow-xl overflow-hidden">
                 {user?.avatar ? (
                   <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
                 ) : (
-                  <User className="w-12 h-12 text-primary" />
+                  <User className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
                 )}
               </div>
               <button
                 type="button"
                 className="absolute bottom-0 right-0 p-2 bg-primary text-white rounded-full shadow-lg hover:bg-primary-dark transition group-hover:scale-110"
               >
-                <Camera className="w-4 h-4" />
+                <Camera className="w-4 sm:w-5 h-4 sm:h-5" />
               </button>
             </div>
             <div className="text-center">
-              <h3 className="font-bold text-lg">{formData.displayName || `${formData.firstName} ${formData.lastName}` || user?.email}</h3>
-              <p className="text-sm text-gray-500">{formData.email}</p>
+              <h3 className="font-bold text-lg sm:text-xl">{formData.displayName || `${formData.firstName} ${formData.lastName}` || user?.email}</h3>
+              <p className="text-xs sm:text-sm text-gray-500">{formData.email}</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {/* First Name */}
             <div>
-              <label className="block text-sm font-semibold mb-2">First Name</label>
+              <label className="block text-xs sm:text-sm font-semibold mb-2">First Name</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-gray-400" />
                 <input
                   type="text"
                   value={formData.firstName}
@@ -114,9 +116,9 @@ export default function ProfilePage() {
 
             {/* Last Name */}
             <div>
-              <label className="block text-sm font-semibold mb-2">Last Name</label>
+              <label className="block text-xs sm:text-sm font-semibold mb-2">Last Name</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-gray-400" />
                 <input
                   type="text"
                   value={formData.lastName}
@@ -129,9 +131,9 @@ export default function ProfilePage() {
 
             {/* Display Name */}
             <div>
-              <label className="block text-sm font-semibold mb-2">Display Name</label>
+              <label className="block text-xs sm:text-sm font-semibold mb-2">Display Name</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-gray-400" />
                 <input
                   type="text"
                   value={formData.displayName}
@@ -144,9 +146,9 @@ export default function ProfilePage() {
 
             {/* Nickname */}
             <div>
-              <label className="block text-sm font-semibold mb-2">Nickname</label>
+              <label className="block text-xs sm:text-sm font-semibold mb-2">Nickname</label>
               <div className="relative">
-                <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-gray-400" />
                 <input
                   type="text"
                   value={formData.nickname}
@@ -158,25 +160,25 @@ export default function ProfilePage() {
             </div>
 
             {/* Email */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold mb-2">Email Address</label>
+            <div className="sm:col-span-2">
+              <label className="block text-xs sm:text-sm font-semibold mb-2">Email Address</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-gray-400" />
                 <input
                   type="email"
                   disabled
                   value={formData.email}
-                  className="input-field pl-11 bg-gray-50 dark:bg-dark-bg/50 cursor-not-allowed opacity-70"
+                  className="input-field pl-11 bg-gray-50 dark:bg-dark-bg/50 cursor-not-allowed opacity-70 text-xs sm:text-sm"
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">Email cannot be changed for security reasons.</p>
+              <p className="text-xs sm:text-xs text-gray-500 mt-1">Email cannot be changed for security reasons.</p>
             </div>
 
             {/* Phone Number */}
             <div>
-              <label className="block text-sm font-semibold mb-2">Phone Number</label>
+              <label className="block text-xs sm:text-sm font-semibold mb-2">Phone Number</label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-gray-400" />
                 <input
                   type="tel"
                   placeholder="+1 (555) 000-0000"
@@ -189,11 +191,11 @@ export default function ProfilePage() {
 
             {/* Gender */}
             <div>
-              <label className="block text-sm font-semibold mb-2">Gender</label>
+              <label className="block text-xs sm:text-sm font-semibold mb-2">Gender</label>
               <select
                 value={formData.gender}
                 onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                className="input-field w-full"
+                className="input-field w-full text-xs sm:text-sm"
               >
                 <option value="">Select Gender</option>
                 <option value="male">Male</option>
@@ -205,9 +207,9 @@ export default function ProfilePage() {
 
             {/* Date of Birth */}
             <div>
-              <label className="block text-sm font-semibold mb-2">Date of Birth</label>
+              <label className="block text-xs sm:text-sm font-semibold mb-2">Date of Birth</label>
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-gray-400" />
                 <input
                   type="date"
                   value={formData.dateOfBirth}
@@ -219,9 +221,9 @@ export default function ProfilePage() {
 
             {/* Country Code */}
             <div>
-              <label className="block text-sm font-semibold mb-2">Country Code</label>
+              <label className="block text-xs sm:text-sm font-semibold mb-2">Country Code</label>
               <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-gray-400" />
                 <input
                   type="text"
                   placeholder="IN, US, UK..."
@@ -234,12 +236,12 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="pt-6 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+          <div className="pt-6 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
             {success && (
               <motion.p
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="text-success text-sm font-medium"
+                className="text-success text-xs sm:text-sm font-medium"
               >
                 Profile updated successfully!
               </motion.p>
@@ -248,12 +250,12 @@ export default function ProfilePage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary flex items-center justify-center gap-2 px-8 py-3 disabled:opacity-50"
+              className="btn-primary flex items-center justify-center gap-2 px-4 sm:px-8 py-2 sm:py-3 w-full sm:w-auto disabled:opacity-50 text-xs sm:text-sm"
             >
               {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="w-4 sm:w-5 h-4 sm:h-5 animate-spin" />
               ) : (
-                <Save className="w-5 h-5" />
+                <Save className="w-4 sm:w-5 h-4 sm:h-5" />
               )}
               {loading ? 'Saving...' : 'Save Changes'}
             </button>
@@ -263,11 +265,11 @@ export default function ProfilePage() {
 
       {/* Account Security Placeholder */}
       <div className="card border-danger/20">
-        <h3 className="text-lg font-bold text-danger mb-4">Security</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+        <h3 className="text-lg sm:text-xl font-bold text-danger mb-4 sm:mb-6">Security</h3>
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
           Manage your password and active sessions. For enhanced security, nosotros recommend using 2FA.
         </p>
-        <button className="px-4 py-2 border border-gray-200 dark:border-gray-800 rounded-lg text-sm font-semibold hover:bg-gray-50 transition">
+        <button className="px-4 sm:px-6 py-2 sm:py-3 border border-gray-200 dark:border-gray-800 rounded-lg text-xs sm:text-sm font-semibold hover:bg-gray-50 transition">
           Change Password
         </button>
       </div>

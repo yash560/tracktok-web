@@ -25,7 +25,9 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (user && !authLoading) {
-      router.push('/dashboard');
+      const redirectUrl = localStorage.getItem('redirect_after_auth') || '/dashboard';
+      localStorage.removeItem('redirect_after_auth');
+      router.push(redirectUrl);
     }
   }, [user, authLoading, router]);
 
@@ -71,7 +73,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-12 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-dark-bg dark:to-gray-900">
+    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-dark-bg dark:to-gray-900">
       <div className="w-full max-w-md">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -79,21 +81,21 @@ export default function RegisterPage() {
           transition={{ duration: 0.5 }}
         >
           {/* Header */}
-          <div className="text-center mb-8">
-            <Link href="/" className="inline-flex items-center gap-2 mb-6 hover:opacity-80 transition">
-              <div className="w-10 h-10 rounded-xl overflow-hidden">
+          <div className="text-center mb-6 sm:mb-8">
+            <Link href="/" className="inline-flex items-center gap-2 mb-4 sm:mb-6 hover:opacity-80 transition">
+              <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-xl overflow-hidden flex-shrink-0">
                 <Image src="/logo.png" alt="TrackTok Logo" width={40} height={40} className="w-full h-full object-cover" />
               </div>
-              <span className="text-2xl font-bold font-display text-primary">TrackTok</span>
+              <span className="text-lg sm:text-2xl font-bold font-display text-primary">TrackTok</span>
             </Link>
-            <h1 className="text-3xl font-bold mb-2">Create Account</h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Create Account</h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
               Join thousands tracking their finances with AI
             </p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="card space-y-4">
+          <form onSubmit={handleSubmit} className="card space-y-3 sm:space-y-4">
             {error && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
@@ -106,11 +108,11 @@ export default function RegisterPage() {
 
             {/* Name */}
             <div>
-              <label htmlFor="name" className="block text-sm font-semibold mb-2">
+              <label htmlFor="name" className="block text-xs sm:text-sm font-semibold mb-2">
                 Full Name
               </label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <User className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-gray-400 flex-shrink-0" />
                 <input
                   id="name"
                   type="text"
@@ -119,18 +121,18 @@ export default function RegisterPage() {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="input-field pl-12"
+                  className="input-field pl-10 sm:pl-12 text-sm"
                 />
               </div>
             </div>
 
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold mb-2">
+              <label htmlFor="email" className="block text-xs sm:text-sm font-semibold mb-2">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Mail className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-gray-400 flex-shrink-0" />
                 <input
                   id="email"
                   type="email"
@@ -139,23 +141,23 @@ export default function RegisterPage() {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="input-field pl-12"
+                  className="input-field pl-10 sm:pl-12 text-sm"
                 />
               </div>
             </div>
 
             {/* Phone */}
             <div>
-              <label className="block text-sm font-semibold mb-2">
+              <label className="block text-xs sm:text-sm font-semibold mb-2">
                 Phone Number
               </label>
-              <div className="flex gap-3">
-                <div className="w-24">
+              <div className="flex gap-2 sm:gap-3">
+                <div className="w-20 sm:w-24">
                   <select
                     name="countryCode"
                     value={formData.countryCode}
                     onChange={handleChange}
-                    className="input-field"
+                    className="input-field text-xs sm:text-sm"
                   >
                     <option value="+1">+1 (US)</option>
                     <option value="+44">+44 (UK)</option>
@@ -173,7 +175,7 @@ export default function RegisterPage() {
                   </select>
                 </div>
                 <div className="flex-1 relative">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Phone className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-gray-400 flex-shrink-0" />
                   <input
                     id="phone"
                     type="tel"
@@ -182,7 +184,7 @@ export default function RegisterPage() {
                     value={formData.phone}
                     onChange={handleChange}
                     required
-                    className="input-field pl-12"
+                    className="input-field pl-10 sm:pl-12 text-sm"
                   />
                 </div>
               </div>
@@ -190,11 +192,11 @@ export default function RegisterPage() {
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold mb-2">
+              <label htmlFor="password" className="block text-xs sm:text-sm font-semibold mb-2">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Lock className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-gray-400 flex-shrink-0" />
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -203,25 +205,25 @@ export default function RegisterPage() {
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className="input-field pl-12 pr-12"
+                  className="input-field pl-10 sm:pl-12 pr-10 sm:pr-12 text-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 flex-shrink-0"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff className="w-4 sm:w-5 h-4 sm:h-5" /> : <Eye className="w-4 sm:w-5 h-4 sm:h-5" />}
                 </button>
               </div>
             </div>
 
             {/* Confirm Password */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-semibold mb-2">
+              <label htmlFor="confirmPassword" className="block text-xs sm:text-sm font-semibold mb-2">
                 Confirm Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Lock className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-gray-400 flex-shrink-0" />
                 <input
                   id="confirmPassword"
                   type={showPassword ? 'text' : 'password'}
@@ -230,14 +232,14 @@ export default function RegisterPage() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
-                  className="input-field pl-12"
+                  className="input-field pl-10 sm:pl-12 text-sm"
                 />
               </div>
             </div>
 
             {/* Terms */}
-            <label className="flex items-start gap-2 cursor-pointer text-sm">
-              <input type="checkbox" className="w-4 h-4 rounded mt-0.5" required />
+            <label className="flex items-start gap-2 cursor-pointer text-xs sm:text-sm">
+              <input type="checkbox" className="w-4 h-4 rounded mt-0.5 flex-shrink-0" required />
               <span className="text-gray-600 dark:text-gray-400">
                 I agree to the{' '}
                 <a href="#" className="text-primary font-semibold hover:underline">
@@ -254,15 +256,15 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 mt-6"
+              className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 mt-4 sm:mt-6 text-sm sm:text-base"
             >
               {loading ? 'Creating account...' : 'Create Account'}
-              {!loading && <ArrowRight className="w-5 h-5" />}
+              {!loading && <ArrowRight className="w-4 sm:w-5 h-4 sm:h-5" />}
             </button>
           </form>
 
           {/* Login Link */}
-          <p className="text-center mt-6 text-gray-600 dark:text-gray-400">
+          <p className="text-center mt-4 sm:mt-6 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
             Already have an account?{' '}
             <Link href="/login" className="text-primary font-semibold hover:underline">
               Sign in

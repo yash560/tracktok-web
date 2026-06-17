@@ -53,7 +53,7 @@ export function TransactionDetailModal({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/50 z-40"
+                        className="fixed inset-0 bg-black/50 z-[999]"
                     />
 
                     {/* Modal */}
@@ -62,15 +62,15 @@ export function TransactionDetailModal({
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
                     >
-                        <div className="w-full max-w-md bg-white dark:bg-dark-card rounded-2xl shadow-2xl overflow-hidden">
+                        <div className="w-full max-w-md max-h-[calc(100vh-2rem)] bg-white dark:bg-dark-card rounded-2xl shadow-2xl overflow-hidden flex flex-col">
                             {/* Header */}
                             <div
                                 className={`p-6 bg-gradient-to-r ${isIncome || isCredit
                                     ? 'from-success to-success-dark'
                                     : 'from-danger to-danger-dark'
-                                    } text-white flex items-start justify-between`}
+                                    } text-white flex items-start justify-between flex-shrink-0`}
                             >
                                 <div className="flex items-start gap-3">
                                     <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
@@ -97,19 +97,21 @@ export function TransactionDetailModal({
                                 </button>
                             </div>
 
-                            {/* Amount */}
-                            <div className="p-6 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-dark-bg">
-                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Amount</p>
-                                <p
-                                    className={`text-4xl font-bold font-display ${isIncome || isCredit ? 'text-success' : 'text-danger'
-                                        }`}
-                                >
-                                    {isIncome || isCredit ? '+' : '-'}₹{Math.abs(Number(transaction.amount)).toFixed(2)}
-                                </p>
-                            </div>
+                            {/* Scrollable Content */}
+                            <div className="overflow-y-auto flex-1 flex flex-col">
+                                {/* Amount */}
+                                <div className="p-6 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-dark-bg flex-shrink-0">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Amount</p>
+                                    <p
+                                        className={`text-4xl font-bold font-display ${isIncome || isCredit ? 'text-success' : 'text-danger'
+                                            }`}
+                                    >
+                                        {isIncome || isCredit ? '+' : '-'}₹{Math.abs(Number(transaction.amount)).toFixed(2)}
+                                    </p>
+                                </div>
 
-                            {/* Details Grid */}
-                            <div className="p-6 space-y-4">
+                                {/* Details Grid */}
+                                <div className="p-6 space-y-4">
                                 {/* Date */}
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -271,9 +273,10 @@ export function TransactionDetailModal({
                                     </span>
                                 </div>
                             </div>
+                            </div>
 
                             {/* Action Buttons */}
-                            <div className="p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-dark-bg space-y-2">
+                            <div className="p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-dark-bg space-y-2 flex-shrink-0">
                                 <button
                                     onClick={handleViewInvoice}
                                     className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition font-semibold flex items-center justify-center gap-2"

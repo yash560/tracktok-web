@@ -60,3 +60,66 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }
+
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
+    }
+
+    const { db } = await connectToDatabase();
+
+    // Fetch user specific collection name and phone
+    const member = await db.collection('members').findOne({ _id: new ObjectId(decoded.userId) });
+    if (!member || !member.collection) {
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+    }
+
+    const { id } = await params;
+
+    // Fetch split group
+    const splitGroup = await db.collection('split_groups').findOne({
+      _id: new ObjectId(id),
+      customer_id: member.customer_id,
+    });
+
+    if (!splitGroup) {
+      return NextResponse.json({ message: 'Split group not found' }, { status: 404 });
+    }
+
+    // Check if user is the owner
+    const isGroupOwner = splitGroup.owner === member._id.toString() || splitGroup.owner === member.collection;
+    if (!isGroupOwner) {
+      return NextResponse.json({ message: 'Only owner can update split group' }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const { name } = body;
+
+    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+      return NextResponse.json({ message: 'Invalid name' }, { status: 400 });
+    }
+
+    // Update split group
+    const result = await db.collection('split_groups').updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { name: name.trim(), updatedAt: new Date() } }
+    );
+
+    if (result.matchedCount === 0) {
+      return NextResponse.json({ message: 'Split group not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: 'Split group updated successfully' });
+  } catch (error) {
+    console.error('Error updating split group:', error);
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+  }
+}

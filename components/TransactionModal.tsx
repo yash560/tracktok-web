@@ -95,12 +95,12 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="bg-white dark:bg-dark-card w-full max-w-lg rounded-2xl shadow-2xl relative z-10 overflow-hidden">
+      <div className="bg-white dark:bg-dark-card w-full max-w-lg max-h-[calc(100vh-2rem)] rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-dark-bg/50">
+        <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-dark-bg/50 flex-shrink-0">
           <h2 className="text-xl font-bold">
             {transaction ? 'Edit Transaction' : 'Add Transaction'}
           </h2>
@@ -111,7 +111,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
         {/* Split Transaction Warning */}
         {isSplitTransaction && (
-          <div className="p-4 bg-purple-50 dark:bg-purple-900/20 border-b border-purple-200 dark:border-purple-800">
+          <div className="p-4 bg-purple-50 dark:bg-purple-900/20 border-b border-purple-200 dark:border-purple-800 flex-shrink-0">
             <p className="text-sm text-purple-800 dark:text-purple-200">
               This is a shared expense. Only the original owner can edit it.
             </p>
@@ -119,7 +119,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Type Toggle */}
             <div className="md:col-span-2 flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">

@@ -21,7 +21,9 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user && !authLoading) {
-      router.push('/dashboard');
+      const redirectUrl = localStorage.getItem('redirect_after_auth') || '/dashboard';
+      localStorage.removeItem('redirect_after_auth');
+      router.push(redirectUrl);
     }
   }, [user, authLoading, router]);
 
@@ -47,7 +49,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-12 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-dark-bg dark:to-gray-900">
+    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-dark-bg dark:to-gray-900">
       <div className="w-full max-w-md">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -55,21 +57,21 @@ export default function LoginPage() {
           transition={{ duration: 0.5 }}
         >
           {/* Header */}
-          <div className="text-center mb-8">
-            <Link href="/" className="inline-flex items-center gap-2 mb-6 hover:opacity-80 transition">
-              <div className="w-10 h-10 rounded-xl overflow-hidden">
+          <div className="text-center mb-6 sm:mb-8">
+            <Link href="/" className="inline-flex items-center gap-2 mb-4 sm:mb-6 hover:opacity-80 transition">
+              <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-xl overflow-hidden flex-shrink-0">
                 <Image src="/logo.png" alt="TrackTok Logo" width={40} height={40} className="w-full h-full object-cover" />
               </div>
-              <span className="text-2xl font-bold font-display text-primary">TrackTok</span>
+              <span className="text-lg sm:text-2xl font-bold font-display text-primary">TrackTok</span>
             </Link>
-            <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Welcome Back</h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
               Sign in to access your financial dashboard
             </p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="card space-y-6">
+          <form onSubmit={handleSubmit} className="card space-y-4 sm:space-y-6">
             {error && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
@@ -82,11 +84,11 @@ export default function LoginPage() {
 
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold mb-2">
+              <label htmlFor="email" className="block text-xs sm:text-sm font-semibold mb-2">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Mail className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-gray-400 flex-shrink-0" />
                 <input
                   id="email"
                   type="email"
@@ -95,18 +97,18 @@ export default function LoginPage() {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="input-field pl-12"
+                  className="input-field pl-10 sm:pl-12 text-sm"
                 />
               </div>
             </div>
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold mb-2">
+              <label htmlFor="password" className="block text-xs sm:text-sm font-semibold mb-2">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Lock className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-gray-400 flex-shrink-0" />
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -115,25 +117,25 @@ export default function LoginPage() {
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className="input-field pl-12 pr-12"
+                  className="input-field pl-10 sm:pl-12 pr-10 sm:pr-12 text-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 flex-shrink-0"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff className="w-4 sm:w-5 h-4 sm:h-5" /> : <Eye className="w-4 sm:w-5 h-4 sm:h-5" />}
                 </button>
               </div>
             </div>
 
             {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 cursor-pointer">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs sm:text-sm">
+              <label className="flex items-center gap-2 cursor-pointer flex-shrink-0">
                 <input type="checkbox" className="w-4 h-4 rounded" />
                 <span className="text-gray-600 dark:text-gray-400">Remember me</span>
               </label>
-              <a href="#" className="text-primary hover:underline font-semibold">
+              <a href="#" className="text-primary hover:underline font-semibold whitespace-nowrap">
                 Forgot password?
               </a>
             </div>
@@ -142,15 +144,15 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50"
+              className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 text-sm sm:text-base"
             >
               {loading ? 'Signing in...' : 'Sign In'}
-              {!loading && <ArrowRight className="w-5 h-5" />}
+              {!loading && <ArrowRight className="w-4 sm:w-5 h-4 sm:h-5" />}
             </button>
           </form>
 
           {/* Sign Up Link */}
-          <p className="text-center mt-6 text-gray-600 dark:text-gray-400">
+          <p className="text-center mt-4 sm:mt-6 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
             Don't have an account?{' '}
             <Link href="/register" className="text-primary font-semibold hover:underline">
               Sign up

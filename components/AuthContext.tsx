@@ -42,7 +42,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     checkAuth();
-  }, []);
+
+    // Add response interceptor for 401 errors
+    const responseInterceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          localStorage.removeItem('auth_token');
+          delete axios.defaults.headers.common['Authorization'];
+          setUser(null);
+          setToken(null);
+          router.push('/login');
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      axios.interceptors.response.eject(responseInterceptor);
+    };
+  }, [router]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -53,7 +72,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
       setToken(newToken);
       setUser(userData);
-      router.push('/dashboard');
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Login failed');
     }
@@ -76,7 +94,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
       setToken(newToken);
       setUser(userData);
-      router.push('/dashboard');
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Registration failed');
     }

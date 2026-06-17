@@ -17,6 +17,7 @@ import {
   Eye,
 } from 'lucide-react';
 import axios from 'axios';
+import { useProtectedPage } from '@/lib/useProtectedPage';
 import { TransactionModal } from '@/components/TransactionModal';
 import { TransactionDetailModal } from '@/components/TransactionDetailModal';
 
@@ -29,6 +30,7 @@ const CATEGORIES = [
 
 export default function TransactionsPage() {
   const router = useRouter();
+  useProtectedPage();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -53,8 +55,10 @@ export default function TransactionsPage() {
     const response = await axios.get(`/api/transactions?${params.toString()}`);
       setTransactions(response.data.transactions);
       setTotalPages(response.data.pagination.pages);
-    } catch (error) {
-      console.error('Failed to fetch transactions:', error);
+    } catch (error: any) {
+      if (error.response?.status !== 401) {
+        console.error('Failed to fetch transactions:', error);
+      }
     } finally {
       setLoading(false);
     }
@@ -96,41 +100,41 @@ export default function TransactionsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="px-4 sm:px-6 md:px-12 space-y-6">
       {/* Header & Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-bold font-display">Transactions</h1>
-          <p className="text-gray-600 dark:text-gray-400">View and manage your financial records</p>
+          <h1 className="text-2xl sm:text-3xl font-bold font-display">Transactions</h1>
+          <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400">View and manage your financial records</p>
         </div>
         <button
           onClick={openAddModal}
-          className="btn-primary flex items-center justify-center gap-2 px-6 py-3"
+          className="btn-primary flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 w-full sm:w-auto"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-4 sm:w-5 h-4 sm:h-5" />
           Add Transaction
         </button>
       </div>
 
       {/* Filters & Search */}
-      <div className="card space-y-4">
-        <div className="flex flex-col md:flex-row gap-4">
+      <div className="card space-y-3 sm:space-y-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-gray-400" />
             <input
               type="text"
               placeholder="Search descriptions..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="input-field pl-11"
+              className="input-field pl-11 px-3 sm:px-4 text-xs sm:text-sm md:text-base"
             />
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-2 border rounded-xl transition ${showFilters ? 'bg-primary text-white border-primary' : 'border-gray-200 dark:border-gray-800 hover:bg-gray-50'
+            className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 border rounded-xl transition w-full sm:w-auto ${showFilters ? 'bg-primary text-white border-primary' : 'border-gray-200 dark:border-gray-800 hover:bg-gray-50'
               }`}
           >
-            <SlidersHorizontal className="w-5 h-5" />
+            <SlidersHorizontal className="w-4 sm:w-5 h-4 sm:h-5" />
             Filters
           </button>
         </div>
@@ -143,13 +147,13 @@ export default function TransactionsPage() {
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden"
             >
-              <div className="pt-4 border-t border-gray-100 dark:border-gray-800 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="pt-4 border-t border-gray-100 dark:border-gray-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Category</label>
+                  <label className="block text-xs sm:text-sm font-semibold mb-2">Category</label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="input-field capitalize"
+                    className="input-field capitalize px-3 sm:px-4 text-xs sm:text-sm md:text-base"
                   >
                     {CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -169,12 +173,12 @@ export default function TransactionsPage() {
           <table className="w-full">
             <thead className="bg-gray-50/50 dark:bg-dark-bg/50">
               <tr className="border-b border-gray-200 dark:border-gray-800">
-                <th className="text-left py-4 px-6 text-sm font-bold text-gray-600 dark:text-gray-400">Transaction</th>
-                <th className="text-left py-4 px-6 text-sm font-bold text-gray-600 dark:text-gray-400">Category</th>
-                <th className="text-left py-4 px-6 text-sm font-bold text-gray-600 dark:text-gray-400">Source / City</th>
-                <th className="text-left py-4 px-6 text-sm font-bold text-gray-600 dark:text-gray-400">Date</th>
-                <th className="text-right py-4 px-6 text-sm font-bold text-gray-600 dark:text-gray-400">Amount</th>
-                <th className="text-center py-4 px-6 text-sm font-bold text-gray-600 dark:text-gray-400">Actions</th>
+                <th className="text-left py-3 sm:py-4 px-3 sm:px-6 text-xs sm:text-sm font-bold text-gray-600 dark:text-gray-400">Transaction</th>
+                <th className="hidden sm:table-cell text-left py-3 sm:py-4 px-3 sm:px-6 text-xs sm:text-sm font-bold text-gray-600 dark:text-gray-400">Category</th>
+                <th className="hidden md:table-cell text-left py-3 sm:py-4 px-3 sm:px-6 text-xs sm:text-sm font-bold text-gray-600 dark:text-gray-400">Source / City</th>
+                <th className="hidden md:table-cell text-left py-3 sm:py-4 px-3 sm:px-6 text-xs sm:text-sm font-bold text-gray-600 dark:text-gray-400">Date</th>
+                <th className="text-right py-3 sm:py-4 px-3 sm:px-6 text-xs sm:text-sm font-bold text-gray-600 dark:text-gray-400">Amount</th>
+                <th className="text-center py-3 sm:py-4 px-3 sm:px-6 text-xs sm:text-sm font-bold text-gray-600 dark:text-gray-400">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -183,7 +187,7 @@ export default function TransactionsPage() {
                   <td colSpan={6} className="py-12 text-center text-gray-500">
                     <div className="flex flex-col items-center gap-2">
                       <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                      <span>Loading transactions...</span>
+                      <span className="text-xs sm:text-sm md:text-base">Loading transactions...</span>
                     </div>
                   </td>
                 </tr>
@@ -194,17 +198,17 @@ export default function TransactionsPage() {
                     onClick={() => openDetailModal(t)}
                     className="hover:bg-gray-50/50 dark:hover:bg-dark-bg/30 transition cursor-pointer"
                   >
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${t.type === 'income' ? 'bg-success/10' : 'bg-danger/10'}`}>
+                    <td className="py-3 sm:py-4 px-3 sm:px-6">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className={`w-8 sm:w-10 h-8 sm:h-10 rounded-xl flex items-center justify-center ${t.type === 'income' ? 'bg-success/10' : 'bg-danger/10'}`}>
                           {t.type === 'income' ? (
-                            <ArrowDownLeft className="w-5 h-5 text-success" />
+                            <ArrowDownLeft className="w-4 sm:w-5 h-4 sm:h-5 text-success" />
                           ) : (
-                            <ArrowUpRight className="w-5 h-5 text-danger" />
+                            <ArrowUpRight className="w-4 sm:w-5 h-4 sm:h-5 text-danger" />
                           )}
                         </div>
                         <div className="flex flex-col gap-1">
-                          <span className="font-semibold">{t.description}</span>
+                          <span className="text-xs sm:text-sm font-semibold">{t.description}</span>
                           {t.isSplitTransaction && (
                             <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full w-fit">
                               Split with {t.split?.filter((s: any) => !s.owner).length || 0} {t.split?.filter((s: any) => !s.owner).length === 1 ? 'person' : 'people'}
@@ -213,53 +217,53 @@ export default function TransactionsPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 px-6">
-                      <span className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs font-semibold capitalize text-gray-600 dark:text-gray-400">
+                    <td className="hidden sm:table-cell py-3 sm:py-4 px-3 sm:px-6">
+                      <span className="px-2 sm:px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs font-semibold capitalize text-gray-600 dark:text-gray-400">
                         {t.category}
                       </span>
                     </td>
-                    <td className="py-4 px-6">
-                      <p className="text-sm font-medium">{t.source || 'Cash'}</p>
+                    <td className="hidden md:table-cell py-3 sm:py-4 px-3 sm:px-6">
+                      <p className="text-xs sm:text-sm font-medium">{t.source || 'Cash'}</p>
                       <p className="text-xs text-gray-400">{t.city || 'Unknown'}</p>
                     </td>
-                    <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">
+                    <td className="hidden md:table-cell py-3 sm:py-4 px-3 sm:px-6 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                       {new Date(t.date).toLocaleDateString()}
                     </td>
-                    <td className={`py-4 px-6 text-right font-bold text-lg ${t.type === 'income' ? 'text-success' : 'text-danger'}`}>
+                    <td className={`py-3 sm:py-4 px-3 sm:px-6 text-right font-bold text-xs sm:text-sm md:text-lg ${t.type === 'income' ? 'text-success' : 'text-danger'}`}>
                       {t.type === 'income' ? '+' : '-'}₹{Math.abs(t.amount).toFixed(2)}
                     </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center justify-center gap-2">
+                    <td className="py-3 sm:py-4 px-3 sm:px-6">
+                      <div className="flex items-center justify-center gap-1 sm:gap-2">
                         <button
                           onClick={() => handleViewInvoice(t.code)}
-                          className="p-2 hover:bg-blue-500/10 hover:text-blue-600 rounded-lg transition text-gray-400"
+                          className="p-1.5 sm:p-2 hover:bg-blue-500/10 hover:text-blue-600 rounded-lg transition text-gray-400"
                           title="View invoice"
                         >
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-4 sm:w-5 h-4 sm:h-5" />
                         </button>
                         <button
                           onClick={() => openEditModal(t)}
                           disabled={t.isSplitTransaction && !t.isOwnTransaction}
-                          className={`p-2 rounded-lg transition ${
+                          className={`p-1.5 sm:p-2 rounded-lg transition ${
                             t.isSplitTransaction && !t.isOwnTransaction
                               ? 'text-gray-200 dark:text-gray-700 cursor-not-allowed'
                               : 'hover:bg-primary/10 hover:text-primary text-gray-400'
                           }`}
                           title={t.isSplitTransaction && !t.isOwnTransaction ? 'Cannot edit shared expenses' : 'Edit'}
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-4 sm:w-5 h-4 sm:h-5" />
                         </button>
                         <button
                           onClick={() => handleDelete(t._id)}
                           disabled={t.isSplitTransaction && !t.isOwnTransaction}
-                          className={`p-2 rounded-lg transition ${
+                          className={`p-1.5 sm:p-2 rounded-lg transition ${
                             t.isSplitTransaction && !t.isOwnTransaction
                               ? 'text-gray-200 dark:text-gray-700 cursor-not-allowed'
                               : 'hover:bg-danger/10 hover:text-danger text-gray-400'
                           }`}
                           title={t.isSplitTransaction && !t.isOwnTransaction ? 'Cannot delete shared expenses' : 'Delete'}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 sm:w-5 h-4 sm:h-5" />
                         </button>
                       </div>
                     </td>
@@ -267,11 +271,11 @@ export default function TransactionsPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="py-20 text-center text-gray-500">
+                  <td colSpan={6} className="py-16 sm:py-20 text-center text-gray-500">
                     <div className="flex flex-col items-center gap-3">
-                      <Receipt className="w-12 h-12 opacity-20" />
-                      <p className="text-lg font-medium">No transactions found</p>
-                      <button onClick={openAddModal} className="text-primary font-semibold hover:underline">
+                      <Receipt className="w-10 sm:w-12 h-10 sm:h-12 opacity-20" />
+                      <p className="text-sm sm:text-lg font-medium">No transactions found</p>
+                      <button onClick={openAddModal} className="text-xs sm:text-sm text-primary font-semibold hover:underline">
                         Add your first transaction
                       </button>
                     </div>
@@ -283,8 +287,8 @@ export default function TransactionsPage() {
         </div>
 
         {/* Pagination */}
-        <div className="p-6 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
-          <p className="text-sm text-gray-500">
+        <div className="p-3 sm:p-6 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
+          <p className="text-xs sm:text-sm text-gray-500">
             Page {page} of {totalPages}
           </p>
           <div className="flex gap-2">
@@ -293,14 +297,14 @@ export default function TransactionsPage() {
               onClick={() => setPage(page - 1)}
               className="p-2 border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-50 disabled:opacity-50"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-4 sm:w-5 h-4 sm:h-5" />
             </button>
             <button
               disabled={page >= totalPages}
               onClick={() => setPage(page + 1)}
               className="p-2 border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-50 disabled:opacity-50"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-4 sm:w-5 h-4 sm:h-5" />
             </button>
           </div>
         </div>
