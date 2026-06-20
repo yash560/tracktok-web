@@ -35,40 +35,22 @@ function TransactionsContent() {
   useProtectedPage();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('all');
-  const [minAmount, setMinAmount] = useState('');
-  const [maxAmount, setMaxAmount] = useState('');
+  const [search, setSearch] = useState(searchParams.get('search') || '');
+  const [category, setCategory] = useState(searchParams.get('category') || 'all');
+  const [minAmount, setMinAmount] = useState(searchParams.get('minAmount') || '');
+  const [maxAmount, setMaxAmount] = useState(searchParams.get('maxAmount') || '');
   const [contact, setContact] = useState('all');
-  const [source, setSource] = useState('all');
-  const [receiver, setReceiver] = useState('all');
-  const [type, setType] = useState('all');
+  const [source, setSource] = useState(searchParams.get('source') || 'all');
+  const [receiver, setReceiver] = useState(searchParams.get('receiver') || 'all');
+  const [type, setType] = useState(searchParams.get('type') || 'all');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(
+    !!(searchParams.get('category') || searchParams.get('source') || searchParams.get('receiver') || searchParams.get('type') || searchParams.get('minAmount') || searchParams.get('maxAmount'))
+  );
   const [showDetailModal, setShowDetailModal] = useState(false);
-
-  useEffect(() => {
-    const cat = searchParams.get('category');
-    const src = searchParams.get('source');
-    const recv = searchParams.get('receiver');
-    const typ = searchParams.get('type');
-    const min = searchParams.get('minAmount');
-    const max = searchParams.get('maxAmount');
-    const q = searchParams.get('search');
-
-    let hasFilter = false;
-    if (cat) { setCategory(cat); hasFilter = true; }
-    if (src) { setSource(src); hasFilter = true; }
-    if (recv) { setReceiver(recv); hasFilter = true; }
-    if (typ) { setType(typ); hasFilter = true; }
-    if (min) { setMinAmount(min); hasFilter = true; }
-    if (max) { setMaxAmount(max); hasFilter = true; }
-    if (q) { setSearch(q); }
-    if (hasFilter) setShowFilters(true);
-  }, []);
 
   const fetchTransactions = useCallback(async () => {
     setLoading(true);
