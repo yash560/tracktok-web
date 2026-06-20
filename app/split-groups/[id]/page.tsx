@@ -23,6 +23,14 @@ import axios from 'axios';
 import { SplitGroup, Invoice } from '@/types';
 import Link from 'next/link';
 import { DateTooltip } from '@/components/DateTooltip';
+import {
+  NotificationModal,
+  ConfirmModal,
+  NotificationState,
+  ConfirmState,
+  initialNotification,
+  initialConfirm,
+} from '@/components/NotificationModal';
 
 interface SplitGroupResponse {
   splitGroup: SplitGroup;
@@ -150,6 +158,12 @@ export default function SplitGroupPage() {
   });
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSendingReminders, setIsSendingReminders] = useState(false);
+  const [notification, setNotification] = useState<NotificationState>(initialNotification);
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmState>(initialConfirm);
+
+  const notify = (type: NotificationState['type'], title: string, message: string) => {
+    setNotification({ isOpen: true, type, title, message });
+  };
   const [showAllExpenses, setShowAllExpenses] = useState(false);
   const [editingSplits, setEditingSplits] = useState<{
     [expenseId: string]: { amounts: number[]; original: number[]; isEditing: boolean };
@@ -261,27 +275,30 @@ export default function SplitGroupPage() {
     });
   };
 
-  const handleDeleteGroup = async () => {
-    if (!globalThis.confirm('Are you sure you want to delete this split group? This cannot be undone.')) {
-      return;
-    }
-
-    setIsDeleting(true);
-    try {
-      await axios.delete(`/api/split-groups/${id}`);
-      router.push('/dashboard');
-    } catch (err: any) {
-      console.error('Error deleting split group:', err);
-      const errorMsg = err.response?.data?.message || err.message || 'Failed to delete split group';
-      alert(errorMsg);
-    } finally {
-      setIsDeleting(false);
-    }
+  const handleDeleteGroup = () => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete Split Group',
+      message: 'Are you sure you want to delete this split group? This cannot be undone.',
+      onConfirm: async () => {
+        setIsDeleting(true);
+        try {
+          await axios.delete(`/api/split-groups/${id}`);
+          router.push('/dashboard');
+        } catch (err: any) {
+          console.error('Error deleting split group:', err);
+          const errorMsg = err.response?.data?.message || err.message || 'Failed to delete split group';
+          notify('error', 'Delete Failed', errorMsg);
+        } finally {
+          setIsDeleting(false);
+        }
+      },
+    });
   };
 
   const handleSendReminders = async () => {
     if (!settlements.some((s) => s.type === 'owed')) {
-      alert('No one owes you in this group');
+      notify('info', 'No Reminders Needed', 'No one owes you in this group');
       return;
     }
 
@@ -294,10 +311,10 @@ export default function SplitGroupPage() {
       if (skipped?.length > 0) {
         msg += `\nSkipped (no email): ${skipped.join(', ')}`;
       }
-      alert(msg);
+      notify('success', 'Reminders Sent', msg);
     } catch (err: any) {
       console.error('Error sending reminders:', err);
-      alert(err.response?.data?.message || 'Failed to send reminders');
+      notify('error', 'Send Failed', err.response?.data?.message || 'Failed to send reminders');
     } finally {
       setIsSendingReminders(false);
     }
@@ -305,7 +322,7 @@ export default function SplitGroupPage() {
 
   const handleSaveName = async () => {
     if (!editNameModal.newName || editNameModal.newName.trim().length === 0) {
-      alert('Split group name cannot be empty');
+      notify('warning', 'Invalid Name', 'Split group name cannot be empty');
       return;
     }
 
@@ -335,7 +352,7 @@ export default function SplitGroupPage() {
     } catch (err: any) {
       console.error('Error updating split group name:', err);
       const errorMsg = err.response?.data?.message || err.message || 'Failed to update name';
-      alert(errorMsg);
+      notify('error', 'Update Failed', errorMsg);
     } finally {
       setEditNameModal((prev) => ({ ...prev, isProcessing: false }));
     }
@@ -346,17 +363,17 @@ export default function SplitGroupPage() {
 
     // Validation checks
     if (!paymentModal.paymentAmount || Number.isNaN(amount)) {
-      alert('Please enter a valid amount');
+      notify('warning', 'Invalid Amount', 'Please enter a valid amount');
       return;
     }
 
     if (amount <= 0) {
-      alert('Amount must be greater than 0');
+      notify('warning', 'Invalid Amount', 'Amount must be greater than 0');
       return;
     }
 
     if (amount > paymentModal.totalAmount) {
-      alert(`Cannot pay more than ₹${paymentModal.totalAmount.toFixed(2)} owed`);
+      notify('warning', 'Amount Too High', `Cannot pay more than ₹${paymentModal.totalAmount.toFixed(2)} owed`);
       return;
     }
 
@@ -384,7 +401,7 @@ export default function SplitGroupPage() {
     } catch (err: any) {
       console.error('Payment error:', err);
       const errorMsg = err.response?.data?.message || err.message || 'Payment failed. Try again.';
-      alert(errorMsg);
+      notify('error', 'Payment Failed', errorMsg);
     } finally {
       setPaymentModal((prev) => ({ ...prev, isProcessing: false }));
     }
@@ -909,7 +926,7 @@ export default function SplitGroupPage() {
                                                       err
                                                     );
 
-                                                    alert(
+                                                    notify('error', 'Save Failed',
                                                       err.response?.data
                                                         ?.message ||
                                                       "Failed to save split amounts"
@@ -1332,6 +1349,18 @@ export default function SplitGroupPage() {
           </div>
         </div>
       )}
+
+      {/* Notification Toast */}
+      <NotificationModal
+        notification={notification}
+        onClose={() => setNotification(initialNotification)}
+      />
+
+      {/* Confirm Dialog */}
+      <ConfirmModal
+        confirm={confirmDialog}
+        onClose={() => setConfirmDialog(initialConfirm)}
+      />
 
       {/* Edit Name Modal */}
       {editNameModal.isOpen && (
