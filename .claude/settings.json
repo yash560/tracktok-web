@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(grep -n 'const { splitGroup, expenses }' \"/Users/yash/Documents/Personal/tracktok-web/app/split-groups/[id]/page.tsx\")",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(mkdir -p /Users/yash/Documents/Personal/tracktok-web/app/api/split-groups/\\\\[id\\\\]/send-reminders)"
+    ],
+    "additionalDirectories": [
+      "/Users/yash/Documents/Personal/tracktok-web/app/api/split-groups/[id]"
     ]
   }
 }

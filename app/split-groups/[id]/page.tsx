@@ -149,6 +149,7 @@ export default function SplitGroupPage() {
     isProcessing: false,
   });
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSendingReminders, setIsSendingReminders] = useState(false);
   const [showAllExpenses, setShowAllExpenses] = useState(false);
   const [editingSplits, setEditingSplits] = useState<{
     [expenseId: string]: { amounts: number[]; original: number[]; isEditing: boolean };
@@ -275,6 +276,30 @@ export default function SplitGroupPage() {
       alert(errorMsg);
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleSendReminders = async () => {
+    if (!settlements.some((s) => s.type === 'owed')) {
+      alert('No one owes you in this group');
+      return;
+    }
+
+    setIsSendingReminders(true);
+    try {
+      const response = await axios.post(`/api/split-groups/${id}/send-reminders`);
+      const { sent, total, results } = response.data;
+      const skipped = results?.filter((r: any) => r.status === 'skipped').map((r: any) => r.memberName);
+      let msg = `Reminders sent to ${sent} of ${total} members.`;
+      if (skipped?.length > 0) {
+        msg += `\nSkipped (no email): ${skipped.join(', ')}`;
+      }
+      alert(msg);
+    } catch (err: any) {
+      console.error('Error sending reminders:', err);
+      alert(err.response?.data?.message || 'Failed to send reminders');
+    } finally {
+      setIsSendingReminders(false);
     }
   };
 
@@ -1023,10 +1048,20 @@ export default function SplitGroupPage() {
                 {/* You Are Owed Section */}
                 {settlements.some((s) => s.type === 'owed') && (
                   <div className="p-4 sm:p-6 bg-success/10 border border-success/30 rounded-lg">
-                    <h3 className="font-semibold text-success mb-4 flex items-center gap-2 text-sm sm:text-base">
-                      <TrendingUp className="w-5 h-5 flex-shrink-0" />
-                      You Are Owed
-                    </h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-semibold text-success flex items-center gap-2 text-sm sm:text-base">
+                        <TrendingUp className="w-5 h-5 flex-shrink-0" />
+                        You Are Owed
+                      </h3>
+                      <button
+                        onClick={handleSendReminders}
+                        disabled={isSendingReminders || isSettled}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary-dark transition font-medium text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        {isSendingReminders ? 'Sending...' : 'Send Reminders'}
+                      </button>
+                    </div>
                     <div className="space-y-3">
                       {settlements
                         .filter((s) => s.type === 'owed')

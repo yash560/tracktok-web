@@ -2,28 +2,28 @@ import nodemailer from 'nodemailer';
 
 // Email configuration using GoDaddy SMTP
 const transporter = nodemailer.createTransport({
-  host: 'smtpout.secureserver.net', // GoDaddy SMTP server
-  port: 465, // Secure port
-  secure: true, // Use SSL
-  auth: {
-    user: process.env.BASE_SYSTEM_NODEMAILER_EMAIL_ADDRESS,
-    pass: process.env.BASE_SYSTEM_NODEMAILER_EMAIL_PASSWORD,
-  },
+    host: 'smtpout.secureserver.net', // GoDaddy SMTP server
+    port: 465, // Secure port
+    secure: true, // Use SSL
+    auth: {
+        user: process.env.BASE_SYSTEM_NODEMAILER_EMAIL_ADDRESS,
+        pass: process.env.BASE_SYSTEM_NODEMAILER_EMAIL_PASSWORD,
+    },
 });
 
 export interface EmailPayload {
-  to: string | string[];
-  subject: string;
-  html?: string;
-  text?: string;
-  cc?: string | string[];
-  bcc?: string | string[];
-  replyTo?: string;
-  attachments?: Array<{
-    filename: string;
-    content?: string | Buffer;
-    path?: string;
-  }>;
+    to: string | string[];
+    subject: string;
+    html?: string;
+    text?: string;
+    cc?: string | string[];
+    bcc?: string | string[];
+    replyTo?: string;
+    attachments?: Array<{
+        filename: string;
+        content?: string | Buffer;
+        path?: string;
+    }>;
 }
 
 /**
@@ -32,39 +32,39 @@ export interface EmailPayload {
  * @returns Email sending result
  */
 export async function sendEmail(payload: EmailPayload) {
-  try {
-    // Verify transporter connection
-    await transporter.verify();
+    try {
+        // Verify transporter connection
+        await transporter.verify();
 
-    const mailOptions = {
-      from: process.env.BASE_SYSTEM_NODEMAILER_EMAIL_ADDRESS,
-      to: payload.to,
-      subject: payload.subject,
-      html: payload.html || payload.text,
-      text: payload.text,
-      cc: payload.cc,
-      bcc: payload.bcc,
-      replyTo: payload.replyTo || process.env.BASE_SYSTEM_NODEMAILER_EMAIL_ADDRESS,
-      attachments: payload.attachments,
-    };
+        const mailOptions = {
+            from: process.env.BASE_SYSTEM_NODEMAILER_EMAIL_ADDRESS,
+            to: payload.to,
+            subject: payload.subject,
+            html: payload.html || payload.text,
+            text: payload.text,
+            cc: payload.cc,
+            bcc: payload.bcc,
+            replyTo: payload.replyTo || process.env.BASE_SYSTEM_NODEMAILER_EMAIL_ADDRESS,
+            attachments: payload.attachments,
+        };
 
-    const info = await transporter.sendMail(mailOptions);
-    return {
-      success: true,
-      messageId: info.messageId,
-      message: 'Email sent successfully',
-    };
-  } catch (error) {
-    console.error('Email sending error:', error);
-    throw error;
-  }
+        const info = await transporter.sendMail(mailOptions);
+        return {
+            success: true,
+            messageId: info.messageId,
+            message: 'Email sent successfully',
+        };
+    } catch (error) {
+        console.error('Email sending error:', error);
+        throw error;
+    }
 }
 
 /**
  * Send welcome email to new user
  */
 export async function sendWelcomeEmail(email: string, name: string) {
-  const html = `
+    const html = `
     <html>
       <body style="font-family: Arial, sans-serif; color: #333;">
         <h2>Welcome to TrackTok! 👋</h2>
@@ -83,23 +83,23 @@ export async function sendWelcomeEmail(email: string, name: string) {
     </html>
   `;
 
-  return sendEmail({
-    to: email,
-    subject: 'Welcome to TrackTok! 🎉',
-    html,
-  });
+    return sendEmail({
+        to: email,
+        subject: 'Welcome to TrackTok! 🎉',
+        html,
+    });
 }
 
 /**
  * Send payment notification email
  */
 export async function sendPaymentNotification(
-  email: string,
-  amount: number,
-  description: string,
-  recipientName: string
+    email: string,
+    amount: number,
+    description: string,
+    recipientName: string
 ) {
-  const html = `
+    const html = `
     <html>
       <body style="font-family: Arial, sans-serif; color: #333;">
         <h2>Payment Notification</h2>
@@ -121,24 +121,24 @@ export async function sendPaymentNotification(
     </html>
   `;
 
-  return sendEmail({
-    to: email,
-    subject: 'Payment Notification - TrackTok',
-    html,
-  });
+    return sendEmail({
+        to: email,
+        subject: 'Payment Notification - TrackTok',
+        html,
+    });
 }
 
 /**
  * Send transaction confirmation email
  */
 export async function sendTransactionConfirmation(
-  email: string,
-  transactionId: string,
-  amount: number,
-  date: string,
-  category: string
+    email: string,
+    transactionId: string,
+    amount: number,
+    date: string,
+    category: string
 ) {
-  const html = `
+    const html = `
     <html>
       <body style="font-family: Arial, sans-serif; color: #333;">
         <h2>Transaction Confirmation</h2>
@@ -160,9 +160,9 @@ export async function sendTransactionConfirmation(
     </html>
   `;
 
-  return sendEmail({
-    to: email,
-    subject: `Transaction Confirmation - ${transactionId}`,
-    html,
-  });
+    return sendEmail({
+        to: email,
+        subject: `Transaction Confirmation - ${transactionId}`,
+        html,
+    });
 }
