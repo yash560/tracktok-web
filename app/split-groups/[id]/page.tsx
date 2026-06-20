@@ -147,7 +147,11 @@ export default function SplitGroupPage() {
     newName: '',
     isProcessing: false,
   });
+  const [isDeleting, setIsDeleting] = useState(false);
   const [showAllExpenses, setShowAllExpenses] = useState(false);
+  const [editingSplits, setEditingSplits] = useState<{
+    [expenseId: string]: { amounts: number[]; original: number[]; isEditing: boolean };
+  }>({});
 
   useEffect(() => {
     const fetchSplitGroup = async () => {
@@ -219,6 +223,24 @@ export default function SplitGroupPage() {
       newName: '',
       isProcessing: false,
     });
+  };
+
+  const handleDeleteGroup = async () => {
+    if (!globalThis.confirm('Are you sure you want to delete this split group? This cannot be undone.')) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await axios.delete(`/api/split-groups/${id}`);
+      router.push('/dashboard');
+    } catch (err: any) {
+      console.error('Error deleting split group:', err);
+      const errorMsg = err.response?.data?.message || err.message || 'Failed to delete split group';
+      alert(errorMsg);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleSaveName = async () => {
@@ -381,6 +403,24 @@ export default function SplitGroupPage() {
                   >
                     <Edit2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                   </button>
+                  {user && (splitGroup.owner === user._id || (user as any).collection === splitGroup.owner) && (
+                    <button
+                      onClick={handleDeleteGroup}
+                      disabled={isDeleting}
+                      className="p-1.5 hover:bg-red-100 dark:hover:bg-red-700 rounded-lg transition"
+                      title="Delete split group"
+                    >
+                      <span className="sr-only">Delete split group</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="w-4 h-4 text-danger"
+                      >
+                        <path d="M9 3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1h5a1 1 0 1 1 0 2h-1v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5H3a1 1 0 1 1 0-2h5Zm1 3a1 1 0 0 0-1 1v11a1 1 0 0 0 2 0V7a1 1 0 0 0-1-1Zm4 0a1 1 0 0 0-1 1v11a1 1 0 0 0 2 0V7a1 1 0 0 0-1-1Z" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
                 <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
                   Split group with {splitGroup.contacts.length} members
@@ -470,9 +510,9 @@ export default function SplitGroupPage() {
             ) : (
               <>
                 <div className="space-y-4">
-                  {(showAllExpenses ? expenses : expenses.slice(0, 2)).map((expense) => (
+                  {(showAllExpenses ? expenses : expenses.slice(0, 2)).map((expense, expenseIndex) => (
                     <div
-                      key={expense._id}
+                      key={expense._id ?? expenseIndex}
                       className="p-4 sm:p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary dark:hover:border-primary transition"
                     >
                       <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
@@ -502,15 +542,325 @@ export default function SplitGroupPage() {
                               <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase mb-2">
                                 Split:
                               </p>
+
                               <div className="flex flex-wrap gap-2">
-                                {expense.split.map((split) => (
-                                  <span
-                                    key={split.$id || split.name}
-                                    className="text-xs px-2 py-1 bg-white dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 break-words"
-                                  >
-                                    {split.name}: ₹{split.amount.toFixed(2)}
-                                  </span>
-                                ))}
+                                {(() => {
+                                  const expenseId = String(expense._id ?? expenseIndex);
+                                  const splitEntries = expense.split ?? [];
+                                  const editing = editingSplits[expenseId]?.isEditing;
+
+                                  const amounts =
+                                    editingSplits[expenseId]?.amounts ??
+                                    splitEntries.map((s: any) => s.amount || 0);
+
+                                  return splitEntries.map((split: any, splitIndex: number) => (
+                                    <div
+                                      key={split.$id || split.name || splitIndex}
+                                      className="flex items-center gap-2"
+                                    >
+                                      {!editing ? (
+                                        <span className="text-xs px-2 py-1 bg-white dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 break-words">
+                                          {split.name}: ₹{(split.amount || 0).toFixed(2)}
+                                        </span>
+                                      ) : (
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                                            {split.name}:
+                                          </span>
+
+                                          <input
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            value={Number(amounts[splitIndex] ?? 0).toFixed(2)}
+                                            onChange={(e) => {
+                                              const raw = e.target.value;
+                                              const val = Number.parseFloat(raw || "0");
+
+                                              // FIXED: expenseIndex instead of undefined idx
+                                              const expenseId = String(
+                                                expense._id ?? expenseIndex
+                                              );
+
+                                              const splitEntries = expense.split ?? [];
+
+                                              setEditingSplits((prev) => {
+                                                const cur = prev[expenseId] ?? {
+                                                  amounts: splitEntries.map(
+                                                    (s: any) => s.amount || 0
+                                                  ),
+                                                  original: splitEntries.map(
+                                                    (s: any) => s.amount || 0
+                                                  ),
+                                                  isEditing: true,
+                                                };
+
+                                                const newAmounts = [...cur.amounts];
+
+                                                newAmounts[splitIndex] = Number.isNaN(val)
+                                                  ? 0
+                                                  : val;
+
+                                                const total =
+                                                  expense.amount ||
+                                                  newAmounts.reduce(
+                                                    (a: number, b: number) => a + b,
+                                                    0
+                                                  );
+
+                                                const newPrimary = newAmounts[splitIndex];
+
+                                                const remaining = Math.max(
+                                                  0,
+                                                  (expense.amount || total) - newPrimary
+                                                );
+
+                                                const othersIdx = splitEntries
+                                                  .map((_: any, i: number) => i)
+                                                  .filter((i) => i !== splitIndex);
+
+                                                const originalOthersSum =
+                                                  cur.original.reduce(
+                                                    (
+                                                      sum: number,
+                                                      v: number,
+                                                      i: number
+                                                    ) =>
+                                                      i === splitIndex
+                                                        ? sum
+                                                        : sum + (v || 0),
+                                                    0
+                                                  );
+
+                                                if (othersIdx.length > 0) {
+                                                  let distributed: number[] = [];
+
+                                                  if (originalOthersSum > 0) {
+                                                    distributed = othersIdx.map((i) => {
+                                                      const orig =
+                                                        cur.original[i] || 0;
+
+                                                      return (
+                                                        Math.round(
+                                                          ((orig /
+                                                            originalOthersSum) *
+                                                            remaining) *
+                                                          100
+                                                        ) / 100
+                                                      );
+                                                    });
+                                                  } else {
+                                                    const even =
+                                                      Math.round(
+                                                        (remaining /
+                                                          othersIdx.length) *
+                                                        100
+                                                      ) / 100;
+
+                                                    distributed = othersIdx.map(
+                                                      () => even
+                                                    );
+                                                  }
+
+                                                  othersIdx.forEach(
+                                                    (otherIdx, j) => {
+                                                      newAmounts[otherIdx] =
+                                                        distributed[j];
+                                                    }
+                                                  );
+
+                                                  const sumNow =
+                                                    newAmounts.reduce(
+                                                      (a: number, b: number) =>
+                                                        a + (b || 0),
+                                                      0
+                                                    );
+
+                                                  const diff =
+                                                    (expense.amount || total) -
+                                                    sumNow;
+
+                                                  if (Math.abs(diff) >= 0.01) {
+                                                    const adjustIdx =
+                                                      othersIdx[0] ?? splitIndex;
+
+                                                    newAmounts[adjustIdx] =
+                                                      Math.round(
+                                                        ((newAmounts[adjustIdx] ||
+                                                          0) +
+                                                          diff) *
+                                                        100
+                                                      ) / 100;
+                                                  }
+                                                }
+
+                                                return {
+                                                  ...prev,
+                                                  [expenseId]: {
+                                                    ...cur,
+                                                    amounts: newAmounts,
+                                                    isEditing: true,
+                                                  },
+                                                };
+                                              });
+                                            }}
+                                            className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                                          />
+                                        </div>
+                                      )}
+
+                                      {/* edit toggle shown once per expense */}
+                                      {splitIndex === 0 && (
+                                        <div className="flex items-center gap-2">
+                                          {!editing ? (
+                                            <button
+                                              onClick={() => {
+                                                const splitEntries =
+                                                  expense.split ?? [];
+
+                                                setEditingSplits((prev) => ({
+                                                  ...prev,
+                                                  [expenseId]: {
+                                                    amounts: splitEntries.map(
+                                                      (s: any) =>
+                                                        s.amount || 0
+                                                    ),
+                                                    original: splitEntries.map(
+                                                      (s: any) =>
+                                                        s.amount || 0
+                                                    ),
+                                                    isEditing: true,
+                                                  },
+                                                }));
+                                              }}
+                                              title="Edit split amounts"
+                                              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                                            >
+                                              <Edit2 className="w-4 h-4 text-primary" />
+                                            </button>
+                                          ) : (
+                                            <>
+                                              <button
+                                                onClick={async () => {
+                                                  const updated =
+                                                    editingSplits[expenseId];
+
+                                                  if (!updated) return;
+
+                                                  try {
+                                                    const payload = (
+                                                      expense.split || []
+                                                    ).map(
+                                                      (
+                                                        s: any,
+                                                        i: number
+                                                      ) => ({
+                                                        ...s,
+                                                        amount:
+                                                          Number.parseFloat(
+                                                            (
+                                                              updated.amounts[
+                                                              i
+                                                              ] || 0
+                                                            ).toFixed(2)
+                                                          ),
+                                                      })
+                                                    );
+
+                                                    await axios.put(
+                                                      `/api/transactions?id=${expense._id}`,
+                                                      {
+                                                        split: payload,
+                                                      }
+                                                    );
+
+                                                    setData((prev) => {
+                                                      if (!prev) return prev;
+
+                                                      const newExpenses =
+                                                        prev.expenses.map(
+                                                          (ex) => {
+                                                            if (
+                                                              ex._id ===
+                                                              expense._id
+                                                            ) {
+                                                              return {
+                                                                ...ex,
+                                                                split: payload,
+                                                              };
+                                                            }
+
+                                                            return ex;
+                                                          }
+                                                        );
+
+                                                      return {
+                                                        ...prev,
+                                                        expenses:
+                                                          newExpenses,
+                                                      };
+                                                    });
+
+                                                    setEditingSplits(
+                                                      (prev) => ({
+                                                        ...prev,
+                                                        [expenseId]: {
+                                                          ...prev[
+                                                          expenseId
+                                                          ],
+                                                          isEditing: false,
+                                                        },
+                                                      })
+                                                    );
+                                                  } catch (err: any) {
+                                                    console.error(
+                                                      "Failed to save split:",
+                                                      err
+                                                    );
+
+                                                    alert(
+                                                      err.response?.data
+                                                        ?.message ||
+                                                      "Failed to save split amounts"
+                                                    );
+                                                  }
+                                                }}
+                                                title="Save"
+                                                className="text-sm px-2 py-1 bg-primary text-white rounded hover:bg-primary-dark"
+                                              >
+                                                Save
+                                              </button>
+
+                                              <button
+                                                onClick={() => {
+                                                  setEditingSplits(
+                                                    (prev) => ({
+                                                      ...prev,
+                                                      [expenseId]: {
+                                                        ...prev[
+                                                        expenseId
+                                                        ],
+                                                        isEditing: false,
+                                                        amounts:
+                                                          prev[
+                                                            expenseId
+                                                          ]?.original ?? [],
+                                                      },
+                                                    })
+                                                  );
+                                                }}
+                                                title="Cancel"
+                                                className="text-sm px-2 py-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700"
+                                              >
+                                                Cancel
+                                              </button>
+                                            </>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ));
+                                })()}
                               </div>
                             </div>
                           )}

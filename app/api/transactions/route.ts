@@ -216,7 +216,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { amount, description, category, type, date, notes, source, city } = body;
+    const { amount, description, category, type, date, notes, source, city, split } = body;
 
     const { db } = await connectToDatabase();
 
@@ -237,6 +237,7 @@ export async function PUT(request: NextRequest) {
       ...(notes !== undefined && { notes }),
       ...(source && { source }),
       ...(city && { city }),
+      ...(split !== undefined && { split }),
       updatedAt: new Date(),
     };
 
