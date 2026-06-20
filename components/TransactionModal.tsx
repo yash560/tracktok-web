@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, Calendar, DollarSign, Tag, Type, MapPin, CreditCard, Plus, Minus, Users } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Calendar, DollarSign, Tag, Type, MapPin, CreditCard, Plus, Minus, Users, Camera, Loader2, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '@/components/AuthContext';
 
@@ -64,6 +64,9 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   const [splitMembers, setSplitMembers] = useState<SplitMember[]>([]);
   const [contactName, setContactName] = useState('');
   const [contactPhone, setContactPhone] = useState('');
+  const [receiptImage, setReceiptImage] = useState<string | null>(null);
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const callAIExpenseAPI = async () => {
     if (!aiPrompt.trim()) {
@@ -201,6 +204,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       const payload: any = {
         ...formData,
         amount: parseFloat(formData.amount),
+        ...(receiptImage && { receiptImage }),
       };
 
       if (showSplit && splitMembers.length > 0) {
@@ -542,6 +546,59 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   className="input-field resize-none"
                 />
+              </div>
+
+              {/* Receipt Upload */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold mb-2">Receipt (Optional)</label>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setUploadingReceipt(true);
+                    try {
+                      const formDataUpload = new FormData();
+                      formDataUpload.append('file', file);
+                      const res = await axios.post('/api/upload', formDataUpload, {
+                        headers: { 'Content-Type': 'multipart/form-data' },
+                      });
+                      setReceiptImage(res.data.url);
+                    } catch {
+                      alert('Failed to upload receipt');
+                    } finally {
+                      setUploadingReceipt(false);
+                    }
+                  }}
+                />
+                {receiptImage ? (
+                  <div className="relative inline-block">
+                    <img src={receiptImage} alt="Receipt" className="w-32 h-32 object-cover rounded-lg border border-gray-200 dark:border-gray-700" />
+                    <button
+                      type="button"
+                      onClick={() => setReceiptImage(null)}
+                      className="absolute -top-2 -right-2 p-1 bg-danger text-white rounded-full"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingReceipt}
+                    className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:border-primary hover:text-primary transition disabled:opacity-50 w-full justify-center"
+                  >
+                    {uploadingReceipt ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</>
+                    ) : (
+                      <><Camera className="w-4 h-4" /> Upload Receipt</>
+                    )}
+                  </button>
+                )}
               </div>
 
               {/* Split Toggle */}

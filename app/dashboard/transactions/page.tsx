@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { useProtectedPage } from '@/lib/useProtectedPage';
+import { useCurrency } from '@/components/CurrencyContext';
 import { TransactionModal } from '@/components/TransactionModal';
 import { TransactionDetailModal } from '@/components/TransactionDetailModal';
 import { DateTooltip } from '@/components/DateTooltip';
@@ -33,6 +34,7 @@ function TransactionsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   useProtectedPage();
+  const { fmt } = useCurrency();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState(searchParams.get('search') || '');
@@ -342,7 +344,7 @@ function TransactionsContent() {
                       </DateTooltip>
                     </td>
                     <td className={`py-3 sm:py-4 px-3 sm:px-6 text-right font-bold text-xs sm:text-sm md:text-lg ${t.type === 'income' ? 'text-success' : 'text-danger'}`}>
-                      {t.type === 'income' ? '+' : '-'}₹{Math.abs(t.amount).toFixed(2)}
+                      {t.type === 'income' ? '+' : '-'}{fmt(Math.abs(t.amount))}
                     </td>
                     <td className="py-3 sm:py-4 px-3 sm:px-6">
                       <div className="flex items-center justify-center gap-1 sm:gap-2">

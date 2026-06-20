@@ -29,6 +29,7 @@ import {
   initialNotification,
   initialConfirm,
 } from '@/components/NotificationModal';
+import { useCurrency } from '@/components/CurrencyContext';
 
 interface Contact {
   _id: string;
@@ -136,9 +137,21 @@ function ContactModal({
   );
 }
 
+const CURRENCIES = [
+  { code: 'INR', symbol: '₹', name: 'Indian Rupee', flag: '🇮🇳' },
+  { code: 'USD', symbol: '$', name: 'US Dollar', flag: '🇺🇸' },
+  { code: 'EUR', symbol: '€', name: 'Euro', flag: '🇪🇺' },
+  { code: 'GBP', symbol: '£', name: 'British Pound', flag: '🇬🇧' },
+  { code: 'JPY', symbol: '¥', name: 'Japanese Yen', flag: '🇯🇵' },
+  { code: 'AED', symbol: 'د.إ', name: 'UAE Dirham', flag: '🇦🇪' },
+  { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar', flag: '🇸🇬' },
+  { code: 'AUD', symbol: 'A$', name: 'Australian Dollar', flag: '🇦🇺' },
+];
+
 export default function SettingsPage() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
+  const { currency, setCurrency } = useCurrency();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [contactsLoading, setContactsLoading] = useState(true);
   const [contactSearch, setContactSearch] = useState('');
@@ -276,9 +289,19 @@ export default function SettingsPage() {
         {
           id: 'currency',
           name: 'Default Currency',
-          description: 'INR (₹)',
+          description: `${CURRENCIES.find((c) => c.code === currency)?.flag || ''} ${currency} (${CURRENCIES.find((c) => c.code === currency)?.symbol || '₹'})`,
           icon: CreditCard,
-          action: <ChevronRight className="w-5 h-5 text-gray-400" />,
+          action: (
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+            >
+              {CURRENCIES.map((c) => (
+                <option key={c.code} value={c.code}>{c.flag} {c.code} ({c.symbol})</option>
+              ))}
+            </select>
+          ),
         },
         {
           id: 'language',

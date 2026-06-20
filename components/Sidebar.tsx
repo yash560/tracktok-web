@@ -12,6 +12,7 @@ import {
   X,
   Users,
   ChevronDown,
+  PiggyBank,
 } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { useEffect, useState } from 'react';
@@ -54,6 +55,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
     { name: 'Transactions', icon: Receipt, href: '/dashboard/transactions' },
+    { name: 'Budgets', icon: PiggyBank, href: '/dashboard/budgets' },
     { name: 'Profile', icon: User, href: '/dashboard/profile' },
     { name: 'Settings', icon: Settings, href: '/dashboard/settings' },
   ];

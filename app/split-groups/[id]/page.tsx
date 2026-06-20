@@ -27,6 +27,8 @@ import {
   ChevronUp,
   Share2,
   FileText,
+  MessageCircle,
+  Loader2,
 } from 'lucide-react';
 import {
   PieChart,
@@ -55,6 +57,7 @@ import {
   initialNotification,
   initialConfirm,
 } from '@/components/NotificationModal';
+import { useCurrency } from '@/components/CurrencyContext';
 
 interface SplitGroupResponse {
   splitGroup: SplitGroup;
@@ -344,6 +347,7 @@ export default function SplitGroupPage() {
   const { loading: authLoading, user } = useAuth();
   useProtectedPage();
   const id = params.id as string;
+  const { fmt } = useCurrency();
   const [data, setData] = useState<SplitGroupResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -409,6 +413,13 @@ export default function SplitGroupPage() {
   const [showSimplified, setShowSimplified] = useState(false);
   // Feature #8: Copied link state
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
+
+  // Transaction comments
+  const [openComments, setOpenComments] = useState<string | null>(null);
+  const [comments, setComments] = useState<{ [expenseId: string]: any[] }>({});
+  const [commentText, setCommentText] = useState('');
+  const [commentsLoading, setCommentsLoading] = useState<string | null>(null);
+  const [postingComment, setPostingComment] = useState(false);
 
   useEffect(() => {
     const fetchSplitGroup = async () => {
@@ -743,7 +754,7 @@ export default function SplitGroupPage() {
         payerPhone: user?.phone || user?.phoneNumber,
         user_code: (user as any)?._id || '',
       });
-      notify('success', 'Payment Recorded', `₹${amount.toFixed(2)} paid to ${memberName}`);
+      notify('success', 'Payment Recorded', `${fmt(amount)} paid to ${memberName}`);
       setTimeout(() => globalThis.location.reload(), 1500);
     } catch (err: any) {
       console.error('Quick settle error:', err);
@@ -765,7 +776,7 @@ export default function SplitGroupPage() {
     }
 
     if (amount > paymentModal.totalAmount) {
-      notify('warning', 'Amount Too High', `Cannot pay more than ₹${paymentModal.totalAmount.toFixed(2)} owed`);
+      notify('warning', 'Amount Too High', `Cannot pay more than ${fmt(paymentModal.totalAmount)} owed`);
       return;
     }
 
@@ -783,7 +794,7 @@ export default function SplitGroupPage() {
       );
 
       if (response.status === 200) {
-        setPaymentSuccess(`Payment of ₹${amount.toFixed(2)} initiated to ${paymentModal.memberName}`);
+        setPaymentSuccess(`Payment of ${fmt(amount)} initiated to ${paymentModal.memberName}`);
         setTimeout(() => {
           closePaymentModal();
           globalThis.location.reload();
@@ -795,6 +806,57 @@ export default function SplitGroupPage() {
       notify('error', 'Payment Failed', errorMsg);
     } finally {
       setPaymentModal((prev) => ({ ...prev, isProcessing: false }));
+    }
+  };
+
+  // Comments helpers
+  const fetchComments = async (expenseId: string) => {
+    setCommentsLoading(expenseId);
+    try {
+      const res = await axios.get(`/api/comments?expenseId=${expenseId}`);
+      setComments((prev) => ({ ...prev, [expenseId]: res.data.comments || [] }));
+    } catch {
+      // silently fail
+    } finally {
+      setCommentsLoading(null);
+    }
+  };
+
+  const toggleComments = (expenseId: string) => {
+    if (openComments === expenseId) {
+      setOpenComments(null);
+    } else {
+      setOpenComments(expenseId);
+      if (!comments[expenseId]) fetchComments(expenseId);
+    }
+    setCommentText('');
+  };
+
+  const postComment = async (expenseId: string) => {
+    if (!commentText.trim()) return;
+    setPostingComment(true);
+    try {
+      await axios.post('/api/comments', {
+        expenseId,
+        text: commentText.trim(),
+        authorName: user?.displayName || user?.name || 'You',
+        authorPhone: (user?.phone || user?.phoneNumber) as string,
+      });
+      setCommentText('');
+      fetchComments(expenseId);
+    } catch {
+      notify('error', 'Error', 'Failed to post comment');
+    } finally {
+      setPostingComment(false);
+    }
+  };
+
+  const deleteComment = async (commentId: string, expenseId: string) => {
+    try {
+      await axios.delete(`/api/comments?id=${commentId}`);
+      fetchComments(expenseId);
+    } catch {
+      notify('error', 'Error', 'Failed to delete comment');
     }
   };
 
@@ -961,7 +1023,7 @@ export default function SplitGroupPage() {
                 <p className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase mb-2">
                   Total Amount
                 </p>
-                <p className="text-base sm:text-lg font-bold text-danger">₹{totalAmount.toFixed(2)}</p>
+                <p className="text-base sm:text-lg font-bold text-danger">{fmt(totalAmount)}</p>
               </div>
             </div>
           </div>
@@ -1000,11 +1062,11 @@ export default function SplitGroupPage() {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          ₹{memberTotal.toFixed(2)}
+                          {fmt(memberTotal)}
                         </p>
                         {memberSettlement && (
                           <p className={`text-xs mt-1 ${memberSettlement.type === 'owes' ? 'text-warning' : 'text-success'}`}>
-                            {memberSettlement.type === 'owes' ? 'You owe' : 'Owes you'} ₹{memberSettlement.amount.toFixed(2)}
+                            {memberSettlement.type === 'owes' ? 'You owe' : 'Owes you'} {fmt(memberSettlement.amount)}
                           </p>
                         )}
                       </div>
@@ -1070,7 +1132,7 @@ export default function SplitGroupPage() {
                               <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                             ))}
                           </Pie>
-                          <Tooltip formatter={(value: any) => `₹${Number(value).toFixed(2)}`} />
+                          <Tooltip formatter={(value: any) => fmt(Number(value))} />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
@@ -1084,7 +1146,7 @@ export default function SplitGroupPage() {
                             />
                             <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">{cat.name}</span>
                           </div>
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">₹{cat.value.toFixed(2)}</span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">{fmt(cat.value)}</span>
                         </div>
                       ))}
                     </div>
@@ -1103,7 +1165,7 @@ export default function SplitGroupPage() {
                         <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                         <YAxis tick={{ fontSize: 12 }} />
                         <Tooltip
-                          formatter={(value: any, name: any) => [`₹${Number(value).toFixed(2)}`, name === 'spent' ? 'Their Share' : 'Paid For Others']}
+                          formatter={(value: any, name: any) => [fmt(Number(value)), name === 'spent' ? 'Their Share' : 'Paid For Others']}
                           labelFormatter={(label: any) => {
                             const member = memberSpendingData.find((m) => m.name === label);
                             return member?.fullName || String(label);
@@ -1132,7 +1194,7 @@ export default function SplitGroupPage() {
                         <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                         <YAxis tick={{ fontSize: 12 }} />
                         <Tooltip
-                          formatter={(value: any) => [`₹${Number(value).toFixed(2)}`, 'Balance']}
+                          formatter={(value: any) => [fmt(Number(value)), 'Balance']}
                           labelFormatter={(_, payload) => {
                             const item = payload?.[0]?.payload;
                             return item ? `${item.date} — ${item.event}` : '';
@@ -1189,7 +1251,7 @@ export default function SplitGroupPage() {
                               </div>
                               <div className="text-right flex-shrink-0">
                                 <p className={`text-sm font-bold ${activity.isPayment ? 'text-success' : 'text-danger'}`}>
-                                  ₹{activity.amount.toFixed(2)}
+                                  {fmt(activity.amount)}
                                 </p>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">
                                   {new Date(activity.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -1378,7 +1440,7 @@ export default function SplitGroupPage() {
                                                   />
                                                 </div>
                                                 <span className="text-xs text-gray-600 dark:text-gray-400 w-20 text-right">
-                                                  ₹{currentAmount.toFixed(2)}
+                                                  {fmt(currentAmount)}
                                                 </span>
                                                 <span className="text-xs text-gray-400 w-12 text-right">
                                                   {percentage.toFixed(0)}%
@@ -1438,7 +1500,7 @@ export default function SplitGroupPage() {
                                                       className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-right"
                                                     />
                                                     <span className="text-xs text-gray-500">%</span>
-                                                    <span className="text-xs text-gray-400 w-20 text-right">₹{currentAmount.toFixed(2)}</span>
+                                                    <span className="text-xs text-gray-400 w-20 text-right">{fmt(currentAmount)}</span>
                                                   </>
                                                 ) : editingSplits[expenseId]?.splitMode === 'shares' ? (
                                                   <>
@@ -1480,7 +1542,7 @@ export default function SplitGroupPage() {
                                                         {editingSplits[expenseId]?.shares?.[splitIndex] ?? 1}x
                                                       </span>
                                                     </div>
-                                                    <span className="text-xs text-gray-400 w-20 text-right">₹{currentAmount.toFixed(2)}</span>
+                                                    <span className="text-xs text-gray-400 w-20 text-right">{fmt(currentAmount)}</span>
                                                   </>
                                                 ) : (
                                                   <>
@@ -1582,10 +1644,10 @@ export default function SplitGroupPage() {
                                               Math.abs(diff) < 0.01 ? 'text-success' : diff < 0 ? 'text-danger' : 'text-warning'
                                             }`}>
                                               {Math.abs(diff) < 0.01
-                                                ? `Total: ₹${expense.amount.toFixed(2)} ✓`
+                                                ? `Total: ${fmt(expense.amount)} ✓`
                                                 : diff < 0
-                                                  ? `Over by ₹${Math.abs(diff).toFixed(2)} — total cannot exceed ₹${expense.amount.toFixed(2)}`
-                                                  : `₹${diff.toFixed(2)} unassigned of ₹${expense.amount.toFixed(2)}`
+                                                  ? `Over by ${fmt(Math.abs(diff))} — total cannot exceed ${fmt(expense.amount)}`
+                                                  : `${fmt(diff)} unassigned of ${fmt(expense.amount)}`
                                               }
                                             </div>
                                           </div>
@@ -1621,7 +1683,7 @@ export default function SplitGroupPage() {
 
                                                 const totalAssigned = updated.amounts.reduce((a, b) => a + (b || 0), 0);
                                                 if (Math.round(totalAssigned * 100) > Math.round(expense.amount * 100)) {
-                                                  notify('warning', 'Invalid Split', `Total (₹${totalAssigned.toFixed(2)}) exceeds expense amount (₹${expense.amount.toFixed(2)})`);
+                                                  notify('warning', 'Invalid Split', `Total (${fmt(totalAssigned)}) exceeds expense amount (${fmt(expense.amount)})`);
                                                   return;
                                                 }
 
@@ -1686,17 +1748,102 @@ export default function SplitGroupPage() {
 
                         <div className="text-right flex-shrink-0">
                           <p className="text-xl sm:text-2xl font-bold text-danger mb-3">
-                            ₹{expense.amount.toFixed(2)}
+                            {fmt(expense.amount)}
                           </p>
-                          <Link
-                            href={`/invoice/${expense.code || expense._id}`}
-                            className="inline-flex items-center gap-1 px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition text-xs sm:text-sm font-medium whitespace-nowrap"
-                          >
-                            <Eye className="w-4 h-4" />
-                            <span>View</span>
-                          </Link>
+                          <div className="flex items-center gap-2 justify-end">
+                            <button
+                              onClick={() => toggleComments(String(expense._id ?? expenseIndex))}
+                              className={`inline-flex items-center gap-1 px-3 py-2 border rounded-lg transition text-xs sm:text-sm font-medium whitespace-nowrap ${
+                                openComments === String(expense._id ?? expenseIndex)
+                                  ? 'border-primary text-primary bg-primary/5'
+                                  : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-primary'
+                              }`}
+                            >
+                              <MessageCircle className="w-4 h-4" />
+                              {comments[String(expense._id ?? expenseIndex)]?.length || ''}
+                            </button>
+                            <Link
+                              href={`/invoice/${expense.code || expense._id}`}
+                              className="inline-flex items-center gap-1 px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition text-xs sm:text-sm font-medium whitespace-nowrap"
+                            >
+                              <Eye className="w-4 h-4" />
+                              <span>View</span>
+                            </Link>
+                          </div>
                         </div>
                       </div>
+
+                      {/* Comments Thread */}
+                      {openComments === String(expense._id ?? expenseIndex) && (
+                        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                          <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase mb-3 flex items-center gap-1">
+                            <MessageCircle className="w-3.5 h-3.5" />
+                            Comments
+                          </p>
+
+                          {commentsLoading === String(expense._id ?? expenseIndex) ? (
+                            <div className="flex items-center gap-2 text-gray-400 text-sm py-2">
+                              <Loader2 className="w-4 h-4 animate-spin" /> Loading...
+                            </div>
+                          ) : (
+                            <>
+                              <div className="space-y-2 mb-3 max-h-48 overflow-y-auto">
+                                {(comments[String(expense._id ?? expenseIndex)] || []).length === 0 ? (
+                                  <p className="text-xs text-gray-400 py-2">No comments yet. Start the conversation!</p>
+                                ) : (
+                                  (comments[String(expense._id ?? expenseIndex)] || []).map((comment: any) => (
+                                    <div key={comment._id} className="flex items-start gap-2 p-2 bg-white dark:bg-gray-700 rounded-lg">
+                                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                        <span className="text-primary text-[10px] font-bold">{comment.authorName?.charAt(0)?.toUpperCase() || '?'}</span>
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-xs font-medium text-gray-900 dark:text-white">{comment.authorName}</span>
+                                          <span className="text-[10px] text-gray-400">
+                                            {new Date(comment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                          </span>
+                                        </div>
+                                        <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">{comment.text}</p>
+                                      </div>
+                                      {comment.userId === (user as any)?._id && (
+                                        <button
+                                          onClick={() => deleteComment(comment._id, String(expense._id ?? expenseIndex))}
+                                          className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-gray-400 hover:text-danger flex-shrink-0"
+                                        >
+                                          <X className="w-3 h-3" />
+                                        </button>
+                                      )}
+                                    </div>
+                                  ))
+                                )}
+                              </div>
+
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="Add a comment..."
+                                  value={commentText}
+                                  onChange={(e) => setCommentText(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                      e.preventDefault();
+                                      postComment(String(expense._id ?? expenseIndex));
+                                    }
+                                  }}
+                                  className="flex-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-xs focus:outline-none focus:border-primary"
+                                />
+                                <button
+                                  onClick={() => postComment(String(expense._id ?? expenseIndex))}
+                                  disabled={postingComment || !commentText.trim()}
+                                  className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-medium hover:bg-primary-dark transition disabled:opacity-50"
+                                >
+                                  {postingComment ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1768,7 +1915,7 @@ export default function SplitGroupPage() {
                           {debt.from} → {debt.to}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          ₹{debt.amount.toFixed(2)}
+                          {fmt(debt.amount)}
                         </p>
                       </div>
                     </div>
@@ -1817,7 +1964,7 @@ export default function SplitGroupPage() {
                                     {settlement.memberName}
                                   </p>
                                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                                    ₹{settlement.amount.toFixed(2)}
+                                    {fmt(settlement.amount)}
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-2 flex-shrink-0">
@@ -1840,7 +1987,7 @@ export default function SplitGroupPage() {
                                         setConfirmDialog({
                                           isOpen: true,
                                           title: 'Quick Settle',
-                                          message: `Pay ₹${settlement.amount.toFixed(2)} to ${settlement.memberName}?`,
+                                          message: `Pay ${fmt(settlement.amount)} to ${settlement.memberName}?`,
                                           onConfirm: () => handleQuickSettle(settlement.memberName, settlement.memberPhone, settlement.amount),
                                         });
                                       }}
@@ -1895,7 +2042,7 @@ export default function SplitGroupPage() {
                                     {settlement.memberName}
                                   </p>
                                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                                    Owes ₹{settlement.amount.toFixed(2)}
+                                    Owes {fmt(settlement.amount)}
                                   </p>
                                 </div>
                                 {/* Feature #8: Share payment request link */}
@@ -1982,7 +2129,7 @@ export default function SplitGroupPage() {
                   Pay {paymentModal.memberName}
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-                  Total owed: ₹{paymentModal.totalAmount.toFixed(2)}
+                  Total owed: {fmt(paymentModal.totalAmount)}
                 </p>
 
                 <div className="space-y-4">
@@ -2007,8 +2154,7 @@ export default function SplitGroupPage() {
                       placeholder="Enter amount"
                     />
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Max: ₹{paymentModal.totalAmount.toFixed(2)} | Remaining: ₹
-                      {(paymentModal.totalAmount - Number.parseFloat(paymentModal.paymentAmount || '0')).toFixed(2)}
+                      Max: {fmt(paymentModal.totalAmount)} | Remaining: {fmt(paymentModal.totalAmount - Number.parseFloat(paymentModal.paymentAmount || '0'))}
                     </p>
                   </div>
 
@@ -2157,8 +2303,8 @@ export default function SplitGroupPage() {
                 <div className={`p-3 rounded-lg ${memberSettlement.type === 'owes' ? 'bg-warning/10 border border-warning/30' : 'bg-success/10 border border-success/30'}`}>
                   <p className={`text-sm font-semibold ${memberSettlement.type === 'owes' ? 'text-warning' : 'text-success'}`}>
                     {memberSettlement.type === 'owes'
-                      ? `You owe ${selectedMember.name} ₹${memberSettlement.amount.toFixed(2)}`
-                      : `${selectedMember.name} owes you ₹${memberSettlement.amount.toFixed(2)}`}
+                      ? `You owe ${selectedMember.name} ${fmt(memberSettlement.amount)}`
+                      : `${selectedMember.name} owes you ${fmt(memberSettlement.amount)}`}
                   </p>
                 </div>
               ) : null;

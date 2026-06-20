@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   TrendingUp,
@@ -18,6 +18,15 @@ import {
   Percent,
   Layers,
   Eye,
+  Users,
+  PiggyBank,
+  Trophy,
+  Flame,
+  Target,
+  Mail,
+  X,
+  Plus,
+  ArrowRight,
 } from 'lucide-react';
 import {
   LineChart,
@@ -39,6 +48,10 @@ import { useRouter } from 'next/navigation';
 import { useProtectedPage } from '@/lib/useProtectedPage';
 import { TransactionDetailModal } from '@/components/TransactionDetailModal';
 import { DateTooltip } from '@/components/DateTooltip';
+import { useAuth } from '@/components/AuthContext';
+import { useCurrency } from '@/components/CurrencyContext';
+import { useKeyboardShortcuts } from '@/lib/useKeyboardShortcuts';
+import Link from 'next/link';
 
 const COLORS = ['#2F2E51', '#47468A', '#4DD69B', '#F37373', '#FBA94D', '#FB8C00', '#FBC02D', '#3F51B5', '#D81B60'];
 
@@ -50,6 +63,8 @@ interface DateRange {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const { fmt } = useCurrency();
   useProtectedPage();
   const [timeframe, setTimeframe] = useState('month');
   const [analytics, setAnalytics] = useState<any>(null);
@@ -67,6 +82,44 @@ export default function DashboardPage() {
   const [filterMaxAmount, setFilterMaxAmount] = useState('');
   const [filterContact, setFilterContact] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
+
+  // Split summary
+  const [splitGroups, setSplitGroups] = useState<any[]>([]);
+  const [totalOwed, setTotalOwed] = useState(0);
+  const [totalOwing, setTotalOwing] = useState(0);
+
+  // Budget summary
+  const [budgets, setBudgets] = useState<any[]>([]);
+  const [budgetSpending, setBudgetSpending] = useState<any>({});
+
+  // Monthly digest modal
+  const [showDigestModal, setShowDigestModal] = useState(false);
+  const [digestData, setDigestData] = useState<any>(null);
+  const [digestLoading, setDigestLoading] = useState(false);
+  const [sendingDigest, setSendingDigest] = useState(false);
+
+  // Spending streaks
+  const [streaks, setStreaks] = useState({
+    currentStreak: 0,
+    underBudgetDays: 0,
+    noSpendDays: 0,
+    totalAchievements: 0,
+  });
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    'n': () => router.push('/dashboard/transactions'),
+    '/': () => {
+      const searchInput = document.querySelector<HTMLInputElement>('[data-search-input]');
+      searchInput?.focus();
+    },
+    'b': () => router.push('/dashboard/budgets'),
+    'Escape': () => {
+      setShowDigestModal(false);
+      setShowTransactionDetail(false);
+      setShowDatePicker(false);
+    },
+  });
 
   // Helper function to get date range based on selection
   const getDateRange = (range: DateRange): { start: Date; end: Date } => {
@@ -190,6 +243,146 @@ export default function DashboardPage() {
 
     fetchData();
   }, [dateRange, filterCategory, filterMinAmount, filterMaxAmount, filterContact]);
+
+  // Fetch split groups summary
+  useEffect(() => {
+    const fetchSplitSummary = async () => {
+      try {
+        const res = await axios.get('/api/split-groups');
+        const groups = res.data.splitGroups || [];
+        setSplitGroups(groups);
+
+        const userPhone = (user?.phone || user?.phoneNumber) as string;
+        if (!userPhone) return;
+
+        let owed = 0;
+        let owing = 0;
+
+        for (const group of groups) {
+          if (group.settledAt) continue;
+          try {
+            const groupRes = await axios.get(`/api/split-groups/${group._id}`);
+            const expenses = groupRes.data.expenses || [];
+            expenses.forEach((exp: any) => {
+              if (!exp.split) return;
+              const owner = exp.split.find((s: any) => s.owner);
+              if (!owner) return;
+              const isPayment = (owner.amount || 0) === 0;
+              exp.split.forEach((split: any) => {
+                if (split.phone === owner.phone) return;
+                const amt = split.amount || 0;
+                if (amt === 0) return;
+                if (!isPayment) {
+                  if (split.phone === userPhone) owing += amt;
+                  else if (owner.phone === userPhone) owed += amt;
+                }
+              });
+            });
+          } catch {
+            // skip failed groups
+          }
+        }
+        setTotalOwed(owed);
+        setTotalOwing(owing);
+      } catch {
+        // silently fail
+      }
+    };
+    if (user) fetchSplitSummary();
+  }, [user]);
+
+  // Fetch budget summary
+  useEffect(() => {
+    const fetchBudgets = async () => {
+      try {
+        const now = new Date();
+        const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        const res = await axios.get(`/api/budgets?month=${month}`);
+        setBudgets(res.data.budgets || []);
+
+        if (analytics?.categoryBreakdown) {
+          const spending: any = {};
+          analytics.categoryBreakdown.forEach((c: any) => {
+            spending[c.category] = c.amount;
+          });
+          setBudgetSpending(spending);
+        }
+      } catch {
+        // silently fail
+      }
+    };
+    fetchBudgets();
+  }, [analytics]);
+
+  // Calculate streaks from transactions
+  useEffect(() => {
+    if (!transactions || transactions.length === 0) return;
+
+    const today = new Date();
+    const last30 = new Set<string>();
+    let streak = 0;
+    let noSpendDays = 0;
+
+    transactions.forEach((t: any) => {
+      if (t.type === 'expense' || t.type === 'debit') {
+        const d = new Date(t.date).toISOString().split('T')[0];
+        last30.add(d);
+      }
+    });
+
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().split('T')[0];
+      if (!last30.has(key)) noSpendDays++;
+    }
+
+    const budgetCategories = budgets.map((b: any) => b.category);
+    let underBudgetDays = 0;
+    if (budgets.length > 0) {
+      const allUnder = budgets.every((b: any) => (budgetSpending[b.category] || 0) <= b.amount);
+      if (allUnder) underBudgetDays = new Date().getDate();
+    }
+
+    const achievements = [];
+    if (noSpendDays >= 5) achievements.push('5 No-Spend Days');
+    if (noSpendDays >= 10) achievements.push('10 No-Spend Days');
+    if (underBudgetDays >= 15) achievements.push('Budget Master');
+    if (transactions.length >= 50) achievements.push('Tracker Pro');
+
+    setStreaks({
+      currentStreak: noSpendDays,
+      underBudgetDays,
+      noSpendDays,
+      totalAchievements: achievements.length,
+    });
+  }, [transactions, budgets, budgetSpending]);
+
+  // Fetch monthly digest
+  const fetchDigest = async () => {
+    setDigestLoading(true);
+    try {
+      const res = await axios.get('/api/digest');
+      setDigestData(res.data);
+    } catch {
+      // silently fail
+    } finally {
+      setDigestLoading(false);
+    }
+  };
+
+  const sendDigestEmail = async () => {
+    if (!user?.email) return;
+    setSendingDigest(true);
+    try {
+      await axios.post('/api/digest', { email: user.email });
+      alert('Digest email sent!');
+    } catch {
+      alert('Failed to send digest email');
+    } finally {
+      setSendingDigest(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -340,7 +533,7 @@ export default function DashboardPage() {
               <Wallet className="w-6 sm:w-8 h-6 sm:h-8 opacity-80" />
             </div>
             <p className="text-3xl sm:text-4xl font-bold font-display mb-2">
-              ₹{analytics?.balance?.toFixed(2) || '0.00'}
+              {fmt(analytics?.balance || 0)}
             </p>
             <p className="text-white/80 text-xs sm:text-sm">Across all accounts</p>
           </div>
@@ -354,7 +547,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <p className="text-2xl sm:text-3xl font-bold text-success font-display">
-              ₹{analytics?.totalIncome?.toFixed(2) || '0.00'}
+              {fmt(analytics?.totalIncome || 0)}
             </p>
             <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">For selected period</p>
           </div>
@@ -368,10 +561,117 @@ export default function DashboardPage() {
               </div>
             </div>
             <p className="text-2xl sm:text-3xl font-bold text-danger font-display">
-              ₹{analytics?.totalExpense?.toFixed(2) || '0.00'}
+              {fmt(analytics?.totalExpense || 0)}
             </p>
             <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">For selected period</p>
           </div>
+        </div>
+      </motion.div>
+
+      {/* Split Summary + Budget + Streaks + Digest Row */}
+      <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {/* Split Groups Summary */}
+        <Link href={splitGroups.length > 0 ? `/split-groups/${splitGroups[0]._id}` : '#'} className="card hover:shadow-lg transition-shadow cursor-pointer">
+          <div className="flex items-start justify-between gap-2 mb-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">Split Groups</p>
+              <p className="text-lg sm:text-xl font-bold text-primary mt-1">{splitGroups.filter((g: any) => !g.settledAt).length} active</p>
+            </div>
+            <div className="w-8 sm:w-10 h-8 sm:h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Users className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
+            </div>
+          </div>
+          {(totalOwed > 0 || totalOwing > 0) ? (
+            <div className="space-y-1">
+              {totalOwed > 0 && <p className="text-xs text-success font-medium">{fmt(totalOwed)} owed to you</p>}
+              {totalOwing > 0 && <p className="text-xs text-warning font-medium">{fmt(totalOwing)} you owe</p>}
+            </div>
+          ) : (
+            <p className="text-xs text-gray-500">All settled up</p>
+          )}
+        </Link>
+
+        {/* Budget Progress */}
+        <Link href="/dashboard/budgets" className="card hover:shadow-lg transition-shadow cursor-pointer">
+          <div className="flex items-start justify-between gap-2 mb-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">Budgets</p>
+              <p className="text-lg sm:text-xl font-bold text-primary mt-1">{budgets.length} set</p>
+            </div>
+            <div className="w-8 sm:w-10 h-8 sm:h-10 bg-green-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <PiggyBank className="w-4 sm:w-5 h-4 sm:h-5 text-green-600" />
+            </div>
+          </div>
+          {budgets.length > 0 ? (
+            <div className="space-y-1.5">
+              {budgets.slice(0, 2).map((b: any) => {
+                const spent = budgetSpending[b.category] || 0;
+                const pct = b.amount > 0 ? (spent / b.amount) * 100 : 0;
+                return (
+                  <div key={b._id}>
+                    <div className="flex justify-between text-xs mb-0.5">
+                      <span className="capitalize text-gray-600 dark:text-gray-400">{b.category}</span>
+                      <span className={pct > 100 ? 'text-danger font-medium' : 'text-gray-500'}>{pct.toFixed(0)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                      <div className={`h-1.5 rounded-full ${pct > 100 ? 'bg-danger' : pct > 80 ? 'bg-warning' : 'bg-success'}`} style={{ width: `${Math.min(pct, 100)}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+              {budgets.length > 2 && <p className="text-[10px] text-gray-400">+{budgets.length - 2} more</p>}
+            </div>
+          ) : (
+            <p className="text-xs text-gray-500">Set budgets to track limits</p>
+          )}
+        </Link>
+
+        {/* Spending Streaks */}
+        <div className="card hover:shadow-lg transition-shadow">
+          <div className="flex items-start justify-between gap-2 mb-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">Streaks</p>
+              <p className="text-lg sm:text-xl font-bold text-orange-500 mt-1 flex items-center gap-1">
+                <Flame className="w-5 h-5" />
+                {streaks.noSpendDays}
+              </p>
+            </div>
+            <div className="w-8 sm:w-10 h-8 sm:h-10 bg-orange-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Trophy className="w-4 sm:w-5 h-4 sm:h-5 text-orange-500" />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-gray-500">No-spend days (last 30)</p>
+            {streaks.underBudgetDays > 0 && (
+              <p className="text-xs text-success font-medium flex items-center gap-1">
+                <Target className="w-3 h-3" /> {streaks.underBudgetDays} days under budget
+              </p>
+            )}
+            {streaks.totalAchievements > 0 && (
+              <p className="text-xs text-purple-500 font-medium">{streaks.totalAchievements} achievements</p>
+            )}
+          </div>
+        </div>
+
+        {/* Monthly Digest */}
+        <div className="card hover:shadow-lg transition-shadow">
+          <div className="flex items-start justify-between gap-2 mb-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">Monthly Digest</p>
+              <p className="text-lg sm:text-xl font-bold text-blue-600 mt-1">
+                {new Date().toLocaleDateString('en-US', { month: 'short' })}
+              </p>
+            </div>
+            <div className="w-8 sm:w-10 h-8 sm:h-10 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Mail className="w-4 sm:w-5 h-4 sm:h-5 text-blue-600" />
+            </div>
+          </div>
+          <button
+            onClick={() => { setShowDigestModal(true); fetchDigest(); }}
+            className="w-full px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition"
+          >
+            View & Send Digest
+          </button>
         </div>
       </motion.div>
 
@@ -383,7 +683,7 @@ export default function DashboardPage() {
             <div className="flex-1 min-w-0">
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">Avg. Transaction</p>
               <p className="text-xl sm:text-2xl font-bold text-primary mt-1 truncate">
-                ₹{analytics?.transactionStats?.averageTransaction?.toFixed(0) || '0'}
+                {fmt(analytics?.transactionStats?.averageTransaction || 0)}
               </p>
             </div>
             <div className="w-8 sm:w-10 h-8 sm:h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -407,7 +707,7 @@ export default function DashboardPage() {
             <div className="flex-1 min-w-0">
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">Largest Expense</p>
               <p className="text-xl sm:text-2xl font-bold text-danger mt-1 truncate">
-                ₹{analytics?.transactionStats?.largestTransaction?.toFixed(0) || '0'}
+                {fmt(analytics?.transactionStats?.largestTransaction || 0)}
               </p>
             </div>
             <div className="w-8 sm:w-10 h-8 sm:h-10 bg-danger/10 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -473,7 +773,7 @@ export default function DashboardPage() {
               <Percent className="w-4 sm:w-5 h-4 sm:h-5 text-green-600" />
             </div>
           </div>
-          <p className="text-xs text-gray-500">Income vs total amount ({analytics?.totalIncome?.toFixed(0)} of {(analytics?.totalIncome + analytics?.totalExpense)?.toFixed(0)})</p>
+          <p className="text-xs text-gray-500">Income vs total amount ({fmt(analytics?.totalIncome || 0)} of {fmt((analytics?.totalIncome || 0) + (analytics?.totalExpense || 0))})</p>
         </div>
 
         {/* Top Category */}
@@ -497,7 +797,7 @@ export default function DashboardPage() {
               <Award className="w-4 sm:w-5 h-4 sm:h-5 text-orange-600" />
             </div>
           </div>
-          <p className="text-xs text-gray-500">₹{analytics?.transactionStats?.topCategoryAmount?.toFixed(0) || '0'} ({analytics?.transactionStats?.topCategoryPercentage?.toFixed(1)}% of spending)</p>
+          <p className="text-xs text-gray-500">{fmt(analytics?.transactionStats?.topCategoryAmount || 0)} ({analytics?.transactionStats?.topCategoryPercentage?.toFixed(1)}% of spending)</p>
         </div>
 
         {/* Category Diversity */}
@@ -546,7 +846,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-xs sm:text-sm">₹{merchant.amount.toFixed(0)}</p>
+                  <p className="font-bold text-xs sm:text-sm">{fmt(merchant.amount)}</p>
                   <div className="w-12 sm:w-16 bg-gray-100 dark:bg-gray-800 rounded-full h-1.5 mt-1">
                     <div
                       className="bg-primary h-1.5 rounded-full"
@@ -644,7 +944,7 @@ export default function DashboardPage() {
                       <div className="w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
                       <span className="text-gray-600 dark:text-gray-400 capitalize truncate">{cat.category}</span>
                     </div>
-                    <span className="font-semibold flex-shrink-0 ml-2">₹{cat.amount.toFixed(0)}</span>
+                    <span className="font-semibold flex-shrink-0 ml-2">{fmt(cat.amount)}</span>
                   </div>
                 ))}
               </div>
@@ -718,7 +1018,7 @@ export default function DashboardPage() {
                 <div key={insight.city} className="space-y-2">
                   <div className="flex justify-between text-xs sm:text-sm mb-1 gap-2">
                     <span className="font-semibold truncate">{insight.city}</span>
-                    <span className="text-gray-600 dark:text-gray-400 flex-shrink-0">₹{insight.amount.toFixed(0)}</span>
+                    <span className="text-gray-600 dark:text-gray-400 flex-shrink-0">{fmt(insight.amount)}</span>
                   </div>
                   <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
                     <div
@@ -885,7 +1185,7 @@ export default function DashboardPage() {
                       </DateTooltip>
                     </td>
                     <td className={`py-3 sm:py-4 px-3 sm:px-4 text-right font-semibold text-xs sm:text-sm ${transaction.type === 'income' ? 'text-success' : 'text-danger'}`}>
-                      {transaction.type === 'income' ? '+' : '-'}₹{Math.abs(transaction.amount).toFixed(0)}
+                      {transaction.type === 'income' ? '+' : '-'}{fmt(Math.abs(transaction.amount))}
                     </td>
                     <td className="py-3 sm:py-4 px-3 sm:px-4 text-center">
                       <button
@@ -902,15 +1202,139 @@ export default function DashboardPage() {
             </table>
           ) : (
             <div className="flex flex-col items-center justify-center py-8 sm:py-12 px-4">
-              <div className="w-12 sm:w-16 h-12 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mb-2 sm:mb-4">
-                <Wallet className="w-6 sm:w-8 h-6 sm:h-8 text-primary" />
+              <div className="w-16 sm:w-20 h-16 sm:h-20 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full flex items-center justify-center mb-4">
+                <Wallet className="w-8 sm:w-10 h-8 sm:h-10 text-primary" />
               </div>
-              <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 font-medium">No transactions yet</p>
-              <p className="text-xs text-gray-500 mt-1">Your transactions will appear here</p>
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-1">Welcome to TrackTok!</h3>
+              <p className="text-sm text-gray-500 text-center max-w-sm">
+                Start tracking your finances by adding your first transaction
+              </p>
+              <button
+                onClick={() => router.push('/dashboard/transactions')}
+                className="mt-4 flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-dark transition font-medium text-sm shadow-lg shadow-primary/20"
+              >
+                <Plus className="w-4 h-4" />
+                Add First Transaction
+              </button>
+              <div className="mt-6 grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <div className="w-8 h-8 bg-success/10 rounded-lg flex items-center justify-center mx-auto mb-1">
+                    <TrendingUp className="w-4 h-4 text-success" />
+                  </div>
+                  <p className="text-[10px] text-gray-400">Track Income</p>
+                </div>
+                <div>
+                  <div className="w-8 h-8 bg-danger/10 rounded-lg flex items-center justify-center mx-auto mb-1">
+                    <ShoppingCart className="w-4 h-4 text-danger" />
+                  </div>
+                  <p className="text-[10px] text-gray-400">Log Expenses</p>
+                </div>
+                <div>
+                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-1">
+                    <Users className="w-4 h-4 text-primary" />
+                  </div>
+                  <p className="text-[10px] text-gray-400">Split Bills</p>
+                </div>
+              </div>
             </div>
           )}
         </div>
       </motion.div>
+
+      {/* Monthly Digest Modal */}
+      {showDigestModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-dark-card rounded-2xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto p-6 sm:p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <Mail className="w-5 h-5 text-primary" />
+                Monthly Digest
+              </h3>
+              <button onClick={() => setShowDigestModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+
+            {digestLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto" />
+                <p className="text-sm text-gray-500 mt-3">Generating digest...</p>
+              </div>
+            ) : digestData ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-success/10 rounded-lg">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Income</p>
+                    <p className="text-lg font-bold text-success">{fmt(digestData.totalIncome || 0)}</p>
+                  </div>
+                  <div className="p-3 bg-danger/10 rounded-lg">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Expenses</p>
+                    <p className="text-lg font-bold text-danger">{fmt(digestData.totalExpense || 0)}</p>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase mb-2">Summary</p>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Transactions</span>
+                      <span className="font-medium">{digestData.transactionCount || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Savings Rate</span>
+                      <span className="font-medium">{(digestData.savingsRate || 0).toFixed(1)}%</span>
+                    </div>
+                    {digestData.monthOverMonthChange !== undefined && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">vs Last Month</span>
+                        <span className={`font-medium ${digestData.monthOverMonthChange > 0 ? 'text-danger' : 'text-success'}`}>
+                          {digestData.monthOverMonthChange > 0 ? '+' : ''}{digestData.monthOverMonthChange.toFixed(1)}%
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {digestData.topCategories?.length > 0 && (
+                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase mb-2">Top Categories</p>
+                    <div className="space-y-1.5">
+                      {digestData.topCategories.map((cat: any, i: number) => (
+                        <div key={i} className="flex justify-between text-sm">
+                          <span className="capitalize text-gray-600 dark:text-gray-400">{cat.category}</span>
+                          <span className="font-medium">{fmt(cat.amount)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => setShowDigestModal(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition font-medium text-sm"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={sendDigestEmail}
+                    disabled={sendingDigest || !user?.email}
+                    className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition font-medium text-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    <Mail className="w-4 h-4" />
+                    {sendingDigest ? 'Sending...' : 'Email Digest'}
+                  </button>
+                </div>
+                {user?.email && (
+                  <p className="text-xs text-gray-400 text-center">Will send to {user.email}</p>
+                )}
+              </div>
+            ) : (
+              <p className="text-center text-gray-500 py-8">No digest data available</p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Transaction Detail Modal */}
       <TransactionDetailModal

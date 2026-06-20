@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { Settings, LogOut, Menu, User } from 'lucide-react';
 import { useAuth } from './AuthContext';
+import { NotificationCenter } from './NotificationCenter';
 
 interface NavbarProps {
   sidebarOpen: boolean;
@@ -27,8 +28,8 @@ export const Navbar: React.FC<NavbarProps> = ({ setSidebarOpen }) => {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-6">
-
+          <div className="hidden md:flex items-center gap-3">
+            <NotificationCenter />
             <button
               onClick={logout}
               className="p-2 hover:bg-gray-100 dark:hover:bg-dark-card rounded-lg transition text-danger hover:bg-danger/10"
