@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
@@ -29,8 +29,9 @@ const CATEGORIES = [
   'freelancing', 'transfer', 'other'
 ];
 
-export default function TransactionsPage() {
+function TransactionsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   useProtectedPage();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,12 +40,35 @@ export default function TransactionsPage() {
   const [minAmount, setMinAmount] = useState('');
   const [maxAmount, setMaxAmount] = useState('');
   const [contact, setContact] = useState('all');
+  const [source, setSource] = useState('all');
+  const [receiver, setReceiver] = useState('all');
+  const [type, setType] = useState('all');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+
+  useEffect(() => {
+    const cat = searchParams.get('category');
+    const src = searchParams.get('source');
+    const recv = searchParams.get('receiver');
+    const typ = searchParams.get('type');
+    const min = searchParams.get('minAmount');
+    const max = searchParams.get('maxAmount');
+    const q = searchParams.get('search');
+
+    let hasFilter = false;
+    if (cat) { setCategory(cat); hasFilter = true; }
+    if (src) { setSource(src); hasFilter = true; }
+    if (recv) { setReceiver(recv); hasFilter = true; }
+    if (typ) { setType(typ); hasFilter = true; }
+    if (min) { setMinAmount(min); hasFilter = true; }
+    if (max) { setMaxAmount(max); hasFilter = true; }
+    if (q) { setSearch(q); }
+    if (hasFilter) setShowFilters(true);
+  }, []);
 
   const fetchTransactions = useCallback(async () => {
     setLoading(true);
@@ -57,9 +81,12 @@ export default function TransactionsPage() {
         ...(minAmount && { minAmount }),
         ...(maxAmount && { maxAmount }),
         ...(contact !== 'all' && { contact }),
+        ...(source !== 'all' && { source }),
+        ...(receiver !== 'all' && { receiver }),
+        ...(type !== 'all' && { type }),
       });
 
-    const response = await axios.get(`/api/transactions?${params.toString()}`);
+      const response = await axios.get(`/api/transactions?${params.toString()}`);
       setTransactions(response.data.transactions);
       setTotalPages(response.data.pagination.pages);
     } catch (error: any) {
@@ -69,7 +96,7 @@ export default function TransactionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, category, minAmount, maxAmount, contact]);
+  }, [page, search, category, minAmount, maxAmount, contact, source, receiver, type]);
 
   useEffect(() => {
     fetchTransactions();
@@ -169,6 +196,19 @@ export default function TransactionsPage() {
                 </div>
 
                 <div>
+                  <label className="block text-xs sm:text-sm font-semibold mb-2">Type</label>
+                  <select
+                    value={type}
+                    onChange={(e) => setType(e.target.value)}
+                    className="input-field px-3 sm:px-4 text-xs sm:text-sm md:text-base"
+                  >
+                    <option value="all">All Types</option>
+                    <option value="expense">Expense</option>
+                    <option value="income">Income</option>
+                  </select>
+                </div>
+
+                <div>
                   <label className="block text-xs sm:text-sm font-semibold mb-2">Min Amount</label>
                   <input
                     type="number"
@@ -186,6 +226,28 @@ export default function TransactionsPage() {
                     placeholder="₹∞"
                     value={maxAmount}
                     onChange={(e) => setMaxAmount(e.target.value)}
+                    className="input-field px-3 sm:px-4 text-xs sm:text-sm md:text-base"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-sm font-semibold mb-2">Payment Source</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. UPI, Cash..."
+                    value={source === 'all' ? '' : source}
+                    onChange={(e) => setSource(e.target.value || 'all')}
+                    className="input-field px-3 sm:px-4 text-xs sm:text-sm md:text-base"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-sm font-semibold mb-2">Merchant</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Swiggy, Amazon..."
+                    value={receiver === 'all' ? '' : receiver}
+                    onChange={(e) => setReceiver(e.target.value || 'all')}
                     className="input-field px-3 sm:px-4 text-xs sm:text-sm md:text-base"
                   />
                 </div>
@@ -209,14 +271,18 @@ export default function TransactionsPage() {
                 </div>
               </div>
 
-              {(category !== 'all' || minAmount || maxAmount || contact !== 'all') && (
+              {(category !== 'all' || minAmount || maxAmount || contact !== 'all' || source !== 'all' || receiver !== 'all' || type !== 'all') && (
                 <div className="pt-3 border-t border-gray-100 dark:border-gray-800">
                   <button
                     onClick={() => {
                       setCategory('all');
+                      setType('all');
                       setMinAmount('');
                       setMaxAmount('');
                       setContact('all');
+                      setSource('all');
+                      setReceiver('all');
+                      router.replace('/dashboard/transactions');
                     }}
                     className="text-xs text-primary hover:underline font-semibold"
                   >
@@ -387,5 +453,17 @@ export default function TransactionsPage() {
         transaction={selectedTransaction}
       />
     </div>
+  );
+}
+
+export default function TransactionsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    }>
+      <TransactionsContent />
+    </Suspense>
   );
 }

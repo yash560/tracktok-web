@@ -394,7 +394,15 @@ export default function DashboardPage() {
         </div>
 
         {/* Largest Transaction */}
-        <div className="card hover:shadow-lg transition-shadow">
+        <div
+          className="card hover:shadow-lg transition-shadow cursor-pointer"
+          onClick={() => {
+            const cat = analytics?.transactionStats?.largestTransactionCategory;
+            if (cat && cat !== 'N/A') {
+              router.push(`/dashboard/transactions?category=${encodeURIComponent(cat)}&type=expense`);
+            }
+          }}
+        >
           <div className="flex items-start justify-between gap-2 sm:gap-3 mb-3 sm:mb-4">
             <div className="flex-1 min-w-0">
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">Largest Expense</p>
@@ -426,7 +434,15 @@ export default function DashboardPage() {
         </div>
 
         {/* Top Payment Method */}
-        <div className="card hover:shadow-lg transition-shadow">
+        <div
+          className="card hover:shadow-lg transition-shadow cursor-pointer"
+          onClick={() => {
+            const src = analytics?.transactionStats?.topPaymentSource;
+            if (src && src !== 'N/A') {
+              router.push(`/dashboard/transactions?source=${encodeURIComponent(src)}`);
+            }
+          }}
+        >
           <div className="flex items-start justify-between gap-2 sm:gap-3 mb-3 sm:mb-4">
             <div className="flex-1 min-w-0">
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">Top Payment</p>
@@ -461,7 +477,15 @@ export default function DashboardPage() {
         </div>
 
         {/* Top Category */}
-        <div className="card hover:shadow-lg transition-shadow">
+        <div
+          className="card hover:shadow-lg transition-shadow cursor-pointer"
+          onClick={() => {
+            const cat = analytics?.transactionStats?.topCategory;
+            if (cat && cat !== 'N/A') {
+              router.push(`/dashboard/transactions?category=${encodeURIComponent(cat)}`);
+            }
+          }}
+        >
           <div className="flex items-start justify-between gap-2 sm:gap-3 mb-3 sm:mb-4">
             <div className="flex-1 min-w-0">
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">Top Category</p>
@@ -507,7 +531,11 @@ export default function DashboardPage() {
           <h3 className="text-base sm:text-lg font-bold mb-4 sm:mb-6">Top Merchants</h3>
           <div className="space-y-3 sm:space-y-4">
             {analytics.transactionStats.topMerchants.map((merchant: any, index: number) => (
-              <div key={merchant.name} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+              <div
+                key={merchant.name}
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-bg/20 rounded-lg p-2 -mx-2 transition"
+                onClick={() => router.push(`/dashboard/transactions?receiver=${encodeURIComponent(merchant.name)}`)}
+              >
                 <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                   <div className="w-7 sm:w-8 h-7 sm:h-8 bg-primary/10 rounded-lg flex items-center justify-center font-semibold text-xs sm:text-sm text-primary flex-shrink-0">
                     {index + 1}
@@ -607,7 +635,11 @@ export default function DashboardPage() {
               </div>
               <div className="mt-3 sm:mt-4 space-y-2 h-[150px] overflow-y-auto pr-2 custom-scrollbar">
                 {analytics?.categoryBreakdown?.map((cat: any, index: number) => (
-                  <div key={cat.category} className="flex items-center justify-between text-xs sm:text-sm">
+                  <div
+                    key={cat.category}
+                    className="flex items-center justify-between text-xs sm:text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-bg/20 rounded px-1 -mx-1 py-0.5 transition"
+                    onClick={() => router.push(`/dashboard/transactions?category=${encodeURIComponent(cat.category)}`)}
+                  >
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
                       <span className="text-gray-600 dark:text-gray-400 capitalize truncate">{cat.category}</span>
@@ -647,7 +679,17 @@ export default function DashboardPage() {
                   <XAxis dataKey="source" stroke="#999" tick={{ fontSize: 12 }} />
                   <YAxis stroke="#999" tick={{ fontSize: 12 }} />
                   <Tooltip />
-                  <Bar dataKey="amount" fill="#47468A" radius={[4, 4, 0, 0]} />
+                  <Bar
+                    dataKey="amount"
+                    fill="#47468A"
+                    radius={[4, 4, 0, 0]}
+                    className="cursor-pointer"
+                    onClick={(data: any) => {
+                      if (data?.source) {
+                        router.push(`/dashboard/transactions?source=${encodeURIComponent(data.source)}`);
+                      }
+                    }}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>

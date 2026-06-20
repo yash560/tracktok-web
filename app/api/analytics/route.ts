@@ -162,7 +162,7 @@ export async function GET(request: NextRequest) {
     const avgTransactionAmount = expenseCount > 0 ? totalExpense / expenseCount : 0;
 
     // Top payment source (most frequent)
-    const topPaymentSource = aggregationResult.sources?.[0]?.source || 'Cash';
+    const topPaymentSource = aggregationResult.sources?.[0]?._id || 'Cash';
 
     const topMerchants = (aggregationResult.topMerchants || []).map((m: any) => ({
       name: m._id || 'Unknown',

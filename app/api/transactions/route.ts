@@ -25,6 +25,9 @@ export async function GET(request: NextRequest) {
     const minAmount = searchParams.get('minAmount');
     const maxAmount = searchParams.get('maxAmount');
     const contact = searchParams.get('contact');
+    const source = searchParams.get('source');
+    const receiver = searchParams.get('receiver');
+    const type = searchParams.get('type');
 
     const { db } = await connectToDatabase();
 
@@ -69,6 +72,18 @@ export async function GET(request: NextRequest) {
     // Contact filter (for split transactions)
     if (contact && contact !== 'all') {
       query['split.name'] = contact;
+    }
+
+    if (source && source !== 'all') {
+      query.source = { $regex: source, $options: 'i' };
+    }
+
+    if (receiver && receiver !== 'all') {
+      query.receiver = { $regex: receiver, $options: 'i' };
+    }
+
+    if (type && type !== 'all') {
+      query.type = type === 'expense' ? 'debit' : 'credit';
     }
 
     const totalCount = await db.collection('expenses').countDocuments(query);
