@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -n 'const { splitGroup, expenses }' \"/Users/yash/Documents/Personal/tracktok-web/app/split-groups/[id]/page.tsx\")",
+      "Bash(npx tsc *)"
+    ]
+  }
+}

@@ -17,6 +17,7 @@ import {
   TrendingDown,
   TrendingUp,
   Edit2,
+  X,
 } from 'lucide-react';
 import axios from 'axios';
 import { SplitGroup, Invoice } from '@/types';
@@ -152,6 +153,27 @@ export default function SplitGroupPage() {
   const [editingSplits, setEditingSplits] = useState<{
     [expenseId: string]: { amounts: number[]; original: number[]; isEditing: boolean };
   }>({});
+  const [selectedMember, setSelectedMember] = useState<{
+    name: string;
+    contactId: string;
+    phone?: string | null;
+  } | null>(null);
+  const [memberDetails, setMemberDetails] = useState<{
+    registered: boolean;
+    member?: {
+      firstName: string;
+      lastName: string;
+      displayName: string;
+      nickname: string;
+      email: string;
+      phoneNumber: string;
+      gender: string;
+      dateOfBirth: string;
+      avatar: string;
+      createdAt: string;
+    };
+  } | null>(null);
+  const [memberDetailsLoading, setMemberDetailsLoading] = useState(false);
 
   useEffect(() => {
     const fetchSplitGroup = async () => {
@@ -185,6 +207,19 @@ export default function SplitGroupPage() {
       setLoading(false);
     }
   }, [id, authLoading, user]);
+
+  useEffect(() => {
+    if (!selectedMember?.phone) {
+      setMemberDetails(null);
+      return;
+    }
+    setMemberDetailsLoading(true);
+    axios
+      .get(`/api/members/lookup?phone=${encodeURIComponent(selectedMember.phone)}`)
+      .then((res) => setMemberDetails(res.data))
+      .catch(() => setMemberDetails(null))
+      .finally(() => setMemberDetailsLoading(false));
+  }, [selectedMember]);
 
   const openPaymentModal = (memberName: string, memberPhone: string, amount: number) => {
     setPaymentModal({
@@ -481,17 +516,48 @@ export default function SplitGroupPage() {
               Group Members
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {splitGroup.contacts.map((contact) => (
-                <div
-                  key={contact.contactId}
-                  className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary dark:hover:border-primary transition"
-                >
-                  <p className="font-semibold text-gray-900 dark:text-white">{contact.name}</p>
-                  {contact.phone && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{contact.phone}</p>
-                  )}
-                </div>
-              ))}
+              {splitGroup.contacts.map((contact) => {
+                const memberExpenses = expenses.filter(
+                  (exp) => exp.split?.some((s) => s.phone === contact.phone || s.name === contact.name)
+                );
+                const memberTotal = memberExpenses.reduce((sum, exp) => {
+                  const split = exp.split?.find((s) => s.phone === contact.phone || s.name === contact.name);
+                  return sum + (split?.amount || 0);
+                }, 0);
+                const memberSettlement = settlements.find(
+                  (s) => s.memberPhone === contact.phone || s.memberName === contact.name
+                );
+
+                return (
+                  <div
+                    key={contact.contactId}
+                    onClick={() => setSelectedMember(contact)}
+                    className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary dark:hover:border-primary transition cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-white">{contact.name}</p>
+                        {contact.phone && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{contact.phone}</p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          ₹{memberTotal.toFixed(2)}
+                        </p>
+                        {memberSettlement && (
+                          <p className={`text-xs mt-1 ${memberSettlement.type === 'owes' ? 'text-warning' : 'text-success'}`}>
+                            {memberSettlement.type === 'owes' ? 'You owe' : 'Owes you'} ₹{memberSettlement.amount.toFixed(2)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+                      {memberExpenses.length} expense{memberExpenses.length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -1096,6 +1162,138 @@ export default function SplitGroupPage() {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Member Detail Modal */}
+      {selectedMember && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setSelectedMember(null)}>
+          <div className="bg-white dark:bg-dark-card rounded-2xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto p-6 sm:p-8" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                {memberDetails?.registered && memberDetails.member?.avatar ? (
+                  <img
+                    src={memberDetails.member.avatar}
+                    alt={selectedMember.name}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span className="text-primary font-bold text-lg">
+                      {selectedMember.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                    {memberDetails?.registered && memberDetails.member?.displayName
+                      ? memberDetails.member.displayName
+                      : selectedMember.name}
+                  </h3>
+                  {selectedMember.phone && (
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{selectedMember.phone}</p>
+                  )}
+                </div>
+              </div>
+              <button onClick={() => setSelectedMember(null)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition">
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Contact Info */}
+            {memberDetailsLoading ? (
+              <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg animate-pulse">
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2" />
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+              </div>
+            ) : memberDetails?.registered && memberDetails.member ? (
+              <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-3 flex items-center gap-2">
+                  <Users className="w-3.5 h-3.5" />
+                  Contact Info
+                  <span className="text-xs px-1.5 py-0.5 bg-success/10 text-success rounded font-medium">Registered</span>
+                </h4>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  {(memberDetails.member.firstName || memberDetails.member.lastName) && (
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Name</p>
+                      <p className="text-gray-900 dark:text-white font-medium">
+                        {[memberDetails.member.firstName, memberDetails.member.lastName].filter(Boolean).join(' ')}
+                      </p>
+                    </div>
+                  )}
+                  {memberDetails.member.email && (
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
+                      <p className="text-gray-900 dark:text-white font-medium truncate">{memberDetails.member.email}</p>
+                    </div>
+                  )}
+                  {memberDetails.member.phoneNumber && (
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Phone</p>
+                      <p className="text-gray-900 dark:text-white font-medium">{memberDetails.member.phoneNumber}</p>
+                    </div>
+                  )}
+                  {memberDetails.member.gender && (
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Gender</p>
+                      <p className="text-gray-900 dark:text-white font-medium capitalize">{memberDetails.member.gender}</p>
+                    </div>
+                  )}
+                  {memberDetails.member.dateOfBirth && (
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Date of Birth</p>
+                      <p className="text-gray-900 dark:text-white font-medium">
+                        {new Date(memberDetails.member.dateOfBirth).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
+                  {memberDetails.member.nickname && (
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Nickname</p>
+                      <p className="text-gray-900 dark:text-white font-medium">{memberDetails.member.nickname}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-3 flex items-center gap-2">
+                  <Users className="w-3.5 h-3.5" />
+                  Contact Info
+                  <span className="text-xs px-1.5 py-0.5 bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded font-medium">Not Registered</span>
+                </h4>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Name</p>
+                    <p className="text-gray-900 dark:text-white font-medium">{selectedMember.name}</p>
+                  </div>
+                  {selectedMember.phone && (
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Phone</p>
+                      <p className="text-gray-900 dark:text-white font-medium">{selectedMember.phone}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {(() => {
+              const memberSettlement = settlements.find(
+                (s) => s.memberPhone === selectedMember.phone || s.memberName === selectedMember.name
+              );
+
+              return memberSettlement ? (
+                <div className={`p-3 rounded-lg ${memberSettlement.type === 'owes' ? 'bg-warning/10 border border-warning/30' : 'bg-success/10 border border-success/30'}`}>
+                  <p className={`text-sm font-semibold ${memberSettlement.type === 'owes' ? 'text-warning' : 'text-success'}`}>
+                    {memberSettlement.type === 'owes'
+                      ? `You owe ${selectedMember.name} ₹${memberSettlement.amount.toFixed(2)}`
+                      : `${selectedMember.name} owes you ₹${memberSettlement.amount.toFixed(2)}`}
+                  </p>
+                </div>
+              ) : null;
+            })()}
           </div>
         </div>
       )}
