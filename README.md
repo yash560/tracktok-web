@@ -310,4 +310,5 @@ For issues and questions:
 
 ---
 
+Netlify - yaashjainn@gmail.com
 **Made with ❤️ for Financial Freedom** - TrackTok Team © 2026
