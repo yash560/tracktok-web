@@ -40,6 +40,38 @@ export async function PATCH(
       return NextResponse.json({ message: 'Expense not found' }, { status: 404 });
     }
 
+    const body = await request.json();
+    const paid = body.paid !== false;
+    const memberPhone = body.memberPhone;
+
+    if (memberPhone) {
+      const splitIndex = expense.split?.findIndex((s: any) => s.phone === memberPhone);
+      if (splitIndex === undefined || splitIndex === -1) {
+        return NextResponse.json(
+          { message: 'Member not found in this expense' },
+          { status: 404 }
+        );
+      }
+
+      await db.collection('expenses').updateOne(
+        { _id: new ObjectId(expenseId) },
+        {
+          $set: {
+            [`split.${splitIndex}.paidAt`]: paid ? new Date() : null,
+            [`split.${splitIndex}.paidBy`]: paid ? (member.phone || member.phoneNumber) : null,
+            updatedAt: new Date(),
+          },
+        }
+      );
+
+      return NextResponse.json({
+        message: paid ? 'Member marked as paid' : 'Member marked as unpaid',
+        paid,
+        memberPhone,
+      });
+    }
+
+    // Legacy: mark entire expense (backward compat)
     const userPhone = member.phone || member.phoneNumber;
     const isMentioned = expense.split?.some((s: any) => s.phone === userPhone);
 
@@ -49,9 +81,6 @@ export async function PATCH(
         { status: 403 }
       );
     }
-
-    const body = await request.json();
-    const paid = body.paid !== false;
 
     await db.collection('expenses').updateOne(
       { _id: new ObjectId(expenseId) },

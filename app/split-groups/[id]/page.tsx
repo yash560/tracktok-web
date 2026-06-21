@@ -32,6 +32,7 @@ import {
   Trash2,
   CircleCheck,
   CircleX,
+  ArrowUpDown,
 } from 'lucide-react';
 import {
   PieChart,
@@ -100,6 +101,7 @@ function calculateSettlements(expenses: Invoice[], userPhone: string): Settlemen
 
     expense.split.forEach((split: any) => {
       if (split.phone === ownerPhone) return;
+      if (split.paidAt) return;
 
       const otherPhone = split.phone;
       const otherAmount = split.amount || 0;
@@ -158,6 +160,7 @@ function simplifyDebts(expenses: Invoice[], contacts: SplitGroup['contacts']): S
 
     expense.split.forEach((split: any) => {
       if (split.phone === owner.phone) return;
+      if (split.paidAt) return;
       const amt = split.amount || 0;
       if (amt === 0) return;
 
@@ -385,6 +388,7 @@ export default function SplitGroupPage() {
   const [filterMember, setFilterMember] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
 
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest' | 'amount-high' | 'amount-low'>('newest');
   const [showAllExpenses, setShowAllExpenses] = useState(false);
   const [editingSplits, setEditingSplits] = useState<{
     [expenseId: string]: { amounts: number[]; original: number[]; isEditing: boolean; splitMode: 'equal' | 'percentage' | 'amount' | 'shares'; shares?: number[]; editedPctIndexes?: Set<number> };
@@ -543,6 +547,7 @@ export default function SplitGroupPage() {
 
       exp.split?.forEach((split: any) => {
         if (split.phone === owner.phone) return;
+        if (split.paidAt) return;
         const amt = split.amount || 0;
         if (amt === 0) return;
 
@@ -600,7 +605,7 @@ export default function SplitGroupPage() {
   // Feature #6: Filtered expenses
   const filteredExpenses = useMemo(() => {
     if (!data?.expenses) return [];
-    return data.expenses.filter((exp) => {
+    const filtered = data.expenses.filter((exp) => {
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         if (!exp.description.toLowerCase().includes(q) && !(exp.category || '').toLowerCase().includes(q)) {
@@ -614,7 +619,16 @@ export default function SplitGroupPage() {
       }
       return true;
     });
-  }, [data?.expenses, searchQuery, filterCategory, filterMember]);
+    return [...filtered].sort((a, b) => {
+      switch (sortOrder) {
+        case 'newest': return new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime();
+        case 'oldest': return new Date(a.date || 0).getTime() - new Date(b.date || 0).getTime();
+        case 'amount-high': return b.amount - a.amount;
+        case 'amount-low': return a.amount - b.amount;
+        default: return 0;
+      }
+    });
+  }, [data?.expenses, searchQuery, filterCategory, filterMember, sortOrder]);
 
   // Feature #9: Simplified debts
   const simplifiedDebts = useMemo(() => {
@@ -893,22 +907,29 @@ export default function SplitGroupPage() {
     });
   };
 
-  const handleMarkAsPaid = async (expenseId: string, currentlyPaid: boolean) => {
+  const handleMarkMemberPaid = async (expenseId: string, memberPhone: string, currentlyPaid: boolean) => {
     const newPaid = !currentlyPaid;
     try {
-      await axios.patch(`/api/split-groups/${id}/expense/${expenseId}/paid`, { paid: newPaid });
+      await axios.patch(`/api/split-groups/${id}/expense/${expenseId}/paid`, { paid: newPaid, memberPhone });
       setData((prev) => {
         if (!prev) return prev;
         return {
           ...prev,
           expenses: prev.expenses.map((e) =>
             e._id === expenseId
-              ? { ...e, paidAt: newPaid ? new Date().toISOString() : null, paidBy: newPaid ? (user?.phone || user?.phoneNumber) : null } as any
+              ? {
+                  ...e,
+                  split: e.split?.map((s: any) =>
+                    s.phone === memberPhone
+                      ? { ...s, paidAt: newPaid ? new Date().toISOString() : null, paidBy: newPaid ? (user?.phone || user?.phoneNumber) : null }
+                      : s
+                  ),
+                } as any
               : e
           ),
         };
       });
-      notify('success', newPaid ? 'Marked Paid' : 'Unmarked', newPaid ? 'Expense marked as paid' : 'Expense marked as unpaid');
+      notify('success', newPaid ? 'Marked Paid' : 'Unmarked', newPaid ? 'Member marked as paid' : 'Member marked as unpaid');
     } catch (err: any) {
       notify('error', 'Failed', err.response?.data?.message || 'Failed to update expense');
     }
@@ -1372,6 +1393,19 @@ export default function SplitGroupPage() {
                     Filters
                     {showFilters ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                   </button>
+                  <div className="relative">
+                    <select
+                      value={sortOrder}
+                      onChange={(e) => setSortOrder(e.target.value as any)}
+                      className="appearance-none pl-8 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition focus:outline-none focus:border-primary"
+                    >
+                      <option value="newest">Newest First</option>
+                      <option value="oldest">Oldest First</option>
+                      <option value="amount-high">Amount: High to Low</option>
+                      <option value="amount-low">Amount: Low to High</option>
+                    </select>
+                    <ArrowUpDown className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  </div>
                 </div>
 
                 {showFilters && (
@@ -1490,25 +1524,33 @@ export default function SplitGroupPage() {
                                           <div key={split.$id || split.name || splitIndex} className="flex items-center gap-2">
                                             {!editing ? (
                                               <div className="flex-1 flex items-center gap-2">
-                                                <span className="text-xs font-medium text-gray-700 dark:text-gray-300 w-24 truncate">
+                                                <span className={`text-xs font-medium w-24 truncate ${split.paidAt ? 'text-success line-through' : 'text-gray-700 dark:text-gray-300'}`}>
                                                   {split.name}
                                                 </span>
-                                                {/* Feature #7: Visual percentage bar */}
                                                 <div className="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-2.5 relative">
                                                   <div
                                                     className="h-full rounded-full transition-all"
                                                     style={{
                                                       width: `${Math.min(percentage, 100)}%`,
-                                                      backgroundColor: CHART_COLORS[splitIndex % CHART_COLORS.length],
+                                                      backgroundColor: split.paidAt ? '#4DD69B' : CHART_COLORS[splitIndex % CHART_COLORS.length],
                                                     }}
                                                   />
                                                 </div>
-                                                <span className="text-xs text-gray-600 dark:text-gray-400 w-20 text-right">
+                                                <span className={`text-xs w-20 text-right ${split.paidAt ? 'text-success line-through' : 'text-gray-600 dark:text-gray-400'}`}>
                                                   {fmt(currentAmount)}
                                                 </span>
                                                 <span className="text-xs text-gray-400 w-12 text-right">
                                                   {percentage.toFixed(0)}%
                                                 </span>
+                                                {!split.owner && expense.source !== 'Payment' && !isSettled && (
+                                                  <button
+                                                    onClick={(e) => { e.stopPropagation(); handleMarkMemberPaid(String(expense._id), split.phone, !!split.paidAt); }}
+                                                    className={`flex-shrink-0 p-0.5 rounded transition ${split.paidAt ? 'text-warning hover:bg-warning/10' : 'text-success hover:bg-success/10'}`}
+                                                    title={split.paidAt ? `Unmark ${split.name} as paid` : `Mark ${split.name} as paid`}
+                                                  >
+                                                    {split.paidAt ? <CircleX className="w-4 h-4" /> : <CircleCheck className="w-4 h-4" />}
+                                                  </button>
+                                                )}
                                               </div>
                                             ) : (
                                               <div className="flex-1 flex items-center gap-2">
@@ -1814,30 +1856,8 @@ export default function SplitGroupPage() {
                           <p className="text-xl sm:text-2xl font-bold text-danger mb-3">
                             {fmt(expense.amount)}
                           </p>
-                          {(expense as any).paidAt && (
-                            <p className="text-xs text-success font-medium mb-2 flex items-center gap-1 justify-end">
-                              <CircleCheck className="w-3.5 h-3.5" />
-                              Paid
-                            </p>
-                          )}
                           <div className="flex items-center gap-2 justify-end flex-wrap">
-                            {expense.source !== 'Payment' && !isSettled && (
-                              <button
-                                onClick={() => handleMarkAsPaid(String(expense._id), !!(expense as any).paidAt)}
-                                className={`inline-flex items-center gap-1 px-3 py-2 border rounded-lg transition text-xs sm:text-sm font-medium whitespace-nowrap ${
-                                  (expense as any).paidAt
-                                    ? 'border-warning text-warning hover:bg-warning/5'
-                                    : 'border-success text-success hover:bg-success/5'
-                                }`}
-                                title={(expense as any).paidAt ? 'Unmark as paid' : 'Mark as paid'}
-                              >
-                                {(expense as any).paidAt ? (
-                                  <><CircleX className="w-4 h-4" /> Unpaid</>
-                                ) : (
-                                  <><CircleCheck className="w-4 h-4" /> Paid</>
-                                )}
-                              </button>
-                            )}
+
                             {!isSettled && user && (
                               (() => {
                                 const isExpenseOwner = expense.split?.some((s: any) => s.owner === true && s.phone === (user.phone || user.phoneNumber));
