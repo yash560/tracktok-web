@@ -58,6 +58,7 @@ import {
   initialConfirm,
 } from '@/components/NotificationModal';
 import { useCurrency } from '@/components/CurrencyContext';
+import { TransactionModal } from '@/components/TransactionModal';
 
 interface SplitGroupResponse {
   splitGroup: SplitGroup;
@@ -414,6 +415,8 @@ export default function SplitGroupPage() {
   // Feature #8: Copied link state
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
 
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
+
   // Transaction comments
   const [openComments, setOpenComments] = useState<string | null>(null);
   const [comments, setComments] = useState<{ [expenseId: string]: any[] }>({});
@@ -562,7 +565,7 @@ export default function SplitGroupPage() {
       timeline.push({
         date: new Date(exp.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         balance: Math.round(runningBalance * 100) / 100,
-        event: exp.description.length > 20 ? exp.description.substring(0, 20) + '…' : exp.description,
+        event: (() => { const d = exp.description || 'Expense'; return d.length > 20 ? d.substring(0, 20) + '…' : d; })(),
       });
     });
 
@@ -913,6 +916,16 @@ export default function SplitGroupPage() {
             <span className="font-medium">Back</span>
           </button>
           <div className="flex gap-2 flex-wrap">
+            {!isSettled && (
+              <button
+                onClick={() => setShowTransactionModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition text-sm font-semibold"
+                title="Add Expense"
+              >
+                <DollarSign className="w-4 h-4" />
+                <span className="hidden sm:inline">Add Expense</span>
+              </button>
+            )}
             {/* Feature #10: Export buttons */}
             <button
               onClick={() => exportToCSV(splitGroup, expenses, settlements)}
@@ -2323,6 +2336,19 @@ export default function SplitGroupPage() {
       <ConfirmModal
         confirm={confirmDialog}
         onClose={() => setConfirmDialog(initialConfirm)}
+      />
+
+      {/* Add Expense Modal */}
+      <TransactionModal
+        isOpen={showTransactionModal}
+        onClose={() => setShowTransactionModal(false)}
+        onSuccess={() => {
+          setShowTransactionModal(false);
+          globalThis.location.reload();
+        }}
+        splitGroupId={id}
+        splitGroupContacts={splitGroup.contacts}
+        splitGroupCustomerId={splitGroup.customer_id}
       />
 
       {/* Edit Name Modal */}

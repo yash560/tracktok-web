@@ -5,12 +5,21 @@ import { X, Calendar, DollarSign, Tag, Type, MapPin, CreditCard, Plus, Minus, Us
 import axios from 'axios';
 import { useAuth } from '@/components/AuthContext';
 
+interface SplitGroupContact {
+  name: string;
+  contactId: string;
+  phone?: string | null;
+}
+
 interface TransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
   transaction?: any;
   apiBaseUrl?: string;
+  splitGroupId?: string;
+  splitGroupContacts?: SplitGroupContact[];
+  splitGroupCustomerId?: string;
 }
 
 interface SplitMember {
@@ -38,14 +47,15 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   onSuccess,
   transaction,
   apiBaseUrl = 'https://webverse.thewebvale.com',
+  splitGroupId,
+  splitGroupContacts,
+  splitGroupCustomerId,
 }) => {
   const { user } = useAuth();
   const userCode = (user as any)?.code || 'DEFAULT_USER';
   const [mode, setMode] = useState<'ai' | 'manual'>(!transaction ? 'ai' : 'manual');
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
-  const [parsedData, setParsedData] = useState<any>(null);
-  const [stage, setStage] = useState<'input' | 'review'>('input');
 
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -78,27 +88,95 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     try {
       const url = apiBaseUrl ? `${apiBaseUrl}/api/ai/expenses/chat/` : '/api/ai/expenses/chat/';
       const token = process.env.NEXT_PUBLIC_BACKEND_TOKEN;
-      const result = await axios.post(url, {
+      const userPhone = (user as any)?.phone || (user as any)?.phoneNumber || '';
+      const userName = (user as any)?.displayName || (user as any)?.name || 'You';
+
+      const payload: any = {
         user_prompt: aiPrompt,
         user_code: userCode,
-      }, {
+      };
+
+      if (splitGroupContacts && splitGroupContacts.length > 0) {
+        const totalMembers = splitGroupContacts.length;
+        const splitPerMember = 100 / totalMembers;
+
+        payload.context = {
+          split: splitGroupContacts.map(c => {
+            const isOwner = c.phone === userPhone;
+            return {
+              contact: isOwner ? 'me' : c.name,
+              value: Number.parseFloat(splitPerMember.toFixed(2)),
+              split: 'percentage',
+              amount: 0,
+              name: isOwner ? userName : c.name,
+              phone: c.phone || '',
+              ...(isOwner && { owner: true }),
+              $type: 'lookup',
+              $collection: 'user_contacts',
+              $id: c.contactId,
+              $customer_id: splitGroupCustomerId || 'webverse',
+              $label: isOwner ? userName : c.name,
+            };
+          }),
+        };
+      }
+
+      const result = await axios.post(url, payload, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 
-      setParsedData(result.data.data);
-      setStage('review');
+      const parsed = result.data.data;
+      const txPayload: any = {
+        description: parsed.description || parsed.receiver || aiPrompt,
+        amount: parseFloat(parsed.amount) || 0,
+        category: parsed.category || 'food',
+        type: parsed.type === 'credit' ? 'income' : 'expense',
+        date: parsed.date || new Date().toISOString().split('T')[0],
+        source: parsed.source || 'Cash',
+        city: parsed.city || 'Mumbai',
+        notes: parsed.notes || '',
+      };
+
+      if (parsed.split && Array.isArray(parsed.split)) {
+        txPayload.split = parsed.split.map((s: any) => {
+          if (s.split === 'percentage' && s.value > 0 && !s.amount) {
+            return { ...s, amount: Math.round((s.value / 100) * txPayload.amount * 100) / 100 };
+          }
+          return s;
+        });
+      } else if (showSplit && splitMembers.length > 0) {
+        const userSplitAmount = txPayload.amount - splitMembers.reduce((sum: number, m: SplitMember) => sum + m.amount, 0);
+        txPayload.split = [
+          {
+            name: userName,
+            phone: userPhone,
+            contact: 'me',
+            value: splitType === 'percentages' ? 100 - splitMembers.reduce((sum, m) => sum + m.value, 0) : splitType === 'shares' ? 1 : 0,
+            amount: userSplitAmount,
+            split: splitType === 'percentages' ? 'percentage' : splitType === 'shares' ? 'share' : 'amount',
+            owner: true,
+          },
+          ...splitMembers.map(m => ({
+            ...m,
+            split: splitType === 'percentages' ? 'percentage' : splitType === 'shares' ? 'share' : 'amount',
+          })),
+        ];
+      }
+
+      if (splitGroupId) {
+        await axios.post(`/api/split-groups/${splitGroupId}/expense`, txPayload);
+      } else {
+        await axios.post('/api/transactions', txPayload);
+      }
+
+      onSuccess();
+      onClose();
     } catch (error) {
       const msg = error instanceof Error ? error.message : (error as any).response?.data?.error || 'Failed to process transaction';
       alert(msg);
     } finally {
       setAiLoading(false);
     }
-  };
-
-  const resetAI = () => {
-    setAiPrompt('');
-    setParsedData(null);
-    setStage('input');
   };
 
   useEffect(() => {
@@ -125,15 +203,60 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         city: 'Mumbai',
         notes: '',
       });
-      setShowSplit(false);
-      setSplitMembers([]);
-      resetAI();
+      if (splitGroupContacts && splitGroupContacts.length > 0) {
+        const userPhone = (user as any)?.phone || (user as any)?.phoneNumber || '';
+        const members: SplitMember[] = splitGroupContacts
+          .filter(c => c.phone !== userPhone)
+          .map(c => ({
+            name: c.name,
+            phone: c.phone || '',
+            contact: c.name,
+            value: 0,
+            amount: 0,
+            split: 'percentage' as const,
+            owner: false,
+          }));
+        setSplitMembers(members);
+        setShowSplit(true);
+        setSplitType('evenly');
+      } else {
+        setShowSplit(false);
+        setSplitMembers([]);
+      }
+      setAiPrompt('');
     }
   }, [transaction, isOpen]);
 
+  const calculateSplitAmounts = (members: SplitMember[]) => {
+    const amount = parseFloat(formData.amount) || 0;
+
+    if (splitType === 'evenly') {
+      const share = amount / (members.length + 1);
+      members.forEach(m => {
+        m.amount = parseFloat(share.toFixed(2));
+      });
+    } else if (splitType === 'percentages') {
+      const total = members.reduce((sum, m) => sum + m.value, 0);
+      if (total > 0) {
+        members.forEach(m => {
+          m.amount = parseFloat(((amount * m.value) / total).toFixed(2));
+        });
+      }
+    } else if (splitType === 'shares') {
+      const total = members.reduce((sum, m) => sum + m.value, 0);
+      if (total > 0) {
+        members.forEach(m => {
+          m.amount = parseFloat(((amount * m.value) / total).toFixed(2));
+        });
+      }
+    }
+  };
+
   useEffect(() => {
     if (splitMembers.length > 0) {
-      calculateSplitAmounts(splitMembers);
+      const updated = [...splitMembers];
+      calculateSplitAmounts(updated);
+      setSplitMembers(updated);
     }
   }, [formData.amount, splitType, splitMembers.length]);
 
@@ -171,31 +294,6 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     calculateSplitAmounts(updated);
   };
 
-  const calculateSplitAmounts = (members: SplitMember[]) => {
-    const amount = parseFloat(formData.amount) || 0;
-
-    if (splitType === 'evenly') {
-      const share = amount / (members.length + 1);
-      members.forEach(m => {
-        m.amount = parseFloat(share.toFixed(2));
-      });
-    } else if (splitType === 'percentages') {
-      const total = members.reduce((sum, m) => sum + m.value, 0);
-      if (total > 0) {
-        members.forEach(m => {
-          m.amount = parseFloat(((amount * m.value) / total).toFixed(2));
-        });
-      }
-    } else if (splitType === 'shares') {
-      const total = members.reduce((sum, m) => sum + m.value, 0);
-      if (total > 0) {
-        members.forEach(m => {
-          m.amount = parseFloat(((amount * m.value) / total).toFixed(2));
-        });
-      }
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -208,11 +306,13 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       };
 
       if (showSplit && splitMembers.length > 0) {
+        const userPhone = (user as any)?.phone || (user as any)?.phoneNumber || 'self';
+        const userName = (user as any)?.displayName || (user as any)?.name || 'You';
         const userSplitAmount = parseFloat(formData.amount) - splitMembers.reduce((sum, m) => sum + m.amount, 0);
         payload.split = [
           {
-            name: 'You',
-            phone: 'self',
+            name: userName,
+            phone: userPhone,
             contact: 'me',
             value: splitType === 'percentages' ? 100 - splitMembers.reduce((sum, m) => sum + m.value, 0) : splitType === 'shares' ? 1 : 0,
             amount: userSplitAmount,
@@ -228,6 +328,8 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
       if (transaction) {
         await axios.put(`/api/transactions?id=${transaction._id}`, payload);
+      } else if (splitGroupId) {
+        await axios.post(`/api/split-groups/${splitGroupId}/expense`, payload);
       } else {
         await axios.post('/api/transactions', payload);
       }
@@ -290,7 +392,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
           </div>
         )}
 
-        {!transaction && mode === 'ai' && stage === 'input' && (
+        {!transaction && mode === 'ai' && (
           <div className="p-6 space-y-4 overflow-y-auto flex-1">
             <div className="space-y-4">
               <div>
@@ -331,80 +433,9 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                   disabled={aiLoading}
                   className="flex-[2] py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition disabled:opacity-50"
                 >
-                  {aiLoading ? 'Processing...' : 'Parse with AI'}
+                  {aiLoading ? 'Creating...' : 'Create'}
                 </button>
               </div>
-            </div>
-          </div>
-        )}
-
-        {!transaction && mode === 'ai' && stage === 'review' && parsedData && (
-          <div className="p-6 space-y-4 overflow-y-auto flex-1">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-3">
-              {parsedData.amount && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Amount:</span>
-                  <span className="font-bold text-gray-900 dark:text-white">₹{parsedData.amount}</span>
-                </div>
-              )}
-              {parsedData.type && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Type:</span>
-                  <span className="font-bold text-gray-900 dark:text-white capitalize">{parsedData.type}</span>
-                </div>
-              )}
-              {parsedData.date && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Date:</span>
-                  <span className="font-bold text-gray-900 dark:text-white">{parsedData.date}</span>
-                </div>
-              )}
-              {parsedData.receiver && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Receiver:</span>
-                  <span className="font-bold text-gray-900 dark:text-white">{parsedData.receiver}</span>
-                </div>
-              )}
-              {parsedData.category && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Category:</span>
-                  <span className="font-bold text-gray-900 dark:text-white capitalize">{parsedData.category}</span>
-                </div>
-              )}
-              {parsedData.description && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Description:</span>
-                  <span className="font-bold text-gray-900 dark:text-white">{parsedData.description}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <button
-                type="button"
-                onClick={() => setStage('input')}
-                className="flex-1 py-3 border border-gray-200 dark:border-gray-800 rounded-xl font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
-              >
-                Back
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setFormData(prev => ({
-                    ...prev,
-                    description: parsedData.description || parsedData.receiver || aiPrompt,
-                    amount: parsedData.amount?.toString() || '',
-                    category: parsedData.category || 'food',
-                    type: parsedData.type === 'credit' ? 'income' : 'expense',
-                    date: parsedData.date || new Date().toISOString().split('T')[0],
-                  }));
-                  resetAI();
-                  setMode('manual');
-                }}
-                className="flex-[2] py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition"
-              >
-                Confirm
-              </button>
             </div>
           </div>
         )}
@@ -602,16 +633,26 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
               </div>
 
               {/* Split Toggle */}
-              <div className="md:col-span-2">
-                <button
-                  type="button"
-                  onClick={() => setShowSplit(!showSplit)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition"
-                >
-                  <Users className="w-4 h-4" />
-                  {showSplit ? 'Remove Split' : 'Add Split'}
-                </button>
-              </div>
+              {!splitGroupId && (
+                <div className="md:col-span-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowSplit(!showSplit)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition"
+                  >
+                    <Users className="w-4 h-4" />
+                    {showSplit ? 'Remove Split' : 'Add Split'}
+                  </button>
+                </div>
+              )}
+              {splitGroupId && showSplit && (
+                <div className="md:col-span-2">
+                  <p className="text-sm text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Split among group members ({splitMembers.length + 1} people)
+                  </p>
+                </div>
+              )}
 
               {/* Split Section */}
               {showSplit && (
@@ -637,32 +678,34 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                   </div>
 
                   {/* Add Contact */}
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold mb-2">Add Person</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="Name"
-                        value={contactName}
-                        onChange={(e) => setContactName(e.target.value)}
-                        className="input-field flex-1"
-                      />
-                      <input
-                        type="tel"
-                        placeholder="Phone"
-                        value={contactPhone}
-                        onChange={(e) => setContactPhone(e.target.value)}
-                        className="input-field flex-1"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleAddContact}
-                        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition"
-                      >
-                        <Plus className="w-5 h-5" />
-                      </button>
+                  {!splitGroupId && (
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold mb-2">Add Person</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Name"
+                          value={contactName}
+                          onChange={(e) => setContactName(e.target.value)}
+                          className="input-field flex-1"
+                        />
+                        <input
+                          type="tel"
+                          placeholder="Phone"
+                          value={contactPhone}
+                          onChange={(e) => setContactPhone(e.target.value)}
+                          className="input-field flex-1"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddContact}
+                          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition"
+                        >
+                          <Plus className="w-5 h-5" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Split Members */}
                   {splitMembers.length > 0 && (
@@ -701,13 +744,15 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                             </div>
                           )}
 
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveContact(idx)}
-                            className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 rounded"
-                          >
-                            <Minus className="w-4 h-4" />
-                          </button>
+                          {!splitGroupId && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveContact(idx)}
+                              className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 rounded"
+                            >
+                              <Minus className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       ))}
                     </div>
