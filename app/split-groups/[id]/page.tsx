@@ -29,6 +29,9 @@ import {
   FileText,
   MessageCircle,
   Loader2,
+  Trash2,
+  CircleCheck,
+  CircleX,
 } from 'lucide-react';
 import {
   PieChart,
@@ -860,6 +863,54 @@ export default function SplitGroupPage() {
       fetchComments(expenseId);
     } catch {
       notify('error', 'Error', 'Failed to delete comment');
+    }
+  };
+
+  const handleDeleteExpense = (expenseId: string, expenseDescription: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete Expense',
+      message: `Delete "${expenseDescription}"? This cannot be undone.`,
+      onConfirm: async () => {
+        try {
+          await axios.delete(`/api/split-groups/${id}/expense/${expenseId}`);
+          setData((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              expenses: prev.expenses.filter((e) => e._id !== expenseId),
+              splitGroup: {
+                ...prev.splitGroup,
+                expenses: prev.splitGroup.expenses.filter((eid: any) => String(eid) !== expenseId),
+              },
+            };
+          });
+          notify('success', 'Deleted', 'Expense deleted successfully');
+        } catch (err: any) {
+          notify('error', 'Delete Failed', err.response?.data?.message || 'Failed to delete expense');
+        }
+      },
+    });
+  };
+
+  const handleMarkAsPaid = async (expenseId: string, currentlyPaid: boolean) => {
+    const newPaid = !currentlyPaid;
+    try {
+      await axios.patch(`/api/split-groups/${id}/expense/${expenseId}/paid`, { paid: newPaid });
+      setData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          expenses: prev.expenses.map((e) =>
+            e._id === expenseId
+              ? { ...e, paidAt: newPaid ? new Date().toISOString() : null, paidBy: newPaid ? (user?.phone || user?.phoneNumber) : null } as any
+              : e
+          ),
+        };
+      });
+      notify('success', newPaid ? 'Marked Paid' : 'Unmarked', newPaid ? 'Expense marked as paid' : 'Expense marked as unpaid');
+    } catch (err: any) {
+      notify('error', 'Failed', err.response?.data?.message || 'Failed to update expense');
     }
   };
 
@@ -1763,7 +1814,45 @@ export default function SplitGroupPage() {
                           <p className="text-xl sm:text-2xl font-bold text-danger mb-3">
                             {fmt(expense.amount)}
                           </p>
-                          <div className="flex items-center gap-2 justify-end">
+                          {(expense as any).paidAt && (
+                            <p className="text-xs text-success font-medium mb-2 flex items-center gap-1 justify-end">
+                              <CircleCheck className="w-3.5 h-3.5" />
+                              Paid
+                            </p>
+                          )}
+                          <div className="flex items-center gap-2 justify-end flex-wrap">
+                            {expense.source !== 'Payment' && !isSettled && (
+                              <button
+                                onClick={() => handleMarkAsPaid(String(expense._id), !!(expense as any).paidAt)}
+                                className={`inline-flex items-center gap-1 px-3 py-2 border rounded-lg transition text-xs sm:text-sm font-medium whitespace-nowrap ${
+                                  (expense as any).paidAt
+                                    ? 'border-warning text-warning hover:bg-warning/5'
+                                    : 'border-success text-success hover:bg-success/5'
+                                }`}
+                                title={(expense as any).paidAt ? 'Unmark as paid' : 'Mark as paid'}
+                              >
+                                {(expense as any).paidAt ? (
+                                  <><CircleX className="w-4 h-4" /> Unpaid</>
+                                ) : (
+                                  <><CircleCheck className="w-4 h-4" /> Paid</>
+                                )}
+                              </button>
+                            )}
+                            {!isSettled && user && (
+                              (() => {
+                                const isExpenseOwner = expense.split?.some((s: any) => s.owner === true && s.phone === (user.phone || user.phoneNumber));
+                                const isGrpOwner = splitGroup.owner === user._id || (user as any).collection === splitGroup.owner;
+                                return (isExpenseOwner || isGrpOwner) ? (
+                                  <button
+                                    onClick={() => handleDeleteExpense(String(expense._id), expense.description)}
+                                    className="inline-flex items-center gap-1 px-3 py-2 border border-danger/30 text-danger rounded-lg hover:bg-danger/5 transition text-xs sm:text-sm font-medium whitespace-nowrap"
+                                    title="Delete expense"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                ) : null;
+                              })()
+                            )}
                             <button
                               onClick={() => toggleComments(String(expense._id ?? expenseIndex))}
                               className={`inline-flex items-center gap-1 px-3 py-2 border rounded-lg transition text-xs sm:text-sm font-medium whitespace-nowrap ${
