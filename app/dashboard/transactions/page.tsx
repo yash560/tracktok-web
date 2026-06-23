@@ -350,7 +350,7 @@ function TransactionsContent() {
                     <td className="py-3 sm:py-4 px-3 sm:px-6">
                       <div className="flex items-center justify-center gap-1 sm:gap-2">
                         <button
-                          onClick={() => handleViewInvoice(t.code)}
+                          onClick={() => handleViewInvoice(t._id)}
                           className="p-1.5 sm:p-2 hover:bg-blue-500/10 hover:text-blue-600 rounded-lg transition text-gray-400"
                           title="View invoice"
                         >

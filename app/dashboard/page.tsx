@@ -1190,7 +1190,7 @@ export default function DashboardPage() {
                     </td>
                     <td className="py-3 sm:py-4 px-3 sm:px-4 text-center">
                       <button
-                        onClick={() => handleViewInvoice(transaction.code)}
+                        onClick={() => handleViewInvoice(transaction._id)}
                         className="p-1.5 sm:p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition text-gray-400"
                         title="View invoice"
                       >

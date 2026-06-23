@@ -1,5 +1,5 @@
 import { connectToDatabase } from '@/lib/mongodb';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken, phonesMatch } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 
@@ -28,18 +28,26 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const userPhone = member.phone || member.phoneNumber;
     const { code } = await params;
 
-    // Build filter for own transaction or split transaction
+    // Build filter for own transaction or split transaction (by code or _id)
+    const isObjectId = ObjectId.isValid(code) && new ObjectId(code).toString() === code;
+
     const filterConditions: any[] = [
-      { code, collection: collectionKey }
+      { code, collection: collectionKey },
     ];
+    if (isObjectId) {
+      filterConditions.push({ _id: new ObjectId(code), collection: collectionKey });
+    }
 
     if (userPhone) {
       filterConditions.push({ code, 'split.phone': userPhone });
+      if (isObjectId) {
+        filterConditions.push({ _id: new ObjectId(code), 'split.phone': userPhone });
+      }
     }
 
     const query: any = { $or: filterConditions };
 
-    // Fetch single transaction by code
+    // Fetch single transaction by code or _id
     const transaction = await db.collection('expenses').findOne(query);
 
     if (!transaction) {
@@ -48,8 +56,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // Add split transaction flags
     const isOwnTransaction = transaction.collection === collectionKey;
-    const isSplitTransaction = !isOwnTransaction && userPhone && transaction.split?.some((s: any) => s.phone === userPhone);
-    const splitMember = isSplitTransaction ? transaction.split?.find((s: any) => s.phone === userPhone) : null;
+    const isSplitTransaction = !isOwnTransaction && userPhone && transaction.split?.some((s: any) => phonesMatch(s.phone, userPhone));
+    const splitMember = isSplitTransaction ? transaction.split?.find((s: any) => phonesMatch(s.phone, userPhone)) : null;
 
     const enrichedTransaction = {
       ...transaction,

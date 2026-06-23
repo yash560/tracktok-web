@@ -34,6 +34,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { id } = await params;
     const { ObjectId } = await import('mongodb');
 
+    const member = await db.collection('members').findOne({ _id: new ObjectId(decoded.userId) });
+    if (!member) {
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+    }
+
     // Fetch the split group to validate the payment amount
     const splitGroup = await db.collection('split_groups').findOne({ _id: new ObjectId(id) });
     if (!splitGroup) {
@@ -117,7 +122,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       description: `Payment sent by ${payerPhone} to ${receiverPhone} for split group ${splitGroup.name}`,
       personalizedCategory: 'split payment',
       valid: true,
-      collection: `expense_${user_code}`,
+      collection: member.collection,
       sms_id: `payment-${Date.now()}`,
       customer_id: splitGroup.customer_id,
       createdBy: {

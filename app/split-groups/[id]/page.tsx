@@ -1886,7 +1886,7 @@ export default function SplitGroupPage() {
                               {comments[String(expense._id ?? expenseIndex)]?.length || ''}
                             </button>
                             <Link
-                              href={`/invoice/${expense.code || expense._id}`}
+                              href={`/invoice/${expense._id}`}
                               className="inline-flex items-center gap-1 px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition text-xs sm:text-sm font-medium whitespace-nowrap"
                             >
                               <Eye className="w-4 h-4" />
