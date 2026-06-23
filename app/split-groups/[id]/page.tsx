@@ -593,14 +593,15 @@ export default function SplitGroupPage() {
   const activityFeed = useMemo(() => {
     if (!data?.expenses) return [];
     return [...data.expenses]
-      .filter((e) => e.date)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .filter((e) => e.date || e.createdAt)
+      .sort((a, b) => new Date(b.createdAt || b.date).getTime() - new Date(a.createdAt || a.date).getTime())
       .map((exp) => {
         const owner = exp.split?.find((s: any) => s.owner === true);
         const isPayment = exp.source === 'Payment';
         return {
           id: exp._id || exp.code,
           date: exp.date,
+          createdAt: exp.createdAt,
           description: exp.description,
           amount: exp.amount,
           category: exp.category,
