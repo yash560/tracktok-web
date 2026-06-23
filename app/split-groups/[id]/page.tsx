@@ -55,6 +55,7 @@ import axios from 'axios';
 import { SplitGroup, Invoice } from '@/types';
 import Link from 'next/link';
 import { DateTooltip } from '@/components/DateTooltip';
+import { formatDateTime, formatShortDateTime } from '@/lib/dateFormatter';
 import { normalizePhone, phonesMatch } from '@/lib/phone';
 import {
   NotificationModal,
@@ -220,6 +221,7 @@ interface PaymentState {
   isOpen: boolean;
   memberName: string;
   memberPhone: string;
+  receiverUpiId: string;
   totalAmount: number;
   paymentAmount: string;
   isProcessing: boolean;
@@ -368,6 +370,7 @@ export default function SplitGroupPage() {
     isOpen: false,
     memberName: '',
     memberPhone: '',
+    receiverUpiId: '',
     totalAmount: 0,
     paymentAmount: '',
     isProcessing: false,
@@ -460,6 +463,7 @@ export default function SplitGroupPage() {
               isOpen: true,
               memberName: contact.name,
               memberPhone: payTo,
+              receiverUpiId: contact.upiId || '',
               totalAmount: parseFloat(payAmount),
               paymentAmount: payAmount,
               isProcessing: false,
@@ -626,8 +630,8 @@ export default function SplitGroupPage() {
     });
     return [...filtered].sort((a, b) => {
       switch (sortOrder) {
-        case 'newest': return new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime();
-        case 'oldest': return new Date(a.date || 0).getTime() - new Date(b.date || 0).getTime();
+        case 'newest': return new Date(b.createdAt || b.date || 0).getTime() - new Date(a.createdAt || a.date || 0).getTime();
+        case 'oldest': return new Date(a.createdAt || a.date || 0).getTime() - new Date(b.createdAt || b.date || 0).getTime();
         case 'amount-high': return b.amount - a.amount;
         case 'amount-low': return a.amount - b.amount;
         default: return 0;
@@ -649,10 +653,12 @@ export default function SplitGroupPage() {
   }, [data?.expenses]);
 
   const openPaymentModal = (memberName: string, memberPhone: string, amount: number) => {
+    const contact = splitGroup?.contacts?.find((c: any) => phonesMatch(c.phone, memberPhone));
     setPaymentModal({
       isOpen: true,
       memberName,
       memberPhone,
+      receiverUpiId: contact?.upiId || '',
       totalAmount: amount,
       paymentAmount: amount.toString(),
       isProcessing: false,
@@ -664,6 +670,7 @@ export default function SplitGroupPage() {
       isOpen: false,
       memberName: '',
       memberPhone: '',
+      receiverUpiId: '',
       totalAmount: 0,
       paymentAmount: '',
       isProcessing: false,
@@ -1101,11 +1108,7 @@ export default function SplitGroupPage() {
                 </p>
                 <p className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
                   <DateTooltip dateInput={splitGroup.createdAt || ''}>
-                    {new Date(splitGroup.createdAt || '').toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
+                    {formatDateTime(splitGroup.createdAt || '')}
                   </DateTooltip>
                 </p>
               </div>
@@ -1342,7 +1345,7 @@ export default function SplitGroupPage() {
                                   {fmt(activity.amount)}
                                 </p>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                                  {new Date(activity.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                  {formatShortDateTime(activity.createdAt || activity.date)}
                                 </p>
                               </div>
                             </div>
@@ -1479,11 +1482,11 @@ export default function SplitGroupPage() {
                             {expense.intent || expense.description}
                           </h3>
                           <div className="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3">
-                            {expense.date && (
+                            {(expense.createdAt || expense.date) && (
                               <div className="flex items-center gap-1 flex-shrink-0">
                                 <Calendar className="w-4 h-4" />
-                                <DateTooltip dateInput={expense.date}>
-                                  {new Date(expense.date).toLocaleDateString()}
+                                <DateTooltip dateInput={expense.createdAt || expense.date}>
+                                  {formatDateTime(expense.createdAt || expense.date)}
                                 </DateTooltip>
                               </div>
                             )}
@@ -1920,7 +1923,7 @@ export default function SplitGroupPage() {
                                         <div className="flex items-center gap-2">
                                           <span className="text-xs font-medium text-gray-900 dark:text-white">{comment.authorName}</span>
                                           <span className="text-[10px] text-gray-400">
-                                            {new Date(comment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                            {formatShortDateTime(comment.createdAt)}
                                           </span>
                                         </div>
                                         <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">{comment.text}</p>
@@ -2195,11 +2198,7 @@ export default function SplitGroupPage() {
                 <div>
                   <p className="font-semibold text-success">This split has been settled</p>
                   <p className="text-sm text-success/80 mt-1">
-                    Settled on <DateTooltip dateInput={splitGroup.settledAt}>{new Date(splitGroup.settledAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}</DateTooltip>
+                    Settled on <DateTooltip dateInput={splitGroup.settledAt}>{formatDateTime(splitGroup.settledAt)}</DateTooltip>
                   </p>
                 </div>
               </div>
@@ -2211,11 +2210,7 @@ export default function SplitGroupPage() {
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
               Generated on{' '}
               <DateTooltip dateInput={new Date()}>
-                {new Date().toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
+                {formatDateTime(new Date())}
               </DateTooltip>
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">TrackTok Split Group</p>
@@ -2280,10 +2275,17 @@ export default function SplitGroupPage() {
                   {(() => {
                     const upiAmount = Number.parseFloat(paymentModal.paymentAmount || '0');
                     const receiverPhone = paymentModal.memberPhone.replace(/\D/g, '').slice(-10);
-                    const upiUri = `upi://pay?pa=${receiverPhone}@upi&pn=${encodeURIComponent(paymentModal.memberName)}&am=${upiAmount > 0 ? upiAmount.toFixed(2) : ''}&cu=INR`;
-                    const gpayUrl = `gpay://upi/pay?pa=${receiverPhone}@okicici&pn=${encodeURIComponent(paymentModal.memberName)}&am=${upiAmount > 0 ? upiAmount.toFixed(2) : ''}&cu=INR`;
-                    const phonepeUrl = `phonepe://pay?pa=${receiverPhone}@ybl&pn=${encodeURIComponent(paymentModal.memberName)}&am=${upiAmount > 0 ? upiAmount.toFixed(2) : ''}&cu=INR`;
-                    const paytmUrl = `paytmmp://pay?pa=${receiverPhone}@paytm&pn=${encodeURIComponent(paymentModal.memberName)}&am=${upiAmount > 0 ? upiAmount.toFixed(2) : ''}&cu=INR`;
+                    const upiId = paymentModal.receiverUpiId;
+                    const amStr = upiAmount > 0 ? upiAmount.toFixed(2) : '';
+                    const pn = encodeURIComponent(paymentModal.memberName);
+                    const gpayVpa = upiId || `${receiverPhone}@okicici`;
+                    const phonepeVpa = upiId || `${receiverPhone}@ybl`;
+                    const paytmVpa = upiId || `${receiverPhone}@paytm`;
+                    const genericVpa = upiId || `${receiverPhone}@upi`;
+                    const upiUri = `upi://pay?pa=${genericVpa}&pn=${pn}&am=${amStr}&cu=INR`;
+                    const gpayUrl = `gpay://upi/pay?pa=${gpayVpa}&pn=${pn}&am=${amStr}&cu=INR`;
+                    const phonepeUrl = `phonepe://pay?pa=${phonepeVpa}&pn=${pn}&am=${amStr}&cu=INR`;
+                    const paytmUrl = `paytmmp://pay?pa=${paytmVpa}&pn=${pn}&am=${amStr}&cu=INR`;
 
                     return (
                       <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 bg-gray-50 dark:bg-gray-800/50">
@@ -2321,12 +2323,27 @@ export default function SplitGroupPage() {
                             <ExternalLink className="w-3 h-3" />
                           </a>
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">
+                        {!upiId && (
+                          <p className="text-xs text-amber-600 dark:text-amber-400 mt-3 text-center">
+                            {paymentModal.memberName} hasn&apos;t added their UPI ID yet. Payment links use phone-based UPI which may not work for all accounts.
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
                           After paying via UPI, click &quot;Mark as Paid&quot; below to record it
                         </p>
                       </div>
                     );
                   })()}
+
+                  {!user?.upiId && (
+                    <Link
+                      href="/dashboard/profile"
+                      className="flex items-center gap-2 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-sm text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition"
+                    >
+                      <Smartphone className="w-4 h-4 shrink-0" />
+                      <span>Add your UPI ID in <span className="font-semibold underline">Profile Settings</span> so others can pay you directly</span>
+                    </Link>
+                  )}
 
                   <div className="flex gap-3 pt-4">
                     <button

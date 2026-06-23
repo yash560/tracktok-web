@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Phone, Camera, Save, Loader2, MapPin, Calendar, Users } from 'lucide-react';
+import { User, Mail, Phone, Camera, Save, Loader2, MapPin, Calendar, Users, Wallet } from 'lucide-react';
 import { useAuth } from '@/components/AuthContext';
 import { useProtectedPage } from '@/lib/useProtectedPage';
 import axios from 'axios';
@@ -18,6 +18,7 @@ export default function ProfilePage() {
     displayName: '',
     nickname: '',
     phoneNumber: '',
+    upiId: '',
     email: '',
     gender: '',
     dateOfBirth: '',
@@ -32,6 +33,7 @@ export default function ProfilePage() {
         displayName: user.displayName || '',
         nickname: user.nickname || '',
         phoneNumber: user.phoneNumber || '',
+        upiId: user.upiId || '',
         email: user.email || '',
         gender: user.gender || '',
         dateOfBirth: user.dateOfBirth || '',
@@ -52,6 +54,7 @@ export default function ProfilePage() {
         displayName: formData.displayName,
         nickname: formData.nickname,
         phoneNumber: formData.phoneNumber,
+        upiId: formData.upiId,
         gender: formData.gender,
         dateOfBirth: formData.dateOfBirth,
         countryCode: formData.countryCode,
@@ -187,6 +190,22 @@ export default function ProfilePage() {
                   className="input-field pl-11"
                 />
               </div>
+            </div>
+
+            {/* UPI ID */}
+            <div>
+              <label className="block text-xs sm:text-sm font-semibold mb-2">UPI ID</label>
+              <div className="relative">
+                <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="yourname@upi"
+                  value={formData.upiId}
+                  onChange={(e) => setFormData({ ...formData, upiId: e.target.value.toLowerCase() })}
+                  className="input-field pl-11"
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Used for receiving payments in split groups</p>
             </div>
 
             {/* Gender */}

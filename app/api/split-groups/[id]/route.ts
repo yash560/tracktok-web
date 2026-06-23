@@ -45,6 +45,28 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
 
+    // Enrich contacts with UPI IDs from member records
+    const contactPhones = (splitGroup.contacts || []).map((c: any) => c.phone).filter(Boolean);
+    if (contactPhones.length > 0) {
+      const members = await db.collection('members').find(
+        { $or: [{ phone: { $in: contactPhones } }, { phoneNumber: { $in: contactPhones } }] },
+        { projection: { phone: 1, phoneNumber: 1, upiId: 1 } }
+      ).toArray();
+
+      const phoneToUpi: Record<string, string> = {};
+      members.forEach((m: any) => {
+        if (m.upiId) {
+          if (m.phone) phoneToUpi[m.phone] = m.upiId;
+          if (m.phoneNumber) phoneToUpi[m.phoneNumber] = m.upiId;
+        }
+      });
+
+      splitGroup.contacts = splitGroup.contacts.map((c: any) => ({
+        ...c,
+        upiId: phoneToUpi[c.phone] || '',
+      }));
+    }
+
     // Fetch all expenses in this split group using the expenses array from split group
     const expenseIds = splitGroup.expenses?.map((expId: string) => new ObjectId(expId)) || [];
     const expenses = expenseIds.length > 0 ? await db

@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
         nickname: user.nickname || '',
         phone: user.phone || '',
         phoneNumber: user.phoneNumber || user.phone || '',
+        upiId: user.upiId || '',
         gender: user.gender || '',
         dateOfBirth: user.dateOfBirth || '',
         countryCode: user.countryCode || '',
@@ -70,7 +71,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { firstName, lastName, displayName, nickname, phoneNumber, gender, dateOfBirth, countryCode } = body;
+    const { firstName, lastName, displayName, nickname, phoneNumber, upiId, gender, dateOfBirth, countryCode } = body;
 
     const { db } = await connectToDatabase();
 
@@ -83,6 +84,7 @@ export async function PUT(request: NextRequest) {
           ...(displayName && { displayName }),
           ...(nickname && { nickname }),
           ...(phoneNumber && { phoneNumber }),
+          ...(upiId !== undefined && { upiId }),
           ...(gender && { gender }),
           ...(dateOfBirth && { dateOfBirth }),
           ...(countryCode && { countryCode }),

@@ -14,6 +14,7 @@ import axios from 'axios';
 import Link from 'next/link';
 import { Invoice, SplitGroup } from '@/types';
 import { DateTooltip } from '@/components/DateTooltip';
+import { formatDateTime } from '@/lib/dateFormatter';
 
 interface TransactionResponse {
   transaction: Invoice;
@@ -168,11 +169,7 @@ export default function InvoicePage() {
                 </p>
                 <p className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
                   <DateTooltip dateInput={transactionDate}>
-                    {transactionDate.toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
+                    {formatDateTime(transactionDate)}
                   </DateTooltip>
                 </p>
               </div>
@@ -303,7 +300,7 @@ export default function InvoicePage() {
                       {splitGroup.name}
                     </p>
                     <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                      Created <DateTooltip dateInput={splitGroup.createdAt || ''}>{new Date(splitGroup.createdAt || '').toLocaleDateString()}</DateTooltip>
+                      Created <DateTooltip dateInput={splitGroup.createdAt || ''}>{formatDateTime(splitGroup.createdAt || '')}</DateTooltip>
                     </p>
                   </div>
                 </Link>
@@ -373,11 +370,7 @@ export default function InvoicePage() {
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">
               Invoice generated on{' '}
               <DateTooltip dateInput={new Date()}>
-                {new Date().toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
+                {formatDateTime(new Date())}
               </DateTooltip>
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-500">

@@ -22,6 +22,7 @@ import { useCurrency } from '@/components/CurrencyContext';
 import { TransactionModal } from '@/components/TransactionModal';
 import { TransactionDetailModal } from '@/components/TransactionDetailModal';
 import { DateTooltip } from '@/components/DateTooltip';
+import { formatDateTime } from '@/lib/dateFormatter';
 
 const CATEGORIES = [
   'all', 'food', 'shopping', 'bills', 'salary', 'rent', 'utilities',
@@ -339,8 +340,8 @@ function TransactionsContent() {
                       <p className="text-xs text-gray-400">{t.city || 'Unknown'}</p>
                     </td>
                     <td className="hidden md:table-cell py-3 sm:py-4 px-3 sm:px-6 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                      <DateTooltip dateInput={t.date}>
-                        {new Date(t.date).toLocaleDateString()}
+                      <DateTooltip dateInput={t.createdAt || t.date}>
+                        {formatDateTime(t.createdAt || t.date)}
                       </DateTooltip>
                     </td>
                     <td className={`py-3 sm:py-4 px-3 sm:px-6 text-right font-bold text-xs sm:text-sm md:text-lg ${t.type === 'income' ? 'text-success' : 'text-danger'}`}>

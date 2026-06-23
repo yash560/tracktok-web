@@ -48,6 +48,7 @@ import { useRouter } from 'next/navigation';
 import { useProtectedPage } from '@/lib/useProtectedPage';
 import { TransactionDetailModal } from '@/components/TransactionDetailModal';
 import { DateTooltip } from '@/components/DateTooltip';
+import { formatDateTime } from '@/lib/dateFormatter';
 import { useAuth } from '@/components/AuthContext';
 import { useCurrency } from '@/components/CurrencyContext';
 import { useKeyboardShortcuts } from '@/lib/useKeyboardShortcuts';
@@ -1180,8 +1181,8 @@ export default function DashboardPage() {
                     </td>
                     <td className="py-3 sm:py-4 px-3 sm:px-4 text-gray-600 dark:text-gray-400 capitalize text-xs sm:text-sm hidden sm:table-cell">{transaction.category}</td>
                     <td className="py-3 sm:py-4 px-3 sm:px-4 text-gray-600 dark:text-gray-400 text-xs sm:text-sm hidden md:table-cell">
-                      <DateTooltip dateInput={transaction.date}>
-                        {new Date(transaction.date).toLocaleDateString()}
+                      <DateTooltip dateInput={transaction.createdAt || transaction.date}>
+                        {formatDateTime(transaction.createdAt || transaction.date)}
                       </DateTooltip>
                     </td>
                     <td className={`py-3 sm:py-4 px-3 sm:px-4 text-right font-semibold text-xs sm:text-sm ${transaction.type === 'income' ? 'text-success' : 'text-danger'}`}>
