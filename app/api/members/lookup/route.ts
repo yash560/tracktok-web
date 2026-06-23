@@ -1,5 +1,5 @@
 import { connectToDatabase } from '@/lib/mongodb';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken, normalizePhone } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -22,9 +22,15 @@ export async function GET(request: NextRequest) {
 
     const { db } = await connectToDatabase();
 
+    const digits = normalizePhone(phone);
+    const phoneVariants = digits ? [digits, `91${digits}`, `+91${digits}`, phone].filter((v, i, a) => a.indexOf(v) === i) : [phone];
+
     const member = await db.collection('members').findOne(
       {
-        $or: [{ phone }, { phoneNumber: phone }],
+        $or: [
+          { phone: { $in: phoneVariants } },
+          { phoneNumber: { $in: phoneVariants } },
+        ],
       },
       {
         projection: {
