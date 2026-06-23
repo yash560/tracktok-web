@@ -33,6 +33,8 @@ import {
   CircleCheck,
   CircleX,
   ArrowUpDown,
+  ExternalLink,
+  Smartphone,
 } from 'lucide-react';
 import {
   PieChart,
@@ -2275,6 +2277,57 @@ export default function SplitGroupPage() {
                     </p>
                   </div>
 
+                  {(() => {
+                    const upiAmount = Number.parseFloat(paymentModal.paymentAmount || '0');
+                    const receiverPhone = paymentModal.memberPhone.replace(/\D/g, '').slice(-10);
+                    const upiUri = `upi://pay?pa=${receiverPhone}@upi&pn=${encodeURIComponent(paymentModal.memberName)}&am=${upiAmount > 0 ? upiAmount.toFixed(2) : ''}&cu=INR`;
+                    const gpayUrl = `gpay://upi/pay?pa=${receiverPhone}@okicici&pn=${encodeURIComponent(paymentModal.memberName)}&am=${upiAmount > 0 ? upiAmount.toFixed(2) : ''}&cu=INR`;
+                    const phonepeUrl = `phonepe://pay?pa=${receiverPhone}@ybl&pn=${encodeURIComponent(paymentModal.memberName)}&am=${upiAmount > 0 ? upiAmount.toFixed(2) : ''}&cu=INR`;
+                    const paytmUrl = `paytmmp://pay?pa=${receiverPhone}@paytm&pn=${encodeURIComponent(paymentModal.memberName)}&am=${upiAmount > 0 ? upiAmount.toFixed(2) : ''}&cu=INR`;
+
+                    return (
+                      <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 bg-gray-50 dark:bg-gray-800/50">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Smartphone className="w-4 h-4 text-primary" />
+                          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Pay via UPI App</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <a
+                            href={gpayUrl}
+                            className="flex items-center justify-center gap-2 px-3 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition text-sm font-medium text-gray-800 dark:text-gray-200"
+                          >
+                            <span>GPay</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                          <a
+                            href={phonepeUrl}
+                            className="flex items-center justify-center gap-2 px-3 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition text-sm font-medium text-gray-800 dark:text-gray-200"
+                          >
+                            <span>PhonePe</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                          <a
+                            href={paytmUrl}
+                            className="flex items-center justify-center gap-2 px-3 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition text-sm font-medium text-gray-800 dark:text-gray-200"
+                          >
+                            <span>Paytm</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                          <a
+                            href={upiUri}
+                            className="flex items-center justify-center gap-2 px-3 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition text-sm font-medium text-gray-800 dark:text-gray-200"
+                          >
+                            <span>Other UPI</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">
+                          After paying via UPI, click &quot;Mark as Paid&quot; below to record it
+                        </p>
+                      </div>
+                    );
+                  })()}
+
                   <div className="flex gap-3 pt-4">
                     <button
                       onClick={closePaymentModal}
@@ -2288,7 +2341,7 @@ export default function SplitGroupPage() {
                       disabled={paymentModal.isProcessing}
                       className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition font-medium disabled:opacity-50"
                     >
-                      {paymentModal.isProcessing ? 'Processing...' : 'Pay'}
+                      {paymentModal.isProcessing ? 'Processing...' : 'Mark as Paid'}
                     </button>
                   </div>
                 </div>
