@@ -777,7 +777,7 @@ export default function SplitGroupPage() {
         receiverPhone: memberPhone,
         amount,
         payerPhone: user?.phone || user?.phoneNumber,
-        user_code: (user as any)?._id || '',
+        user_code: (user as any)?.id || (user as any)?._id || '',
       });
       notify('success', 'Payment Recorded', `${fmt(amount)} paid to ${memberName}`);
       setTimeout(() => globalThis.location.reload(), 1500);
@@ -814,7 +814,7 @@ export default function SplitGroupPage() {
           receiverPhone: paymentModal.memberPhone,
           amount,
           payerPhone: user?.phone || user?.phoneNumber,
-          user_code: (user as any)?._id || '',
+          user_code: (user as any)?.id || (user as any)?._id || '',
         }
       );
 
