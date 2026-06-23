@@ -1,5 +1,5 @@
 import { connectToDatabase } from '@/lib/mongodb';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken, phonesMatch, normalizePhone } from '@/lib/auth';
 import { sendEmail } from '@/lib/mailer';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -10,7 +10,8 @@ interface Settlement {
 }
 
 function calculateWhoOwesUser(expenses: any[], userPhone: string): Settlement[] {
-  const netBalances: { [key: string]: { amount: number; debtorName: string } } = {};
+  const netBalances: { [key: string]: { amount: number; debtorName: string; rawPhone: string } } = {};
+  const normalizedUserPhone = normalizePhone(userPhone);
 
   expenses.forEach((expense) => {
     if (!expense.split || expense.split.length === 0) return;
@@ -18,19 +19,19 @@ function calculateWhoOwesUser(expenses: any[], userPhone: string): Settlement[] 
     const owner = expense.split.find((s: any) => s.owner === true);
     if (!owner) return;
 
-    const ownerPhone = owner.phone;
+    const ownerPhone = normalizePhone(owner.phone);
     const ownerAmount = owner.amount || 0;
     const isPayment = ownerAmount === 0;
 
     expense.split.forEach((split: any) => {
-      if (split.phone === ownerPhone) return;
+      const splitPhone = normalizePhone(split.phone);
+      if (splitPhone === ownerPhone) return;
 
-      const otherPhone = split.phone;
       const otherAmount = split.amount || 0;
       if (otherAmount === 0) return;
 
       if (isPayment) {
-        const reverseKey = `${ownerPhone}|${otherPhone}`;
+        const reverseKey = `${ownerPhone}|${splitPhone}`;
         if (netBalances[reverseKey]) {
           netBalances[reverseKey].amount -= otherAmount;
           if (netBalances[reverseKey].amount <= 0) {
@@ -38,9 +39,9 @@ function calculateWhoOwesUser(expenses: any[], userPhone: string): Settlement[] 
           }
         }
       } else {
-        const key = `${otherPhone}|${ownerPhone}`;
+        const key = `${splitPhone}|${ownerPhone}`;
         if (!netBalances[key]) {
-          netBalances[key] = { amount: 0, debtorName: split.name };
+          netBalances[key] = { amount: 0, debtorName: split.name, rawPhone: split.phone };
         }
         netBalances[key].amount += otherAmount;
       }
@@ -49,13 +50,13 @@ function calculateWhoOwesUser(expenses: any[], userPhone: string): Settlement[] 
 
   const settlements: Settlement[] = [];
   Object.entries(netBalances).forEach(([key, value]) => {
-    const [debtorPhone, creditorPhone] = key.split('|');
+    const [, creditorPhone] = key.split('|');
     if (value.amount <= 0) return;
 
-    if (creditorPhone === userPhone) {
+    if (creditorPhone === normalizedUserPhone) {
       settlements.push({
         memberName: value.debtorName,
-        memberPhone: debtorPhone,
+        memberPhone: value.rawPhone,
         amount: value.amount,
       });
     }
@@ -68,8 +69,8 @@ function buildExpenseTable(expenses: any[], debtorPhone: string, creditorPhone: 
   const relevantExpenses = expenses.filter((expense) => {
     if (!expense.split || expense.split.length === 0) return false;
     const owner = expense.split.find((s: any) => s.owner === true);
-    if (!owner || owner.phone !== creditorPhone) return false;
-    const debtorSplit = expense.split.find((s: any) => s.phone === debtorPhone);
+    if (!owner || !phonesMatch(owner.phone, creditorPhone)) return false;
+    const debtorSplit = expense.split.find((s: any) => phonesMatch(s.phone, debtorPhone));
     return debtorSplit && debtorSplit.amount > 0;
   });
 
@@ -77,7 +78,7 @@ function buildExpenseTable(expenses: any[], debtorPhone: string, creditorPhone: 
 
   let rows = '';
   relevantExpenses.forEach((expense) => {
-    const debtorSplit = expense.split.find((s: any) => s.phone === debtorPhone);
+    const debtorSplit = expense.split.find((s: any) => phonesMatch(s.phone, debtorPhone));
     rows += `
       <tr>
         <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #1a1a2e; font-size: 14px;">${expense.description || 'Untitled'}</td>
@@ -149,17 +150,21 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     const memberPhones = settlements.map((s) => s.memberPhone);
+    const allVariants = memberPhones.flatMap((p) => {
+      const d = normalizePhone(p);
+      return d ? [d, `91${d}`, `+91${d}`, p] : [p];
+    }).filter(Boolean);
     const registeredMembers = await db
       .collection('members')
       .find(
-        { $or: [{ phone: { $in: memberPhones } }, { phoneNumber: { $in: memberPhones } }] },
+        { $or: [{ phone: { $in: allVariants } }, { phoneNumber: { $in: allVariants } }] },
         { projection: { password: 0, token: 0 } }
       )
       .toArray();
 
     const phoneToEmail: { [phone: string]: string } = {};
     registeredMembers.forEach((m: any) => {
-      const phone = m.phoneNumber || m.phone;
+      const phone = normalizePhone(m.phoneNumber || m.phone);
       if (m.email && phone) {
         phoneToEmail[phone] = m.email;
       }
@@ -170,7 +175,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const results: { memberName: string; status: string; error?: string }[] = [];
 
     for (const settlement of settlements) {
-      const email = phoneToEmail[settlement.memberPhone];
+      const email = phoneToEmail[normalizePhone(settlement.memberPhone)];
       if (!email) {
         results.push({ memberName: settlement.memberName, status: 'skipped', error: 'No email found' });
         continue;

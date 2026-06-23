@@ -14,7 +14,7 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-const API_BASE_URL = 'https://webverse.thewebvale.com';
+const API_BASE_URL = 'http://localhost:3000';
 
 const SUGGESTIONS = [
   'How much did I spend this month?',

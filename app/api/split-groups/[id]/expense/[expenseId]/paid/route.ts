@@ -1,5 +1,5 @@
 import { connectToDatabase } from '@/lib/mongodb';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken, phonesMatch } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 
@@ -45,7 +45,7 @@ export async function PATCH(
     const memberPhone = body.memberPhone;
 
     if (memberPhone) {
-      const splitIndex = expense.split?.findIndex((s: any) => s.phone === memberPhone);
+      const splitIndex = expense.split?.findIndex((s: any) => phonesMatch(s.phone, memberPhone));
       if (splitIndex === undefined || splitIndex === -1) {
         return NextResponse.json(
           { message: 'Member not found in this expense' },
@@ -73,7 +73,7 @@ export async function PATCH(
 
     // Legacy: mark entire expense (backward compat)
     const userPhone = member.phone || member.phoneNumber;
-    const isMentioned = expense.split?.some((s: any) => s.phone === userPhone);
+    const isMentioned = expense.split?.some((s: any) => phonesMatch(s.phone, userPhone));
 
     if (!isMentioned) {
       return NextResponse.json(

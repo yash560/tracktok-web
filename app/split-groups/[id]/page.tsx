@@ -53,6 +53,7 @@ import axios from 'axios';
 import { SplitGroup, Invoice } from '@/types';
 import Link from 'next/link';
 import { DateTooltip } from '@/components/DateTooltip';
+import { normalizePhone, phonesMatch } from '@/lib/phone';
 import {
   NotificationModal,
   ConfirmModal,
@@ -88,6 +89,7 @@ const CHART_COLORS = ['#2F2E51', '#47468A', '#4DD69B', '#F37373', '#FBA94D', '#F
 
 function calculateSettlements(expenses: Invoice[], userPhone: string): Settlement[] {
   const netBalances: { [key: string]: { amount: number; debtorName: string; creditorName: string } } = {};
+  const normalizedUserPhone = normalizePhone(userPhone);
 
   expenses.forEach((expense) => {
     if (!expense.split || expense.split.length === 0) return;
@@ -95,21 +97,21 @@ function calculateSettlements(expenses: Invoice[], userPhone: string): Settlemen
     const owner = expense.split.find((s: any) => s.owner === true);
     if (!owner) return;
 
-    const ownerPhone = owner.phone;
+    const ownerPhone = normalizePhone(owner.phone);
     const ownerAmount = owner.amount || 0;
     const isPayment = ownerAmount === 0;
 
     expense.split.forEach((split: any) => {
-      if (split.phone === ownerPhone) return;
+      const splitPhone = normalizePhone(split.phone);
+      if (splitPhone === ownerPhone) return;
       if (split.paidAt) return;
 
-      const otherPhone = split.phone;
       const otherAmount = split.amount || 0;
 
       if (otherAmount === 0) return;
 
       if (isPayment) {
-        const reverseKey = `${ownerPhone}|${otherPhone}`;
+        const reverseKey = `${ownerPhone}|${splitPhone}`;
         if (netBalances[reverseKey]) {
           netBalances[reverseKey].amount -= otherAmount;
           if (netBalances[reverseKey].amount <= 0) {
@@ -117,7 +119,7 @@ function calculateSettlements(expenses: Invoice[], userPhone: string): Settlemen
           }
         }
       } else {
-        const key = `${otherPhone}|${ownerPhone}`;
+        const key = `${splitPhone}|${ownerPhone}`;
         if (!netBalances[key]) {
           netBalances[key] = { amount: 0, debtorName: split.name, creditorName: owner.name };
         }
@@ -133,9 +135,9 @@ function calculateSettlements(expenses: Invoice[], userPhone: string): Settlemen
 
     if (amount <= 0) return;
 
-    if (debtorPhone === userPhone) {
+    if (debtorPhone === normalizedUserPhone) {
       settlements.push({ memberName: creditorName, memberPhone: creditorPhone, amount, type: 'owes' });
-    } else if (creditorPhone === userPhone) {
+    } else if (creditorPhone === normalizedUserPhone) {
       settlements.push({ memberName: debtorName, memberPhone: debtorPhone, amount, type: 'owed' });
     }
   });
@@ -148,7 +150,8 @@ function simplifyDebts(expenses: Invoice[], contacts: SplitGroup['contacts']): S
   const balances: { [phone: string]: { amount: number; name: string } } = {};
 
   contacts.forEach((c) => {
-    if (c.phone) balances[c.phone] = { amount: 0, name: c.name };
+    const np = normalizePhone(c.phone);
+    if (np) balances[np] = { amount: 0, name: c.name };
   });
 
   expenses.forEach((expense) => {
@@ -156,22 +159,22 @@ function simplifyDebts(expenses: Invoice[], contacts: SplitGroup['contacts']): S
     const owner = expense.split.find((s: any) => s.owner === true);
     if (!owner || !owner.phone) return;
 
+    const ownerNorm = normalizePhone(owner.phone);
     const isPayment = (owner.amount || 0) === 0;
 
     expense.split.forEach((split: any) => {
-      if (split.phone === owner.phone) return;
+      const splitNorm = normalizePhone(split.phone);
+      if (splitNorm === ownerNorm) return;
       if (split.paidAt) return;
       const amt = split.amount || 0;
       if (amt === 0) return;
 
       if (isPayment) {
-        // Payment reduces debt
-        if (balances[owner.phone!]) balances[owner.phone!].amount += amt;
-        if (balances[split.phone]) balances[split.phone].amount -= amt;
+        if (balances[ownerNorm]) balances[ownerNorm].amount += amt;
+        if (balances[splitNorm]) balances[splitNorm].amount -= amt;
       } else {
-        // Expense: split member owes owner
-        if (balances[owner.phone!]) balances[owner.phone!].amount += amt;
-        if (balances[split.phone]) balances[split.phone].amount -= amt;
+        if (balances[ownerNorm]) balances[ownerNorm].amount += amt;
+        if (balances[splitNorm]) balances[splitNorm].amount -= amt;
       }
     });
   });
@@ -449,7 +452,7 @@ export default function SplitGroupPage() {
         const payTo = urlParams.get('pay');
         const payAmount = urlParams.get('amount');
         if (payTo && payAmount) {
-          const contact = response.data.splitGroup.contacts.find((c: any) => c.phone === payTo);
+          const contact = response.data.splitGroup.contacts.find((c: any) => phonesMatch(c.phone, payTo));
           if (contact) {
             setPaymentModal({
               isOpen: true,
@@ -513,7 +516,7 @@ export default function SplitGroupPage() {
       let totalOwed = 0;
       data.expenses.forEach((exp) => {
         if (exp.source === 'Payment') return;
-        const split = exp.split?.find((s: any) => s.phone === contact.phone || s.name === contact.name);
+        const split = exp.split?.find((s: any) => phonesMatch(s.phone, contact.phone) || s.name === contact.name);
         if (split) {
           totalSpent += split.amount || 0;
           if (split.owner) totalOwed += exp.amount - (split.amount || 0);
@@ -546,21 +549,21 @@ export default function SplitGroupPage() {
       if (!owner) return;
 
       exp.split?.forEach((split: any) => {
-        if (split.phone === owner.phone) return;
+        if (phonesMatch(split.phone, owner.phone)) return;
         if (split.paidAt) return;
         const amt = split.amount || 0;
         if (amt === 0) return;
 
         const isPayment = (owner.amount || 0) === 0;
 
-        if (split.phone === userPhone) {
+        if (phonesMatch(split.phone, userPhone)) {
           // User is in split — they owe
           if (isPayment) {
             runningBalance += amt;
           } else {
             runningBalance -= amt;
           }
-        } else if (owner.phone === userPhone) {
+        } else if (phonesMatch(owner.phone, userPhone)) {
           // User is owner — they're owed
           if (isPayment) {
             runningBalance -= amt;
@@ -614,7 +617,7 @@ export default function SplitGroupPage() {
       }
       if (filterCategory !== 'all' && exp.category !== filterCategory) return false;
       if (filterMember !== 'all') {
-        const hasMember = exp.split?.some((s: any) => s.name === filterMember || s.phone === filterMember);
+        const hasMember = exp.split?.some((s: any) => s.name === filterMember || phonesMatch(s.phone, filterMember));
         if (!hasMember) return false;
       }
       return true;
@@ -920,7 +923,7 @@ export default function SplitGroupPage() {
               ? {
                 ...e,
                 split: e.split?.map((s: any) =>
-                  s.phone === memberPhone
+                  phonesMatch(s.phone, memberPhone)
                     ? { ...s, paidAt: newPaid ? new Date().toISOString() : null, paidBy: newPaid ? (user?.phone || user?.phoneNumber) : null }
                     : s
                 ),
@@ -1122,14 +1125,14 @@ export default function SplitGroupPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {splitGroup.contacts.map((contact) => {
                 const memberExpenses = expenses.filter(
-                  (exp) => exp.split?.some((s) => s.phone === contact.phone || s.name === contact.name)
+                  (exp) => exp.split?.some((s) => phonesMatch(s.phone, contact.phone) || s.name === contact.name)
                 );
                 const memberTotal = memberExpenses.reduce((sum, exp) => {
-                  const split = exp.split?.find((s) => s.phone === contact.phone || s.name === contact.name);
+                  const split = exp.split?.find((s) => phonesMatch(s.phone, contact.phone) || s.name === contact.name);
                   return sum + (split?.amount || 0);
                 }, 0);
                 const memberSettlement = settlements.find(
-                  (s) => s.memberPhone === contact.phone || s.memberName === contact.name
+                  (s) => phonesMatch(s.memberPhone, contact.phone) || s.memberName === contact.name
                 );
 
                 return (
@@ -1854,7 +1857,7 @@ export default function SplitGroupPage() {
 
                             {!isSettled && user && (
                               (() => {
-                                const isExpenseOwner = expense.split?.some((s: any) => s.owner === true && s.phone === (user.phone || user.phoneNumber));
+                                const isExpenseOwner = expense.split?.some((s: any) => s.owner === true && phonesMatch(s.phone, user.phone || user.phoneNumber));
                                 const isGrpOwner = splitGroup.owner === user._id || (user as any).collection === splitGroup.owner;
                                 return (isExpenseOwner || isGrpOwner) ? (
                                   <button
@@ -2410,7 +2413,7 @@ export default function SplitGroupPage() {
 
             {(() => {
               const memberSettlement = settlements.find(
-                (s) => s.memberPhone === selectedMember.phone || s.memberName === selectedMember.name
+                (s) => phonesMatch(s.memberPhone, selectedMember.phone) || s.memberName === selectedMember.name
               );
 
               return memberSettlement ? (

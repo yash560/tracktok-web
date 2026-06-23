@@ -1,5 +1,5 @@
 import { connectToDatabase } from '@/lib/mongodb';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken, normalizePhone } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 
@@ -25,6 +25,8 @@ export async function GET(request: NextRequest) {
     }
 
     const userPhone = member.phone || member.phoneNumber;
+    const digits = normalizePhone(userPhone);
+    const phoneVariants = digits ? [digits, `91${digits}`, `+91${digits}`, userPhone].filter(Boolean) : [];
 
     // Find split groups where user is a member or owner
     const splitGroups = await db
@@ -34,7 +36,7 @@ export async function GET(request: NextRequest) {
           { customer_id: member.customer_id },
           { owner: member._id.toString() },
           { owner: member.collection },
-          { 'contacts.phone': userPhone },
+          ...(phoneVariants.length > 0 ? [{ 'contacts.phone': { $in: phoneVariants } }] : []),
         ],
       })
       .sort({ createdAt: -1 })

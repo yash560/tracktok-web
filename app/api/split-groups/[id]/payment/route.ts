@@ -1,5 +1,5 @@
 import { connectToDatabase } from '@/lib/mongodb';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken, phonesMatch } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -58,10 +58,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       if (!expense.split || !Array.isArray(expense.split)) return;
 
       const ownerEntry = expense.split.find((s: any) => s.owner === true);
-      const payerEntry = expense.split.find((s: any) => s.phone === payerPhone);
+      const payerEntry = expense.split.find((s: any) => phonesMatch(s.phone, payerPhone));
 
       // If receiverPhone is owner AND payerPhone is in split, payerPhone owes receiverPhone
-      if (ownerEntry?.phone === receiverPhone && payerEntry) {
+      if (phonesMatch(ownerEntry?.phone, receiverPhone) && payerEntry) {
         totalOwed += payerEntry.amount || 0;
       }
     });
@@ -72,10 +72,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       if (!expense.split || !Array.isArray(expense.split)) return;
 
       const ownerEntry = expense.split.find((s: any) => s.owner === true);
-      const receiverEntry = expense.split.find((s: any) => s.phone === receiverPhone);
+      const receiverEntry = expense.split.find((s: any) => phonesMatch(s.phone, receiverPhone));
 
       // If payerPhone is owner AND receiverPhone is in split, receiverPhone owes payerPhone (reverse)
-      if (ownerEntry?.phone === payerPhone && receiverEntry) {
+      if (phonesMatch(ownerEntry?.phone, payerPhone) && receiverEntry) {
         totalPaidBack += receiverEntry.amount || 0;
       }
     });
@@ -154,8 +154,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     };
 
     // Get names from contacts
-    const receiverContact = splitGroup.contacts.find((c: any) => c.phone === receiverPhone);
-    const payerContact = splitGroup.contacts.find((c: any) => c.phone === payerPhone);
+    const receiverContact = splitGroup.contacts.find((c: any) => phonesMatch(c.phone, receiverPhone));
+    const payerContact = splitGroup.contacts.find((c: any) => phonesMatch(c.phone, payerPhone));
 
     if (payerContact) {
       paymentExpense.split[0].name = payerContact.name;

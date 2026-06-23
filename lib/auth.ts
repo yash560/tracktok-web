@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
+export { normalizePhone, phonesMatch } from './phone';
+
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 export async function hashPassword(password: string): Promise<string> {
@@ -17,12 +19,16 @@ export async function comparePasswords(
 }
 
 export function generateToken(userId: string): string {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign(
+    { userId, customer: 'webverse', collection: 'members' },
+    JWT_SECRET,
+    { expiresIn: '7d' }
+  );
 }
 
-export function verifyToken(token: string): { userId: string } | null {
+export function verifyToken(token: string): { userId: string; customer: string; collection: string } | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as { userId: string };
+    return jwt.verify(token, JWT_SECRET) as { userId: string; customer: string; collection: string };
   } catch {
     return null;
   }

@@ -1,5 +1,5 @@
 import { connectToDatabase } from '@/lib/mongodb';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken, phonesMatch } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // Check if user is a member/contact of this split group
-    const isGroupMember = userPhone && splitGroup.contacts?.some((c: any) => c.phone === userPhone);
+    const isGroupMember = userPhone && splitGroup.contacts?.some((c: any) => phonesMatch(c.phone, userPhone));
     const isGroupOwner = splitGroup.owner === member._id.toString() || splitGroup.owner === member.collection;
 
     if (!isGroupMember && !isGroupOwner) {

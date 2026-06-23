@@ -1,5 +1,5 @@
 import { connectToDatabase } from '@/lib/mongodb';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken, phonesMatch } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 
@@ -42,7 +42,7 @@ export async function DELETE(
 
     const userPhone = member.phone || member.phoneNumber;
     const isExpenseOwner = expense.split?.some(
-      (s: any) => s.owner === true && s.phone === userPhone
+      (s: any) => s.owner === true && phonesMatch(s.phone, userPhone)
     );
     const isGroupOwner =
       splitGroup.owner === member._id.toString() || splitGroup.owner === member.collection;
