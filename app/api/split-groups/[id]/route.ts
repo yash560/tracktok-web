@@ -40,7 +40,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // Check if user is a member/contact of this split group
     const isGroupMember = userPhone && splitGroup.contacts?.some((c: any) => phonesMatch(c.phone, userPhone));
     const isGroupOwner = splitGroup.owner === member._id.toString() || splitGroup.owner === member.collection;
-
+    console.log('userPhone:', userPhone, 'splitGroup.contacts:', splitGroup.contacts);
     if (!isGroupMember && !isGroupOwner) {
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
