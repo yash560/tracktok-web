@@ -29,7 +29,6 @@ export async function GET(request: NextRequest) {
     const phoneVariants = digits ? [digits, `91${digits}`, `+91${digits}`, userPhone].filter(Boolean) : [];
 
     // Find split groups where user is a member or owner
-    console.log(member)
     const splitGroups = await db
       .collection('split_groups')
       .find({
