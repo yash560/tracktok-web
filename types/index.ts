@@ -9,6 +9,7 @@ export interface User {
   nickname?: string;
   phone?: string;
   phoneNumber?: string;
+  upiId?: string;
   avatar?: string;
   gender?: string;
   dateOfBirth?: string;
@@ -97,6 +98,7 @@ export interface SplitGroup {
     name: string;
     contactId: string;
     phone?: string | null;
+    upiId?: string;
   }[];
   contactKey: string;
   expenses: string[];
