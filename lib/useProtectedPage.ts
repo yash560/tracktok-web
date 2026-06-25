@@ -10,7 +10,7 @@ export function useProtectedPage() {
   useEffect(() => {
     if (!authLoading && !user) {
       localStorage.setItem('redirect_after_auth', pathname);
-      router.push('/login');
+      router.push('/auth');
     }
   }, [authLoading, user, router, pathname]);
 

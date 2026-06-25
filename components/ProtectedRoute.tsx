@@ -12,7 +12,7 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     if (!loading && !user) {
       localStorage.setItem('redirect_after_auth', pathname);
-      router.push('/login');
+      router.push('/auth');
     }
   }, [user, loading, router, pathname]);
 

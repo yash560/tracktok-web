@@ -1,28 +1,47 @@
 import { connectToDatabase } from '@/lib/mongodb';
 import { comparePasswords, generateToken } from '@/lib/auth';
+import { parsePhoneInput } from '@/lib/phone';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password } = body;
+    const { email, phone, password } = body;
 
-    // Validation
-    if (!email || !password) {
+    const identifier = email || phone;
+    if (!identifier || !password) {
       return NextResponse.json(
-        { message: 'Missing email or password' },
+        { message: 'Missing email/phone or password' },
         { status: 400 }
       );
     }
 
     const { db } = await connectToDatabase();
 
-    // Find user
-    const user = await db.collection('members').findOne({ email });
-    console.log(user?.password)
+    let user;
+    if (email) {
+      user = await db.collection('members').findOne({ email });
+    } else {
+      const { countryCode, localNumber } = parsePhoneInput(phone);
+      const codeDigits = countryCode.replace(/\D/g, '');
+      const phoneVariants = [
+        localNumber,
+        `${codeDigits}${localNumber}`,
+        `+${codeDigits}${localNumber}`,
+        `${countryCode}${localNumber}`,
+        phone,
+      ].filter((v, i, a) => a.indexOf(v) === i);
+      user = await db.collection('members').findOne({
+        $or: [
+          { phone: { $in: phoneVariants } },
+          { phoneNumber: { $in: phoneVariants } },
+        ],
+      });
+    }
+
     if (!user) {
       return NextResponse.json(
-        { message: 'User Not found' },
+        { message: 'User not found' },
         { status: 404 }
       );
     }

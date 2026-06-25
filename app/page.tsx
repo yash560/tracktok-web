@@ -104,7 +104,7 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-3 sm:gap-6">
             <Link
-              href="/login"
+              href="/auth"
               className="hidden sm:block text-gray-600 dark:text-gray-300 hover:text-primary transition-colors text-sm"
             >
               Login

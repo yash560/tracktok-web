@@ -9,7 +9,9 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (identifier: string, password: string, type?: 'email' | 'phone') => Promise<void>;
+  googleLogin: (credential: string) => Promise<{ exists: boolean; googleProfile?: { email: string; name: string; picture: string } }>;
+  linkGoogleAccount: (credential: string, phone: string) => Promise<void>;
   logout: () => void;
   register: (name: string, email: string, password: string, countryCode: string, phone: string) => Promise<void>;
 }
@@ -52,7 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           delete axios.defaults.headers.common['Authorization'];
           setUser(null);
           setToken(null);
-          router.push('/login');
+          router.push('/auth');
         }
         return Promise.reject(error);
       }
@@ -63,9 +65,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [router]);
 
-  const login = async (email: string, password: string) => {
+  const login = async (identifier: string, password: string, type: 'email' | 'phone' = 'email') => {
     try {
-      const response = await axios.post('/api/auth/login', { email, password });
+      const payload = type === 'email' ? { email: identifier, password } : { phone: identifier, password };
+      const response = await axios.post('/api/auth/login', payload);
       const { token: newToken, user: userData } = response.data;
 
       localStorage.setItem('auth_token', newToken);
@@ -77,12 +80,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const googleLogin = async (credential: string): Promise<{ exists: boolean; googleProfile?: { email: string; name: string; picture: string } }> => {
+    try {
+      const response = await axios.post('/api/auth/google', { credential });
+      const { exists, token: newToken, user: userData, googleProfile } = response.data;
+
+      if (exists && newToken) {
+        localStorage.setItem('auth_token', newToken);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+        setToken(newToken);
+        setUser(userData);
+        return { exists: true };
+      }
+
+      return { exists: false, googleProfile };
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return { exists: false, googleProfile: error.response.data.googleProfile };
+      }
+      throw new Error(error.response?.data?.message || 'Google login failed');
+    }
+  };
+
+  const linkGoogleAccount = async (credential: string, phone: string) => {
+    try {
+      const response = await axios.post('/api/auth/link-google-account', { credential, phone });
+      const { token: newToken, user: userData } = response.data;
+
+      localStorage.setItem('auth_token', newToken);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+      setToken(newToken);
+      setUser(userData);
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to link account');
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('auth_token');
     delete axios.defaults.headers.common['Authorization'];
     setToken(null);
     setUser(null);
-    router.push('/login');
+    router.push('/auth');
   };
 
   const register = async (name: string, email: string, password: string, countryCode: string, phone: string) => {
@@ -100,8 +139,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const value = useMemo(
-    () => ({ user, token, loading, login, logout, register }),
-    [user, token, loading, login, logout, register]
+    () => ({ user, token, loading, login, googleLogin, linkGoogleAccount, logout, register }),
+    [user, token, loading, login, googleLogin, linkGoogleAccount, logout, register]
   );
 
   return (

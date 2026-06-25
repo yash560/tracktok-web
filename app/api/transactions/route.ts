@@ -1,5 +1,5 @@
 import { connectToDatabase } from '@/lib/mongodb';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken, normalizePhone } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 
@@ -94,6 +94,44 @@ export async function GET(request: NextRequest) {
       .skip(skip)
       .limit(limit)
       .toArray();
+
+    // Collect all phones from splits, batch-lookup names from user_contacts
+    const allSplitPhones = new Set<string>();
+    for (const exp of rawExpenses) {
+      if (!exp.split) continue;
+      for (const s of exp.split) {
+        if (s.phone) allSplitPhones.add(normalizePhone(s.phone));
+      }
+    }
+
+    const phoneToName: Record<string, string> = {};
+    if (allSplitPhones.size > 0) {
+      const phoneArray = Array.from(allSplitPhones).filter(Boolean);
+      const contacts = await db
+        .collection('user_contacts')
+        .find({
+          user_code: collectionKey,
+          phone: { $in: phoneArray.flatMap(p => [p, `91${p}`, `+91${p}`]) },
+        })
+        .project({ name: 1, phone: 1 })
+        .toArray();
+
+      for (const c of contacts) {
+        const norm = normalizePhone(c.phone);
+        if (norm && c.name) phoneToName[norm] = c.name;
+      }
+    }
+
+    // Populate split names from user_contacts
+    for (const exp of rawExpenses) {
+      if (!exp.split) continue;
+      for (const s of exp.split) {
+        if (!s.name && s.phone) {
+          const norm = normalizePhone(s.phone);
+          if (phoneToName[norm]) s.name = phoneToName[norm];
+        }
+      }
+    }
 
     // Map debit/credit to info compatible with UI
     const transactions = rawExpenses.map(exp => {
