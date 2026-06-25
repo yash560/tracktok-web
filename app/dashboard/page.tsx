@@ -385,6 +385,227 @@ export default function DashboardPage() {
     }
   };
 
+  const dynamicKpis = useMemo(() => {
+    const kpis: { id: string; label: string; value: string; sub: string; color: string; icon: string; priority: number }[] = [];
+
+    if (analytics) {
+      const income = analytics.totalIncome || 0;
+      const expense = analytics.totalExpense || 0;
+      const balance = analytics.balance || 0;
+
+      if (income > 0 && expense > 0) {
+        const ratio = expense / income;
+        kpis.push({
+          id: 'burn-rate',
+          label: 'Burn Rate',
+          value: `${(ratio * 100).toFixed(0)}%`,
+          sub: ratio > 1 ? 'Spending more than earning' : ratio > 0.8 ? 'Near limit' : 'Healthy',
+          color: ratio > 1 ? 'danger' : ratio > 0.8 ? 'warning' : 'success',
+          icon: 'flame',
+          priority: ratio > 0.8 ? 95 : 50,
+        });
+      }
+
+      if (income > 0) {
+        const savingsRate = analytics.transactionStats?.savingsRate || 0;
+        kpis.push({
+          id: 'savings',
+          label: 'Savings Rate',
+          value: `${savingsRate.toFixed(1)}%`,
+          sub: savingsRate >= 20 ? 'Great job!' : savingsRate > 0 ? 'Room to improve' : 'No savings yet',
+          color: savingsRate >= 20 ? 'success' : savingsRate > 0 ? 'warning' : 'danger',
+          icon: 'piggy',
+          priority: 60,
+        });
+      }
+
+      const avgTx = analytics.transactionStats?.averageTransaction || 0;
+      if (avgTx > 0) {
+        kpis.push({
+          id: 'avg-tx',
+          label: 'Avg Transaction',
+          value: fmt(avgTx),
+          sub: 'Per transaction',
+          color: 'primary',
+          icon: 'zap',
+          priority: 40,
+        });
+      }
+
+      const topCat = analytics.transactionStats?.topCategory;
+      const topCatPct = analytics.transactionStats?.topCategoryPercentage;
+      if (topCat && topCat !== 'N/A') {
+        kpis.push({
+          id: 'top-cat',
+          label: 'Top Category',
+          value: topCat,
+          sub: `${topCatPct?.toFixed(0) || 0}% of spending`,
+          color: topCatPct > 50 ? 'warning' : 'primary',
+          icon: 'award',
+          priority: topCatPct > 40 ? 70 : 35,
+        });
+      }
+
+      const largest = analytics.transactionStats?.largestTransaction;
+      if (largest > 0) {
+        kpis.push({
+          id: 'largest',
+          label: 'Biggest Expense',
+          value: fmt(largest),
+          sub: analytics.transactionStats?.largestTransactionCategory || '',
+          color: 'danger',
+          icon: 'trending-up',
+          priority: 45,
+        });
+      }
+
+      const diversity = analytics.transactionStats?.categoryDiversity;
+      if (diversity !== undefined) {
+        kpis.push({
+          id: 'diversity',
+          label: 'Diversity',
+          value: `${diversity.toFixed(0)}%`,
+          sub: diversity > 70 ? 'Well spread' : 'Concentrated',
+          color: diversity > 70 ? 'success' : 'warning',
+          icon: 'layers',
+          priority: 25,
+        });
+      }
+
+      const totalExpenses = analytics.transactionStats?.totalExpenses;
+      if (totalExpenses > 0) {
+        const days = Math.max(1, new Date().getDate());
+        const dailyAvg = expense / days;
+        kpis.push({
+          id: 'daily-avg',
+          label: 'Daily Average',
+          value: fmt(dailyAvg),
+          sub: `${totalExpenses} transactions`,
+          color: 'primary',
+          icon: 'calendar',
+          priority: 55,
+        });
+      }
+
+      const topMerchant = analytics.transactionStats?.topMerchants?.[0];
+      if (topMerchant) {
+        kpis.push({
+          id: 'top-merchant',
+          label: 'Top Merchant',
+          value: topMerchant.name,
+          sub: `${fmt(topMerchant.amount)} · ${topMerchant.count}x`,
+          color: 'primary',
+          icon: 'shopping',
+          priority: 30,
+        });
+      }
+
+      const geoTop = analytics.geographicInsights?.[0];
+      if (geoTop) {
+        kpis.push({
+          id: 'top-city',
+          label: 'Top City',
+          value: geoTop.city,
+          sub: fmt(geoTop.amount),
+          color: 'primary',
+          icon: 'map',
+          priority: 20,
+        });
+      }
+    }
+
+    if (totalOwed > 0 || totalOwing > 0) {
+      const net = totalOwed - totalOwing;
+      kpis.push({
+        id: 'split-net',
+        label: 'Split Balance',
+        value: fmt(Math.abs(net)),
+        sub: net >= 0 ? 'Owed to you' : 'You owe',
+        color: net >= 0 ? 'success' : 'warning',
+        icon: 'users',
+        priority: 75,
+      });
+    }
+
+    if (budgets.length > 0) {
+      const overBudget = budgets.filter((b: any) => (budgetSpending[b.category] || 0) > b.amount);
+      if (overBudget.length > 0) {
+        kpis.push({
+          id: 'over-budget',
+          label: 'Over Budget',
+          value: `${overBudget.length}`,
+          sub: `of ${budgets.length} categories`,
+          color: 'danger',
+          icon: 'target',
+          priority: 90,
+        });
+      } else {
+        kpis.push({
+          id: 'budget-ok',
+          label: 'Budget Status',
+          value: 'On Track',
+          sub: `${budgets.length} budgets set`,
+          color: 'success',
+          icon: 'target',
+          priority: 35,
+        });
+      }
+    }
+
+    if (monthlyTrend.length >= 2) {
+      const curr = monthlyTrend[monthlyTrend.length - 1];
+      const prev = monthlyTrend[monthlyTrend.length - 2];
+      if (prev?.expense > 0) {
+        const change = ((curr.expense - prev.expense) / prev.expense) * 100;
+        kpis.push({
+          id: 'mom-change',
+          label: 'vs Last Month',
+          value: `${change > 0 ? '+' : ''}${change.toFixed(0)}%`,
+          sub: change > 0 ? 'Spending increased' : 'Spending decreased',
+          color: change > 10 ? 'danger' : change < -5 ? 'success' : 'primary',
+          icon: 'trending',
+          priority: 80,
+        });
+      }
+    }
+
+    if (streaks.noSpendDays >= 3) {
+      kpis.push({
+        id: 'streak',
+        label: 'No-Spend Streak',
+        value: `${streaks.noSpendDays} days`,
+        sub: 'In last 30 days',
+        color: 'success',
+        icon: 'flame',
+        priority: 65,
+      });
+    }
+
+    return kpis.sort((a, b) => b.priority - a.priority).slice(0, 8);
+  }, [analytics, totalOwed, totalOwing, budgets, budgetSpending, monthlyTrend, streaks, fmt]);
+
+  const kpiIconMap: Record<string, React.ReactNode> = {
+    flame: <Flame className="w-4 h-4" />,
+    piggy: <PiggyBank className="w-4 h-4" />,
+    zap: <Zap className="w-4 h-4" />,
+    award: <Award className="w-4 h-4" />,
+    'trending-up': <TrendingUp className="w-4 h-4" />,
+    layers: <Layers className="w-4 h-4" />,
+    calendar: <Calendar className="w-4 h-4" />,
+    shopping: <ShoppingCart className="w-4 h-4" />,
+    map: <MapPin className="w-4 h-4" />,
+    users: <Users className="w-4 h-4" />,
+    target: <Target className="w-4 h-4" />,
+    trending: <TrendingUp className="w-4 h-4" />,
+  };
+
+  const kpiColorMap: Record<string, { bg: string; text: string; value: string }> = {
+    primary: { bg: 'bg-primary/10', text: 'text-primary', value: 'text-primary' },
+    success: { bg: 'bg-success/10', text: 'text-success', value: 'text-success' },
+    danger: { bg: 'bg-danger/10', text: 'text-danger', value: 'text-danger' },
+    warning: { bg: 'bg-warning/10', text: 'text-warning', value: 'text-warning' },
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -568,6 +789,39 @@ export default function DashboardPage() {
           </div>
         </div>
       </motion.div>
+
+      {/* Dynamic KPIs */}
+      {dynamicKpis.length > 0 && (
+        <motion.div variants={item}>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
+              <Zap className="w-4 h-4 text-primary" />
+              Smart Insights
+            </h3>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+            {dynamicKpis.map((kpi, idx) => {
+              const colors = kpiColorMap[kpi.color] || kpiColorMap.primary;
+              return (
+                <motion.div
+                  key={kpi.id}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: idx * 0.05 }}
+                  className="flex-shrink-0 w-[160px] sm:w-[180px] p-4 rounded-xl bg-white dark:bg-dark-card border border-gray-100 dark:border-gray-800 hover:shadow-md transition-shadow"
+                >
+                  <div className={`w-8 h-8 ${colors.bg} rounded-lg flex items-center justify-center mb-3 ${colors.text}`}>
+                    {kpiIconMap[kpi.icon] || <Zap className="w-4 h-4" />}
+                  </div>
+                  <p className="text-[11px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">{kpi.label}</p>
+                  <p className={`text-lg font-bold ${colors.value} truncate capitalize`}>{kpi.value}</p>
+                  <p className="text-[11px] text-gray-400 mt-1 truncate">{kpi.sub}</p>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
 
       {/* Split Summary + Budget + Streaks + Digest Row */}
       <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
