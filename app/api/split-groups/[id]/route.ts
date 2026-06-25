@@ -122,13 +122,35 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     const body = await request.json();
-    const { name } = body;
+    const { name, updateContact } = body;
+
+    if (updateContact) {
+      const { contactId, phone, email } = updateContact;
+      if (!contactId) {
+        return NextResponse.json({ message: 'Contact ID required' }, { status: 400 });
+      }
+
+      const updateFields: Record<string, any> = {};
+      if (phone !== undefined) updateFields['contacts.$.phone'] = phone;
+      if (email !== undefined) updateFields['contacts.$.email'] = email;
+      updateFields['updatedAt'] = new Date();
+
+      const result = await db.collection('split_groups').updateOne(
+        { _id: new ObjectId(id), 'contacts.contactId': contactId },
+        { $set: updateFields }
+      );
+
+      if (result.matchedCount === 0) {
+        return NextResponse.json({ message: 'Contact not found' }, { status: 404 });
+      }
+
+      return NextResponse.json({ message: 'Contact updated successfully' });
+    }
 
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       return NextResponse.json({ message: 'Invalid name' }, { status: 400 });
     }
 
-    // Update split group
     const result = await db.collection('split_groups').updateOne(
       { _id: new ObjectId(id) },
       { $set: { name: name.trim(), updatedAt: new Date() } }

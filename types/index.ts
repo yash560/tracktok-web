@@ -98,6 +98,7 @@ export interface SplitGroup {
     name: string;
     contactId: string;
     phone?: string | null;
+    email?: string | null;
     upiId?: string;
   }[];
   contactKey: string;

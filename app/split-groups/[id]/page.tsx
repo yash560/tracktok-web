@@ -405,7 +405,10 @@ export default function SplitGroupPage() {
     name: string;
     contactId: string;
     phone?: string | null;
+    email?: string | null;
   } | null>(null);
+  const [editingContact, setEditingContact] = useState<{ phone: string; email: string }>({ phone: '', email: '' });
+  const [savingContact, setSavingContact] = useState(false);
   const [memberDetails, setMemberDetails] = useState<{
     registered: boolean;
     member?: {
@@ -495,8 +498,16 @@ export default function SplitGroupPage() {
     setMemberDetailsLoading(true);
     axios
       .get(`/api/members/lookup?phone=${encodeURIComponent(selectedMember.phone)}`)
-      .then((res) => setMemberDetails(res.data))
-      .catch(() => setMemberDetails(null))
+      .then((res) => {
+        setMemberDetails(res.data);
+        if (!res.data.registered) {
+          setEditingContact({ phone: selectedMember.phone || '', email: selectedMember.email || '' });
+        }
+      })
+      .catch(() => {
+        setMemberDetails(null);
+        setEditingContact({ phone: selectedMember.phone || '', email: selectedMember.email || '' });
+      })
       .finally(() => setMemberDetailsLoading(false));
   }, [selectedMember]);
 
@@ -2467,17 +2478,65 @@ export default function SplitGroupPage() {
                   Contact Info
                   <span className="text-xs px-1.5 py-0.5 bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded font-medium">Not Registered</span>
                 </h4>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                <div className="space-y-3 text-sm">
                   <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Name</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Name</p>
                     <p className="text-gray-900 dark:text-white font-medium">{selectedMember.name}</p>
                   </div>
-                  {selectedMember.phone && (
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Phone</p>
-                      <p className="text-gray-900 dark:text-white font-medium">{selectedMember.phone}</p>
-                    </div>
-                  )}
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Phone</p>
+                    <input
+                      type="tel"
+                      value={editingContact.phone}
+                      onChange={(e) => setEditingContact({ ...editingContact, phone: e.target.value })}
+                      placeholder="Enter phone number"
+                      className="w-full px-3 py-2 bg-white dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Email</p>
+                    <input
+                      type="email"
+                      value={editingContact.email}
+                      onChange={(e) => setEditingContact({ ...editingContact, email: e.target.value })}
+                      placeholder="Enter email address"
+                      className="w-full px-3 py-2 bg-white dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    disabled={savingContact}
+                    onClick={async () => {
+                      if (!selectedMember || !data?.splitGroup?._id) return;
+                      setSavingContact(true);
+                      try {
+                        await axios.patch(`/api/split-groups/${data.splitGroup._id}`, {
+                          updateContact: {
+                            contactId: selectedMember.contactId,
+                            phone: editingContact.phone,
+                            email: editingContact.email,
+                          },
+                        });
+                        setData((prev: any) => {
+                          if (!prev?.splitGroup) return prev;
+                          const updatedContacts = prev.splitGroup.contacts.map((c: any) =>
+                            c.contactId === selectedMember.contactId
+                              ? { ...c, phone: editingContact.phone, email: editingContact.email }
+                              : c
+                          );
+                          return { ...prev, splitGroup: { ...prev.splitGroup, contacts: updatedContacts } };
+                        });
+                        setSelectedMember({ ...selectedMember, phone: editingContact.phone, email: editingContact.email });
+                      } catch {
+                        // silently fail
+                      } finally {
+                        setSavingContact(false);
+                      }
+                    }}
+                    className="w-full py-2 px-4 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50"
+                  >
+                    {savingContact ? 'Saving...' : 'Save Contact Info'}
+                  </button>
                 </div>
               </div>
             )}
