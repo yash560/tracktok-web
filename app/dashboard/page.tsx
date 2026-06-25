@@ -793,29 +793,32 @@ export default function DashboardPage() {
       {/* Dynamic KPIs */}
       {dynamicKpis.length > 0 && (
         <motion.div variants={item}>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
-              <Zap className="w-4 h-4 text-primary" />
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider flex items-center gap-2">
+              <Zap className="w-3.5 h-3.5 text-primary" />
               Smart Insights
             </h3>
+            <span className="text-[10px] text-gray-300 dark:text-gray-600">{dynamicKpis.length} active</span>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {dynamicKpis.map((kpi, idx) => {
-              const colors = kpiColorMap[kpi.color] || kpiColorMap.primary;
+              const c = kpiColorMap[kpi.color] || kpiColorMap.primary;
               return (
                 <motion.div
                   key={kpi.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: idx * 0.05 }}
-                  className="flex-shrink-0 w-[160px] sm:w-[180px] p-4 rounded-xl bg-white dark:bg-dark-card border border-gray-100 dark:border-gray-800 hover:shadow-md transition-shadow"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.04, duration: 0.3 }}
+                  className="group relative p-4 rounded-2xl bg-white dark:bg-dark-card border border-gray-100 dark:border-gray-800/60 hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-lg transition-all duration-300"
                 >
-                  <div className={`w-8 h-8 ${colors.bg} rounded-lg flex items-center justify-center mb-3 ${colors.text}`}>
-                    {kpiIconMap[kpi.icon] || <Zap className="w-4 h-4" />}
+                  <div className="flex items-start justify-between mb-3">
+                    <div className={`w-9 h-9 ${c.bg} rounded-xl flex items-center justify-center ${c.text}`}>
+                      {kpiIconMap[kpi.icon] || <Zap className="w-4 h-4" />}
+                    </div>
                   </div>
-                  <p className="text-[11px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">{kpi.label}</p>
-                  <p className={`text-lg font-bold ${colors.value} truncate capitalize`}>{kpi.value}</p>
-                  <p className="text-[11px] text-gray-400 mt-1 truncate">{kpi.sub}</p>
+                  <p className={`text-xl sm:text-2xl font-bold ${c.value} truncate capitalize leading-tight`}>{kpi.value}</p>
+                  <p className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 mt-1.5 uppercase tracking-wider">{kpi.label}</p>
+                  <p className="text-[10px] text-gray-300 dark:text-gray-600 mt-0.5 truncate">{kpi.sub}</p>
                 </motion.div>
               );
             })}
