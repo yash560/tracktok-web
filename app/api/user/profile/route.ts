@@ -1,5 +1,6 @@
 import { connectToDatabase } from '@/lib/mongodb';
 import { verifyToken } from '@/lib/auth';
+import { logAudit } from '@/lib/auditLog';
 import { NextRequest, NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 
@@ -96,6 +97,9 @@ export async function PUT(request: NextRequest) {
     if (result.matchedCount === 0) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
+
+    const changedFields = Object.keys({ firstName, lastName, displayName, nickname, phoneNumber, upiId, gender, dateOfBirth, countryCode }).filter(k => body[k] !== undefined);
+    logAudit(db, decoded.userId, 'update', 'profile', decoded.userId, { changedFields }, request);
 
     return NextResponse.json(
       { message: 'Profile updated successfully' },

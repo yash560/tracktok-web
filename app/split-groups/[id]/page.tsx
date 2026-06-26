@@ -35,6 +35,8 @@ import {
   ArrowUpDown,
   ExternalLink,
   Smartphone,
+  Bell,
+  BellOff,
 } from 'lucide-react';
 import {
   PieChart,
@@ -383,6 +385,10 @@ export default function SplitGroupPage() {
   });
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSendingReminders, setIsSendingReminders] = useState(false);
+  const [showScheduleMenu, setShowScheduleMenu] = useState(false);
+  const [reminderSchedule, setReminderSchedule] = useState<{ frequency: string; cronExpression: string; time: string } | null>(null);
+  const [isScheduling, setIsScheduling] = useState(false);
+  const [scheduleTime, setScheduleTime] = useState('09:00');
   const [notification, setNotification] = useState<NotificationState>(initialNotification);
   const [confirmDialog, setConfirmDialog] = useState<ConfirmState>(initialConfirm);
 
@@ -748,6 +754,42 @@ export default function SplitGroupPage() {
       notify('error', 'Send Failed', err.response?.data?.message || 'Failed to send reminders');
     } finally {
       setIsSendingReminders(false);
+    }
+  };
+
+  useEffect(() => {
+    if (id) {
+      axios.get(`/api/split-groups/${id}/schedule-reminders`)
+        .then(res => setReminderSchedule(res.data.reminderSchedule))
+        .catch(() => {});
+    }
+  }, [id]);
+
+  const handleScheduleReminder = async (frequency: string) => {
+    setIsScheduling(true);
+    try {
+      const res = await axios.post(`/api/split-groups/${id}/schedule-reminders`, { frequency, time: scheduleTime });
+      setReminderSchedule(res.data.reminderSchedule);
+      setShowScheduleMenu(false);
+      notify('success', 'Scheduled', `Auto-reminders set to ${frequency} at ${scheduleTime}`);
+    } catch (err: any) {
+      notify('error', 'Failed', err.response?.data?.message || 'Failed to schedule');
+    } finally {
+      setIsScheduling(false);
+    }
+  };
+
+  const handleRemoveSchedule = async () => {
+    setIsScheduling(true);
+    try {
+      await axios.delete(`/api/split-groups/${id}/schedule-reminders`);
+      setReminderSchedule(null);
+      setShowScheduleMenu(false);
+      notify('success', 'Removed', 'Auto-reminders turned off');
+    } catch (err: any) {
+      notify('error', 'Failed', err.response?.data?.message || 'Failed to remove schedule');
+    } finally {
+      setIsScheduling(false);
     }
   };
 
@@ -2154,14 +2196,77 @@ export default function SplitGroupPage() {
                             <TrendingUp className="w-5 h-5 flex-shrink-0" />
                             You Are Owed
                           </h3>
-                          <button
-                            onClick={handleSendReminders}
-                            disabled={isSendingReminders || isSettled}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary-dark transition font-medium text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <Send className="w-3.5 h-3.5" />
-                            {isSendingReminders ? 'Sending...' : 'Send Reminders'}
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={handleSendReminders}
+                              disabled={isSendingReminders || isSettled}
+                              className="flex items-center gap-2 px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary-dark transition font-medium text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <Send className="w-3.5 h-3.5" />
+                              {isSendingReminders ? 'Sending...' : 'Send Now'}
+                            </button>
+                            <div className="relative">
+                              <button
+                                onClick={() => setShowScheduleMenu(!showScheduleMenu)}
+                                disabled={isSettled}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition font-medium text-xs sm:text-sm border disabled:opacity-50 disabled:cursor-not-allowed ${
+                                  reminderSchedule
+                                    ? 'bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-400'
+                                    : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+                                }`}
+                                title={reminderSchedule ? `Auto: ${reminderSchedule.frequency}` : 'Schedule auto-reminders'}
+                              >
+                                {reminderSchedule ? <Bell className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                                {reminderSchedule ? `Auto: ${reminderSchedule.frequency}` : 'Schedule'}
+                              </button>
+                              {showScheduleMenu && (
+                                <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 p-3">
+                                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Auto-Send Reminders</p>
+                                  <div className="mb-3">
+                                    <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Time</label>
+                                    <input
+                                      type="time"
+                                      value={scheduleTime}
+                                      onChange={(e) => setScheduleTime(e.target.value)}
+                                      className="w-full px-2 py-1.5 text-sm border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    {[
+                                      { key: 'daily', label: 'Daily' },
+                                      { key: 'weekly', label: 'Weekly (Mon)' },
+                                      { key: 'biweekly', label: 'Bi-weekly (1st & 15th)' },
+                                      { key: 'monthly', label: 'Monthly (1st)' },
+                                    ].map(opt => (
+                                      <button
+                                        key={opt.key}
+                                        onClick={() => handleScheduleReminder(opt.key)}
+                                        disabled={isScheduling}
+                                        className={`w-full text-left px-3 py-2 text-sm rounded-lg transition ${
+                                          reminderSchedule?.frequency === opt.key
+                                            ? 'bg-primary/10 text-primary font-semibold'
+                                            : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                                        } disabled:opacity-50`}
+                                      >
+                                        {opt.label}
+                                        {reminderSchedule?.frequency === opt.key && ' ✓'}
+                                      </button>
+                                    ))}
+                                  </div>
+                                  {reminderSchedule && (
+                                    <button
+                                      onClick={handleRemoveSchedule}
+                                      disabled={isScheduling}
+                                      className="w-full flex items-center justify-center gap-1.5 mt-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition disabled:opacity-50"
+                                    >
+                                      <BellOff className="w-3.5 h-3.5" />
+                                      Turn Off Auto-Reminders
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
                         <div className="space-y-3">
                           {settlements

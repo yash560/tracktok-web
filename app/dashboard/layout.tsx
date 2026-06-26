@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { Navbar } from '@/components/Navbar';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { ChatBot } from '@/components/ChatBot';
+import { CommandPalette } from '@/components/CommandPalette';
+import { useKeyboardShortcuts } from '@/lib/useKeyboardShortcuts';
 
 export default function DashboardLayout({
   children,
@@ -12,6 +14,11 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+
+  useKeyboardShortcuts({
+    'mod+k': useCallback(() => setCommandPaletteOpen(true), []),
+  });
 
   return (
     <ProtectedRoute>
@@ -19,7 +26,11 @@ export default function DashboardLayout({
         <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
 
         <div className="md:pl-64 flex flex-col min-h-screen">
-          <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+          <Navbar
+            sidebarOpen={sidebarOpen}
+            setSidebarOpen={setSidebarOpen}
+            onSearchClick={() => setCommandPaletteOpen(true)}
+          />
 
           <main className="flex-1 p-6 md:p-8">
             <div className="max-w-7xl mx-auto">
@@ -29,6 +40,7 @@ export default function DashboardLayout({
         </div>
 
         <ChatBot />
+        <CommandPalette isOpen={commandPaletteOpen} onClose={() => setCommandPaletteOpen(false)} />
       </div>
     </ProtectedRoute>
   );

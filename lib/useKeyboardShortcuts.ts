@@ -17,13 +17,20 @@ export function useKeyboardShortcuts(shortcuts: ShortcutMap) {
         return;
       }
 
-      if (isInput) return;
-
       const key = [
         e.ctrlKey || e.metaKey ? 'mod' : '',
         e.shiftKey ? 'shift' : '',
         e.key.toLowerCase(),
       ].filter(Boolean).join('+');
+
+      // Allow mod+ shortcuts even when focused on inputs
+      if (key.startsWith('mod+') && shortcuts[key]) {
+        e.preventDefault();
+        shortcuts[key]();
+        return;
+      }
+
+      if (isInput) return;
 
       if (shortcuts[key]) {
         e.preventDefault();

@@ -1,5 +1,6 @@
 import { connectToDatabase } from '@/lib/mongodb';
 import { verifyToken } from '@/lib/auth';
+import { logAudit } from '@/lib/auditLog';
 import { NextRequest, NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 
@@ -66,6 +67,8 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date(),
     });
 
+    logAudit(db, decoded.userId, 'create', 'budget', result.insertedId.toString(), { category, amount, month }, request);
+
     return NextResponse.json(
       { message: 'Budget created', id: result.insertedId },
       { status: 201 }
@@ -98,6 +101,8 @@ export async function PUT(request: NextRequest) {
 
     const { db } = await connectToDatabase();
 
+    const before = await db.collection('budgets').findOne({ _id: new ObjectId(id), userId: decoded.userId });
+
     const result = await db.collection('budgets').updateOne(
       { _id: new ObjectId(id), userId: decoded.userId },
       { $set: { amount, updatedAt: new Date() } }
@@ -106,6 +111,8 @@ export async function PUT(request: NextRequest) {
     if (result.matchedCount === 0) {
       return NextResponse.json({ message: 'Budget not found' }, { status: 404 });
     }
+
+    logAudit(db, decoded.userId, 'update', 'budget', id, { before: { amount: before?.amount }, after: { amount } }, request);
 
     return NextResponse.json({ message: 'Budget updated' });
   } catch (error) {
@@ -135,6 +142,8 @@ export async function DELETE(request: NextRequest) {
 
     const { db } = await connectToDatabase();
 
+    const toDelete = await db.collection('budgets').findOne({ _id: new ObjectId(id), userId: decoded.userId });
+
     const result = await db.collection('budgets').deleteOne({
       _id: new ObjectId(id),
       userId: decoded.userId,
@@ -143,6 +152,8 @@ export async function DELETE(request: NextRequest) {
     if (result.deletedCount === 0) {
       return NextResponse.json({ message: 'Budget not found' }, { status: 404 });
     }
+
+    logAudit(db, decoded.userId, 'delete', 'budget', id, { category: toDelete?.category, amount: toDelete?.amount }, request);
 
     return NextResponse.json({ message: 'Budget deleted' });
   } catch (error) {

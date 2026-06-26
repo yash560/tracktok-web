@@ -15,6 +15,7 @@ import {
   SlidersHorizontal,
   Receipt,
   Eye,
+  AlertTriangle,
 } from 'lucide-react';
 import axios from 'axios';
 import { useProtectedPage } from '@/lib/useProtectedPage';
@@ -54,6 +55,20 @@ function TransactionsContent() {
     !!(searchParams.get('category') || searchParams.get('source') || searchParams.get('receiver') || searchParams.get('type') || searchParams.get('minAmount') || searchParams.get('maxAmount'))
   );
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [anomalyIds, setAnomalyIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const fetchAnomalies = async () => {
+      try {
+        const res = await axios.get('/api/analytics/anomalies');
+        const ids = new Set<string>((res.data.anomalies || []).map((a: any) => String(a._id)));
+        setAnomalyIds(ids);
+      } catch {
+        // silently fail
+      }
+    };
+    fetchAnomalies();
+  }, []);
 
   const fetchTransactions = useCallback(async () => {
     setLoading(true);
@@ -321,7 +336,12 @@ function TransactionsContent() {
                           )}
                         </div>
                         <div className="flex flex-col gap-1">
-                          <span className="text-xs sm:text-sm font-semibold">{t.description}</span>
+                          <span className="text-xs sm:text-sm font-semibold flex items-center gap-1.5">
+                            {t.description}
+                            {anomalyIds.has(String(t._id)) && (
+                              <AlertTriangle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+                            )}
+                          </span>
                           {t.isSplitTransaction && (
                             <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full w-fit">
                               Split with {t.split?.filter((s: any) => !s.owner).length || 0} {t.split?.filter((s: any) => !s.owner).length === 1 ? 'person' : 'people'}

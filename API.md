@@ -597,6 +597,70 @@ console.log(transactions);
 
 ---
 
+## ⏰ Cron / Scheduled Tasks
+
+### Execute Scheduled Task (Webhook)
+
+**POST** `/cron/execute`
+
+Webhook endpoint called by [Reach](../reach) cron-as-a-service. **Not authenticated via JWT** — uses `X-Webhook-Secret` header instead.
+
+**Headers:**
+
+| Header | Required | Description |
+|--------|----------|-------------|
+| `X-Webhook-Secret` | Yes | Shared secret matching `CRON_WEBHOOK_SECRET` env var |
+| `Content-Type` | Yes | `application/json` |
+
+**Request Body:**
+
+```json
+{
+  "action": "send-reminder",
+  "reminderId": "665abc123def456789012345"
+}
+```
+
+**Supported Actions:**
+
+| Action | Required Fields | Description |
+|--------|----------------|-------------|
+| `send-reminder` | `reminderId` | Looks up reminder, finds user email, sends reminder email. Updates `lastNotified` on success. |
+
+**Success Response (200):**
+
+```json
+{
+  "success": true,
+  "message": "Reminder email sent to user@example.com"
+}
+```
+
+**Error Responses:**
+
+- `401` — Missing or invalid `X-Webhook-Secret`
+- `400` — Missing `action` or `reminderId`, unknown action, or user has no email
+- `404` — Reminder not found
+- `500` — Email sending or internal error
+
+**How it works:**
+
+1. User creates a recurring reminder in TrackTok (frequency: weekly/monthly/yearly)
+2. TrackTok registers a cron job with Reach via `POST /api/cron-jobs` using service API key
+3. Reach fires the cron on schedule, calling this endpoint with the webhook secret
+4. This endpoint sends the reminder email and updates `lastNotified`
+
+**Environment Variables:**
+
+| Variable | Description |
+|----------|-------------|
+| `REACH_API_URL` | Reach backend URL (e.g., `http://localhost:3001`) |
+| `REACH_API_KEY` | Service API key generated from Reach (`crn_...`) |
+| `CRON_WEBHOOK_SECRET` | Shared secret for webhook verification |
+| `NEXT_PUBLIC_APP_URL` | Public URL of TrackTok (Reach calls this) |
+
+---
+
 ## 🆘 API Support
 
 For issues:

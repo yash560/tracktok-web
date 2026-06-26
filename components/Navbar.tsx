@@ -1,16 +1,17 @@
 'use client';
 
 import Image from 'next/image';
-import { Settings, LogOut, Menu, User } from 'lucide-react';
+import { Settings, LogOut, Menu, User, Search } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { NotificationCenter } from './NotificationCenter';
 
 interface NavbarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
+  onSearchClick?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ setSidebarOpen }) => {
+export const Navbar: React.FC<NavbarProps> = ({ setSidebarOpen, onSearchClick }) => {
   const { user, logout } = useAuth();
 
   return (
@@ -29,6 +30,14 @@ export const Navbar: React.FC<NavbarProps> = ({ setSidebarOpen }) => {
 
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center gap-3">
+            <button
+              onClick={onSearchClick}
+              className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-dark-bg border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition text-sm text-gray-500"
+            >
+              <Search className="w-4 h-4" />
+              <span className="text-xs">Search</span>
+              <kbd className="ml-2 px-1.5 py-0.5 text-[10px] font-mono bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded">⌘K</kbd>
+            </button>
             <NotificationCenter />
             <button
               onClick={logout}

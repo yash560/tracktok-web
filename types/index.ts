@@ -160,3 +160,53 @@ export const DEFAULT_CATEGORIES: Category[] = [
   { name: 'Bonus', color: '#388E3C', icon: '🎁', type: 'income' },
   { name: 'Other Income', color: '#616161', icon: '💰', type: 'income' },
 ];
+
+export interface Reminder {
+  _id?: string;
+  userId: string;
+  title: string;
+  amount: number;
+  category: string;
+  dueDate: string;
+  frequency: 'once' | 'weekly' | 'monthly' | 'yearly';
+  enabled: boolean;
+  lastNotified?: Date | null;
+  sourceTransactionId?: string | null;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface AuditLogEntry {
+  _id?: string;
+  userId: string;
+  action: 'create' | 'update' | 'delete' | 'login' | 'settings_change';
+  entity: 'expense' | 'budget' | 'reminder' | 'split_group' | 'profile';
+  entityId: string | null;
+  details: Record<string, unknown>;
+  ip?: string | null;
+  userAgent?: string | null;
+  createdAt?: Date;
+}
+
+export interface HeatmapDay {
+  date: string;
+  amount: number;
+  count: number;
+}
+
+export interface AnomalyResult {
+  _id: string;
+  description: string;
+  amount: number;
+  category: string;
+  date: string;
+  anomalyReason: string;
+  anomalyType: 'high_amount' | 'new_category' | 'above_median';
+}
+
+export interface SearchResults {
+  expenses: (Invoice & { path: string })[];
+  splitGroups: (SplitGroup & { path: string })[];
+  contacts: { _id: string; name: string; phone?: string; email?: string; path: string }[];
+  budgets: { _id: string; category: string; amount: number; month: string; path: string }[];
+}

@@ -1,5 +1,6 @@
 import { connectToDatabase } from '@/lib/mongodb';
 import { verifyToken, normalizePhone } from '@/lib/auth';
+import { logAudit } from '@/lib/auditLog';
 import { NextRequest, NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 
@@ -236,6 +237,8 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date(),
     });
 
+    logAudit(db, decoded.userId, 'create', 'expense', result.insertedId.toString(), { description, amount, category, type }, request);
+
     return NextResponse.json(
       { message: 'Transaction created', id: result.insertedId },
       { status: 201 }
@@ -294,6 +297,8 @@ export async function PUT(request: NextRequest) {
       updatedAt: new Date(),
     };
 
+    const before = await db.collection('expenses').findOne({ _id: new ObjectId(id), collection: collectionKey });
+
     const result = await db.collection('expenses').updateOne(
       { _id: new ObjectId(id), collection: collectionKey },
       { $set: updateDoc }
@@ -302,6 +307,8 @@ export async function PUT(request: NextRequest) {
     if (result.matchedCount === 0) {
       return NextResponse.json({ message: 'Transaction not found' }, { status: 404 });
     }
+
+    logAudit(db, decoded.userId, 'update', 'expense', id, { before: { description: before?.description, amount: before?.amount, category: before?.category }, after: updateDoc }, request);
 
     return NextResponse.json({ message: 'Transaction updated' });
   } catch (error) {
@@ -339,6 +346,8 @@ export async function DELETE(request: NextRequest) {
 
     const collectionKey = member.collection;
 
+    const toDelete = await db.collection('expenses').findOne({ _id: new ObjectId(id), collection: collectionKey });
+
     const result = await db.collection('expenses').deleteOne({
       _id: new ObjectId(id),
       collection: collectionKey,
@@ -347,6 +356,8 @@ export async function DELETE(request: NextRequest) {
     if (result.deletedCount === 0) {
       return NextResponse.json({ message: 'Transaction not found' }, { status: 404 });
     }
+
+    logAudit(db, decoded.userId, 'delete', 'expense', id, { description: toDelete?.description, amount: toDelete?.amount, category: toDelete?.category }, request);
 
     return NextResponse.json({ message: 'Transaction deleted' });
   } catch (error) {

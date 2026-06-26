@@ -27,6 +27,9 @@ import {
   X,
   Plus,
   ArrowRight,
+  AlertTriangle,
+  Bell,
+  Clock,
 } from 'lucide-react';
 import {
   LineChart,
@@ -52,6 +55,7 @@ import { formatDateTime } from '@/lib/dateFormatter';
 import { useAuth } from '@/components/AuthContext';
 import { useCurrency } from '@/components/CurrencyContext';
 import { useKeyboardShortcuts } from '@/lib/useKeyboardShortcuts';
+import { SpendingHeatmap } from '@/components/SpendingHeatmap';
 import Link from 'next/link';
 
 const COLORS = ['#2F2E51', '#47468A', '#4DD69B', '#F37373', '#FBA94D', '#FB8C00', '#FBC02D', '#3F51B5', '#D81B60'];
@@ -98,6 +102,12 @@ export default function DashboardPage() {
   const [digestData, setDigestData] = useState<any>(null);
   const [digestLoading, setDigestLoading] = useState(false);
   const [sendingDigest, setSendingDigest] = useState(false);
+
+  // Anomalies
+  const [anomalies, setAnomalies] = useState<any[]>([]);
+
+  // Reminders summary
+  const [reminders, setReminders] = useState<any[]>([]);
 
   // Spending streaks
   const [streaks, setStreaks] = useState({
@@ -314,6 +324,32 @@ export default function DashboardPage() {
     };
     fetchBudgets();
   }, [analytics]);
+
+  // Fetch anomalies
+  useEffect(() => {
+    const fetchAnomalies = async () => {
+      try {
+        const res = await axios.get('/api/analytics/anomalies');
+        setAnomalies(res.data.anomalies || []);
+      } catch {
+        // silently fail
+      }
+    };
+    fetchAnomalies();
+  }, []);
+
+  // Fetch reminders summary
+  useEffect(() => {
+    const fetchReminders = async () => {
+      try {
+        const res = await axios.get('/api/reminders');
+        setReminders(res.data.reminders || []);
+      } catch {
+        // silently fail
+      }
+    };
+    fetchReminders();
+  }, []);
 
   // Calculate streaks from transactions
   useEffect(() => {
@@ -745,6 +781,29 @@ export default function DashboardPage() {
           </div>
         </div>
       </motion.div>
+      {/* Anomaly Alert Banner */}
+      {anomalies.length > 0 && (
+        <motion.div variants={item} className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-4">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 bg-amber-100 dark:bg-amber-800/40 rounded-xl flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-5 h-5 text-amber-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-sm text-amber-800 dark:text-amber-200">
+                {anomalies.length} unusual transaction{anomalies.length > 1 ? 's' : ''} detected
+              </h3>
+              <div className="mt-1 space-y-0.5">
+                {anomalies.slice(0, 3).map((a: any) => (
+                  <p key={a._id} className="text-xs text-amber-700 dark:text-amber-300 truncate">
+                    {a.description} — {a.anomalyReason}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Balance Section */}
       <motion.div variants={item}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -826,8 +885,8 @@ export default function DashboardPage() {
         </motion.div>
       )}
 
-      {/* Split Summary + Budget + Streaks + Digest Row */}
-      <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {/* Split Summary + Budget + Streaks + Digest + Reminders Row */}
+      <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
         {/* Split Groups Summary */}
         <Link href={splitGroups.length > 0 ? `/split-groups/${splitGroups[0]._id}` : '#'} className="card hover:shadow-lg transition-shadow cursor-pointer">
           <div className="flex items-start justify-between gap-2 mb-3">
@@ -931,6 +990,38 @@ export default function DashboardPage() {
             View & Send Digest
           </button>
         </div>
+
+        {/* Reminders Summary */}
+        <Link href="/dashboard/reminders" className="card hover:shadow-lg transition-shadow cursor-pointer">
+          <div className="flex items-start justify-between gap-2 mb-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">Reminders</p>
+              <p className="text-lg sm:text-xl font-bold text-amber-600 mt-1">{reminders.filter((r: any) => r.enabled).length} active</p>
+            </div>
+            <div className="w-8 sm:w-10 h-8 sm:h-10 bg-amber-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Bell className="w-4 sm:w-5 h-4 sm:h-5 text-amber-600" />
+            </div>
+          </div>
+          {(() => {
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+            const overdue = reminders.filter((r: any) => r.enabled && new Date(r.dueDate) < now);
+            const upcoming = reminders.filter((r: any) => {
+              if (!r.enabled) return false;
+              const due = new Date(r.dueDate);
+              due.setHours(0, 0, 0, 0);
+              const diff = (due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+              return diff >= 0 && diff <= 3;
+            });
+            return (
+              <div className="space-y-1">
+                {overdue.length > 0 && <p className="text-xs text-danger font-medium flex items-center gap-1"><Clock className="w-3 h-3" /> {overdue.length} overdue</p>}
+                {upcoming.length > 0 && <p className="text-xs text-warning font-medium">{upcoming.length} due soon</p>}
+                {overdue.length === 0 && upcoming.length === 0 && <p className="text-xs text-gray-500">All on track</p>}
+              </div>
+            );
+          })()}
+        </Link>
       </motion.div>
 
       {/* Key Metrics Section */}
@@ -1219,6 +1310,11 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+      </motion.div>
+
+      {/* Spending Heatmap */}
+      <motion.div variants={item} className="card">
+        <SpendingHeatmap />
       </motion.div>
 
       {/* Analysis Section (Source & Geographic) */}

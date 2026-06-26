@@ -13,6 +13,8 @@ import {
   Users,
   ChevronDown,
   PiggyBank,
+  Bell,
+  ScrollText,
 } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { useEffect, useState } from 'react';
@@ -56,6 +58,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
     { name: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
     { name: 'Transactions', icon: Receipt, href: '/dashboard/transactions' },
     { name: 'Budgets', icon: PiggyBank, href: '/dashboard/budgets' },
+    { name: 'Reminders', icon: Bell, href: '/dashboard/reminders' },
+    { name: 'Audit Log', icon: ScrollText, href: '/dashboard/audit-log' },
     { name: 'Profile', icon: User, href: '/dashboard/profile' },
     { name: 'Settings', icon: Settings, href: '/dashboard/settings' },
   ];

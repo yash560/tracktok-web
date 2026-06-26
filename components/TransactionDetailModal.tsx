@@ -16,6 +16,7 @@ import {
     FileText,
     Clock,
     Eye,
+    RefreshCw,
 } from 'lucide-react';
 import { DateTooltip } from './DateTooltip';
 
@@ -40,6 +41,17 @@ export function TransactionDetailModal({
 
     const handleViewInvoice = () => {
         router.push(`/invoice/${transaction.code}`);
+        onClose();
+    };
+
+    const handleSetAsRecurring = () => {
+        const params = new URLSearchParams({
+            prefill: 'true',
+            title: String(transaction.description || transaction.receiver || ''),
+            amount: String(Math.abs(Number(transaction.amount))),
+            category: String(transaction.category || 'bills'),
+        });
+        router.push(`/dashboard/reminders?${params.toString()}`);
         onClose();
     };
 
@@ -293,6 +305,15 @@ export function TransactionDetailModal({
                                     <Eye className="w-4 h-4" />
                                     View Invoice
                                 </button>
+                                {!(isIncome || isCredit) && (
+                                    <button
+                                        onClick={handleSetAsRecurring}
+                                        className="w-full px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition font-semibold flex items-center justify-center gap-2"
+                                    >
+                                        <RefreshCw className="w-4 h-4" />
+                                        Set as Recurring
+                                    </button>
+                                )}
                                 <button
                                     onClick={onClose}
                                     className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition font-semibold"
