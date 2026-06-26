@@ -1,7 +1,14 @@
+import { getUnsubscribeUrl } from '@/lib/unsubscribe';
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://tracktok.app';
 const YEAR = new Date().getFullYear();
 
-function emailWrapper(badge: string, badgeColor: string, badgeTextColor: string, content: string): string {
+function emailWrapper(badge: string, badgeColor: string, badgeTextColor: string, content: string, userId?: string): string {
+  const unsubLink = userId ? getUnsubscribeUrl(userId) : '';
+  const unsubHtml = unsubLink
+    ? `<a href="${unsubLink}" style="color:#94a3b8;text-decoration:underline;">Unsubscribe</a>`
+    : '';
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
@@ -19,7 +26,9 @@ function emailWrapper(badge: string, badgeColor: string, badgeTextColor: string,
         ${content}
         <tr><td style="background-color:#fff;padding:0 40px;"><div style="border-top:1px solid #e2e8f0;"></div></td></tr>
         <tr><td style="background-color:#fff;padding:20px 40px;border-radius:0 0 16px 16px;">
-          <p style="margin:0;font-size:13px;color:#94a3b8;line-height:1.6;text-align:center;">This is an automated email from TrackTok. You can manage your preferences in the app.</p>
+          <p style="margin:0;font-size:13px;color:#94a3b8;line-height:1.6;text-align:center;">
+            This is an automated email from TrackTok.${unsubLink ? ` Don't want these emails? ${unsubHtml}` : ''}
+          </p>
         </td></tr>
         <tr><td style="padding:28px 40px;text-align:center;">
           <p style="margin:0 0 6px;"><a href="https://www.tracktok.com" style="color:#1a1a2e;text-decoration:none;font-size:16px;font-weight:700;">TrackTok</a></p>
@@ -71,7 +80,7 @@ function multiStatRow(stats: { label: string; value: string; color?: string }[])
 
 // ── 1. Win-Back Campaign ──
 
-export function winBackEmail(userName: string, daysSince: number, estimatedMissed: string): string {
+export function winBackEmail(userName: string, daysSince: number, estimatedMissed: string, userId?: string): string {
   let urgency = 'We noticed you\'ve been away';
   let emoji = '👋';
   if (daysSince >= 60) { urgency = 'It\'s been a while'; emoji = '💔'; }
@@ -85,13 +94,14 @@ export function winBackEmail(userName: string, daysSince: number, estimatedMisse
       'Getting back on track takes just 30 seconds — log one expense and you\'re back in control.',
     ]) +
     statCard('Estimated Untracked', estimatedMissed) +
-    ctaButton('Log an Expense →', `${APP_URL}/dashboard`)
+    ctaButton('Log an Expense →', `${APP_URL}/dashboard`),
+    userId,
   );
 }
 
 // ── 2. Streak Nudge ──
 
-export function streakNudgeEmail(userName: string, streakDays: number): string {
+export function streakNudgeEmail(userName: string, streakDays: number, userId?: string): string {
   return emailWrapper(
     `🔥 ${streakDays}-Day Streak!`, '#fef3c7', '#92400e',
     bodyText(userName, [
@@ -99,7 +109,8 @@ export function streakNudgeEmail(userName: string, streakDays: number): string {
       'Don\'t let it break — log today\'s expenses to keep your momentum going.',
     ]) +
     statCard('Current Streak', `${streakDays} days`, '#f59e0b') +
-    ctaButton('Keep the Streak →', `${APP_URL}/dashboard`, '#f59e0b', '#d97706')
+    ctaButton('Keep the Streak →', `${APP_URL}/dashboard`, '#f59e0b', '#d97706'),
+    userId,
   );
 }
 
@@ -113,6 +124,7 @@ export interface WeeklyInsightsData {
   topCategory: string;
   topCategoryAmount: string;
   transactionCount: number;
+  userId?: string;
 }
 
 export function weeklyInsightsEmail(data: WeeklyInsightsData): string {
@@ -137,13 +149,14 @@ export function weeklyInsightsEmail(data: WeeklyInsightsData): string {
         <p style="margin:0;font-size:18px;font-weight:700;color:#1a1a2e;">${data.topCategory} — ${data.topCategoryAmount}</p>
       </div>
     </td></tr>` +
-    ctaButton('View Full Breakdown →', `${APP_URL}/dashboard`, '#3b82f6', '#2563eb')
+    ctaButton('View Full Breakdown →', `${APP_URL}/dashboard`, '#3b82f6', '#2563eb'),
+    data.userId,
   );
 }
 
 // ── 4. Onboarding Drip ──
 
-export function onboardingDripEmail(userName: string, dayNumber: number): string {
+export function onboardingDripEmail(userName: string, dayNumber: number, userId?: string): string {
   const drips: Record<number, { badge: string; subject: string; body: string[]; cta: string; ctaLink: string }> = {
     1: {
       badge: '🎉 Welcome to TrackTok',
@@ -191,7 +204,8 @@ export function onboardingDripEmail(userName: string, dayNumber: number): string
   return emailWrapper(
     drip.badge, '#dcfce7', '#166534',
     bodyText(userName, drip.body) +
-    ctaButton(drip.cta, drip.ctaLink)
+    ctaButton(drip.cta, drip.ctaLink),
+    userId,
   );
 }
 
@@ -207,7 +221,7 @@ export function onboardingDripSubject(dayNumber: number): string {
 
 // ── 5. Achievement Emails ──
 
-export function achievementEmail(userName: string, achievementType: string, achievementValue: string, detail: string): string {
+export function achievementEmail(userName: string, achievementType: string, achievementValue: string, detail: string, userId?: string): string {
   return emailWrapper(
     '🏆 Achievement Unlocked', '#fef3c7', '#92400e',
     bodyText(userName, [
@@ -217,7 +231,8 @@ export function achievementEmail(userName: string, achievementType: string, achi
     `<tr><td style="background-color:#fff;padding:8px 40px 0;">
       <p style="margin:0;font-size:15px;color:#475569;line-height:1.6;text-align:center;">${detail}</p>
     </td></tr>` +
-    ctaButton('View Your Progress →', `${APP_URL}/dashboard`, '#f59e0b', '#d97706')
+    ctaButton('View Your Progress →', `${APP_URL}/dashboard`, '#f59e0b', '#d97706'),
+    userId,
   );
 }
 
@@ -231,6 +246,7 @@ export interface MonthlyReportData {
   transactionCount: number;
   topCategories: { name: string; amount: string; percent: number }[];
   vsLastMonth: number;
+  userId?: string;
 }
 
 export function monthlyReportEmail(data: MonthlyReportData): string {
@@ -270,7 +286,8 @@ export function monthlyReportEmail(data: MonthlyReportData): string {
         </table>
       </div>
     </td></tr>` +
-    ctaButton('View Full Report →', `${APP_URL}/dashboard`, '#6366f1', '#4f46e5')
+    ctaButton('View Full Report →', `${APP_URL}/dashboard`, '#6366f1', '#4f46e5'),
+    data.userId,
   );
 }
 
@@ -280,6 +297,7 @@ export interface SplitGroupDigestData {
   userName: string;
   groups: { name: string; newExpenses: number; balance: string }[];
   totalOwed: string;
+  userId?: string;
 }
 
 export function splitGroupDigestEmail(data: SplitGroupDigestData): string {
@@ -309,13 +327,14 @@ export function splitGroupDigestEmail(data: SplitGroupDigestData): string {
         </table>
       </div>
     </td></tr>` +
-    ctaButton('View Split Groups →', `${APP_URL}/dashboard/splits`, '#3b82f6', '#2563eb')
+    ctaButton('View Split Groups →', `${APP_URL}/dashboard/splits`, '#3b82f6', '#2563eb'),
+    data.userId,
   );
 }
 
 // ── 8. Referral Reminder ──
 
-export function referralReminderEmail(userName: string, splitGroupCount: number): string {
+export function referralReminderEmail(userName: string, splitGroupCount: number, userId?: string): string {
   return emailWrapper(
     '🎁 Invite Friends', '#dcfce7', '#166534',
     bodyText(userName, [
@@ -323,7 +342,8 @@ export function referralReminderEmail(userName: string, splitGroupCount: number)
       'Invite your friends so they can track their share, get reminders, and settle up instantly.',
     ]) +
     statCard('Your Split Groups', `${splitGroupCount}`, '#10b981') +
-    ctaButton('Invite Friends →', `${APP_URL}/dashboard/splits`, '#10b981', '#059669')
+    ctaButton('Invite Friends →', `${APP_URL}/dashboard/splits`, '#10b981', '#059669'),
+    userId,
   );
 }
 
@@ -332,6 +352,7 @@ export function referralReminderEmail(userName: string, splitGroupCount: number)
 export interface BillPredictionData {
   userName: string;
   bills: { description: string; predictedAmount: string; predictedDate: string; category: string }[];
+  userId?: string;
 }
 
 export function billPredictionEmail(data: BillPredictionData): string {
@@ -362,7 +383,8 @@ export function billPredictionEmail(data: BillPredictionData): string {
         </table>
       </div>
     </td></tr>` +
-    ctaButton('Set Reminders →', `${APP_URL}/dashboard/reminders`, '#a855f7', '#9333ea')
+    ctaButton('Set Reminders →', `${APP_URL}/dashboard/reminders`, '#a855f7', '#9333ea'),
+    data.userId,
   );
 }
 
@@ -374,6 +396,7 @@ export interface SpendingAnomalyData {
   currentAmount: string;
   averageAmount: string;
   multiplier: number;
+  userId?: string;
 }
 
 export function spendingAnomalyEmail(data: SpendingAnomalyData): string {
@@ -387,6 +410,7 @@ export function spendingAnomalyEmail(data: SpendingAnomalyData): string {
       { label: 'This Week', value: data.currentAmount, color: '#dc2626' },
       { label: 'Your Average', value: data.averageAmount, color: '#64748b' },
     ]) +
-    ctaButton('Review Spending →', `${APP_URL}/dashboard`, '#dc2626', '#b91c1c')
+    ctaButton('Review Spending →', `${APP_URL}/dashboard`, '#dc2626', '#b91c1c'),
+    data.userId,
   );
 }

@@ -227,8 +227,8 @@ export default function AdminDashboardPage() {
                     borderRadius: '8px',
                     fontSize: '13px',
                   }}
-                  formatter={(value: number) => [value.toLocaleString('en-IN'), 'Transactions']}
-                  labelFormatter={(label: string) => `Date: ${label}`}
+                  formatter={(value) => [Number(value).toLocaleString('en-IN'), 'Transactions']}
+                  labelFormatter={(label) => `Date: ${label}`}
                 />
                 <Line
                   type="monotone"
@@ -263,7 +263,7 @@ export default function AdminDashboardPage() {
                     borderRadius: '8px',
                     fontSize: '13px',
                   }}
-                  formatter={(value: number) => [value, 'Signups']}
+                  formatter={(value) => [value, 'Signups']}
                 />
                 <Bar dataKey="count" fill="#4f46e5" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -286,7 +286,7 @@ export default function AdminDashboardPage() {
                   outerRadius={90}
                   innerRadius={50}
                   paddingAngle={2}
-                  label={({ _id, percent }: { _id: string; percent: number }) =>
+                  label={({ _id, percent }: any) =>
                     `${_id} (${(percent * 100).toFixed(0)}%)`
                   }
                 >
@@ -295,7 +295,7 @@ export default function AdminDashboardPage() {
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: number) => [formatINR(value), 'Volume']}
+                  formatter={(value) => [formatINR(Number(value)), 'Volume']}
                   contentStyle={{
                     backgroundColor: 'var(--tooltip-bg, #fff)',
                     border: '1px solid #e5e7eb',

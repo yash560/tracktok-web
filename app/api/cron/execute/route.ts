@@ -16,6 +16,7 @@ import {
   spendingAnomalyEmail,
 } from '@/lib/marketing-emails';
 import { systemSettingsKey } from '@/lib/marketing-crons';
+import { isUserUnsubscribed, getUnsubscribeUrl } from '@/lib/unsubscribe';
 
 function formatINR(amount: number): string {
   return `₹${Number(amount).toLocaleString('en-IN')}`;
@@ -156,6 +157,7 @@ export async function POST(request: NextRequest) {
             <td style="background-color: #ffffff; padding: 20px 40px; border-radius: 0 0 16px 16px;">
               <p style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.6; text-align: center;">
                 This is an automated reminder from TrackTok. If you've already paid this, please disregard.
+                Don't want these emails? <a href="${getUnsubscribeUrl(reminder.userId)}" style="color:#94a3b8;text-decoration:underline;">Unsubscribe</a>
               </p>
             </td>
           </tr>
@@ -247,6 +249,8 @@ export async function POST(request: NextRequest) {
         let skipped = 0;
 
         for (const m of allMembers) {
+          if (await isUserUnsubscribed(db, m._id.toString())) { skipped++; continue; }
+
           const latestTx = await db.collection('expenses')
             .findOne({ userId: m._id.toString() }, { sort: { createdAt: -1 }, projection: { createdAt: 1 } });
 
@@ -285,7 +289,7 @@ export async function POST(request: NextRequest) {
         </td></tr>
         <tr><td style="background-color:#fff;padding:0 40px;"><div style="border-top:1px solid #e2e8f0;"></div></td></tr>
         <tr><td style="background-color:#fff;padding:20px 40px;border-radius:0 0 16px 16px;">
-          <p style="margin:0;font-size:13px;color:#94a3b8;line-height:1.6;text-align:center;">This is an automated reminder from TrackTok to help you stay on track.</p>
+          <p style="margin:0;font-size:13px;color:#94a3b8;line-height:1.6;text-align:center;">This is an automated reminder from TrackTok to help you stay on track. Don't want these emails? <a href="${getUnsubscribeUrl(m._id.toString())}" style="color:#94a3b8;text-decoration:underline;">Unsubscribe</a></p>
         </td></tr>
         <tr><td style="padding:28px 40px;text-align:center;">
           <p style="margin:0 0 6px;"><a href="https://www.tracktok.com" style="color:#1a1a2e;text-decoration:none;font-size:16px;font-weight:700;">TrackTok</a></p>
@@ -321,8 +325,11 @@ export async function POST(request: NextRequest) {
         let sent = 0;
 
         for (const m of allMembers) {
+          const uid = m._id.toString();
+          if (await isUserUnsubscribed(db, uid)) continue;
+
           const latestTx = await db.collection('expenses')
-            .findOne({ userId: m._id.toString() }, { sort: { createdAt: -1 }, projection: { createdAt: 1 } });
+            .findOne({ userId: uid }, { sort: { createdAt: -1 }, projection: { createdAt: 1 } });
 
           if (!latestTx) continue;
           const daysSince = Math.floor((Date.now() - new Date(latestTx.createdAt).getTime()) / 86400000);
@@ -331,7 +338,7 @@ export async function POST(request: NextRequest) {
           if (!matchedThreshold) continue;
 
           const avgExpense = await db.collection('expenses').aggregate([
-            { $match: { userId: m._id.toString(), type: 'expense' } },
+            { $match: { userId: uid, type: 'expense' } },
             { $group: { _id: null, avg: { $avg: '$amount' }, count: { $sum: 1 } } },
           ]).toArray();
 
@@ -343,7 +350,7 @@ export async function POST(request: NextRequest) {
             await sendEmail({
               to: m.email,
               subject: `We miss you, ${userName}! Come back to TrackTok`,
-              html: winBackEmail(userName, daysSince, estimatedMissed),
+              html: winBackEmail(userName, daysSince, estimatedMissed, uid),
             });
             sent++;
           } catch (e) {
@@ -361,6 +368,9 @@ export async function POST(request: NextRequest) {
         let sent = 0;
 
         for (const m of allMembers) {
+          const uid = m._id.toString();
+          if (await isUserUnsubscribed(db, uid)) continue;
+
           const today = new Date();
           today.setHours(0, 0, 0, 0);
           let streakDays = 0;
@@ -372,7 +382,7 @@ export async function POST(request: NextRequest) {
             dayEnd.setDate(dayEnd.getDate() + 1);
 
             const hasExpense = await db.collection('expenses').findOne({
-              userId: m._id.toString(),
+              userId: uid,
               createdAt: { $gte: dayStart, $lt: dayEnd },
             });
 
@@ -383,7 +393,7 @@ export async function POST(request: NextRequest) {
           if (streakDays < minStreak) continue;
 
           const todayExpense = await db.collection('expenses').findOne({
-            userId: m._id.toString(),
+            userId: uid,
             createdAt: { $gte: today },
           });
 
@@ -394,7 +404,7 @@ export async function POST(request: NextRequest) {
             await sendEmail({
               to: m.email,
               subject: `🔥 Your ${streakDays}-day streak is at risk!`,
-              html: streakNudgeEmail(userName, streakDays),
+              html: streakNudgeEmail(userName, streakDays, uid),
             });
             sent++;
           } catch (e) {
@@ -417,6 +427,7 @@ export async function POST(request: NextRequest) {
 
         for (const m of allMembers) {
           const uid = m._id.toString();
+          if (await isUserUnsubscribed(db, uid)) continue;
 
           const thisWeekExpenses = await db.collection('expenses').aggregate([
             { $match: { userId: uid, type: 'expense', createdAt: { $gte: thisWeekStart } } },
@@ -450,6 +461,7 @@ export async function POST(request: NextRequest) {
                 topCategory: thisWeekExpenses[0]?._id || 'Other',
                 topCategoryAmount: formatINR(thisWeekExpenses[0]?.total || 0),
                 transactionCount,
+                userId: uid,
               }),
             });
             sent++;
@@ -480,12 +492,14 @@ export async function POST(request: NextRequest) {
           }).toArray();
 
           for (const m of newUsers) {
+            const uid = m._id.toString();
+            if (await isUserUnsubscribed(db, uid)) continue;
             const userName = m.displayName || m.firstName || m.nickname || 'there';
             try {
               await sendEmail({
                 to: m.email,
                 subject: onboardingDripSubject(dayNum),
-                html: onboardingDripEmail(userName, dayNum),
+                html: onboardingDripEmail(userName, dayNum, uid),
               });
               sent++;
             } catch (e) {
@@ -510,6 +524,7 @@ export async function POST(request: NextRequest) {
 
         for (const m of allMembers) {
           const uid = m._id.toString();
+          if (await isUserUnsubscribed(db, uid)) continue;
           const userName = m.displayName || m.firstName || m.nickname || 'there';
 
           const totalExpenses = await db.collection('expenses').countDocuments({ userId: uid });
@@ -520,7 +535,7 @@ export async function POST(request: NextRequest) {
               await sendEmail({
                 to: m.email,
                 subject: `🏆 ${hitMilestone} expenses tracked! — TrackTok`,
-                html: achievementEmail(userName, 'Expenses Tracked', `${hitMilestone}`, `You've logged ${hitMilestone} expenses on TrackTok. Keep going!`),
+                html: achievementEmail(userName, 'Expenses Tracked', `${hitMilestone}`, `You've logged ${hitMilestone} expenses on TrackTok. Keep going!`, uid),
               });
               sent++;
             } catch (e) {
@@ -548,7 +563,7 @@ export async function POST(request: NextRequest) {
                 await sendEmail({
                   to: m.email,
                   subject: `🏆 You saved ${savedPercent}% this month! — TrackTok`,
-                  html: achievementEmail(userName, 'Savings This Month', `${savedPercent}%`, `You spent ${savedPercent}% less than last month. That's ${formatINR(lastMonth - thisMonth)} saved!`),
+                  html: achievementEmail(userName, 'Savings This Month', `${savedPercent}%`, `You spent ${savedPercent}% less than last month. That's ${formatINR(lastMonth - thisMonth)} saved!`, uid),
                 });
                 sent++;
               } catch (e) {
@@ -564,7 +579,7 @@ export async function POST(request: NextRequest) {
               await sendEmail({
                 to: m.email,
                 subject: `🏆 ${monthsOnPlatform} months on TrackTok!`,
-                html: achievementEmail(userName, 'Months on TrackTok', `${monthsOnPlatform}`, `You've been tracking your finances for ${monthsOnPlatform} months. Amazing commitment!`),
+                html: achievementEmail(userName, 'Months on TrackTok', `${monthsOnPlatform}`, `You've been tracking your finances for ${monthsOnPlatform} months. Amazing commitment!`, uid),
               });
               sent++;
             } catch (e) {
@@ -588,6 +603,7 @@ export async function POST(request: NextRequest) {
 
         for (const m of allMembers) {
           const uid = m._id.toString();
+          if (await isUserUnsubscribed(db, uid)) continue;
 
           const categoryAgg = await db.collection('expenses').aggregate([
             { $match: { userId: uid, type: 'expense', createdAt: { $gte: lastMonthStart, $lt: lastMonthEnd } } },
@@ -633,6 +649,7 @@ export async function POST(request: NextRequest) {
                 transactionCount,
                 topCategories,
                 vsLastMonth,
+                userId: uid,
               }),
             });
             sent++;
@@ -654,6 +671,8 @@ export async function POST(request: NextRequest) {
 
         for (const m of allMembers) {
           const uid = m._id.toString();
+          if (await isUserUnsubscribed(db, uid)) continue;
+
           const filter: any = {
             $or: [
               { owner: uid },
@@ -698,6 +717,7 @@ export async function POST(request: NextRequest) {
                 userName,
                 groups: groupData,
                 totalOwed: formatINR(Math.abs(totalOwed)),
+                userId: uid,
               }),
             });
             sent++;
@@ -717,6 +737,8 @@ export async function POST(request: NextRequest) {
 
         for (const m of allMembers) {
           const uid = m._id.toString();
+          if (await isUserUnsubscribed(db, uid)) continue;
+
           const groupCount = await db.collection('split_groups').countDocuments({
             $or: [{ owner: uid }, { 'members.userId': uid }],
             settledAt: { $exists: false },
@@ -729,7 +751,7 @@ export async function POST(request: NextRequest) {
             await sendEmail({
               to: m.email,
               subject: `🎁 Invite friends to TrackTok — split easier!`,
-              html: referralReminderEmail(userName, groupCount),
+              html: referralReminderEmail(userName, groupCount, uid),
             });
             sent++;
           } catch (e) {
@@ -749,6 +771,7 @@ export async function POST(request: NextRequest) {
 
         for (const m of allMembers) {
           const uid = m._id.toString();
+          if (await isUserUnsubscribed(db, uid)) continue;
 
           const recurring = await db.collection('expenses').aggregate([
             { $match: { userId: uid, type: 'expense' } },
@@ -794,7 +817,7 @@ export async function POST(request: NextRequest) {
             await sendEmail({
               to: m.email,
               subject: `🔮 ${predictions.length} bill(s) coming up — TrackTok`,
-              html: billPredictionEmail({ userName, bills: predictions }),
+              html: billPredictionEmail({ userName, bills: predictions, userId: uid }),
             });
             sent++;
           } catch (e) {
@@ -820,6 +843,7 @@ export async function POST(request: NextRequest) {
 
         for (const m of allMembers) {
           const uid = m._id.toString();
+          if (await isUserUnsubscribed(db, uid)) continue;
 
           const thisWeekByCategory = await db.collection('expenses').aggregate([
             { $match: { userId: uid, type: 'expense', createdAt: { $gte: thisWeekStart } } },
@@ -853,6 +877,7 @@ export async function POST(request: NextRequest) {
                   currentAmount: formatINR(cat.total),
                   averageAmount: formatINR(Math.round(weeklyAvg)),
                   multiplier,
+                  userId: uid,
                 }),
               });
               sent++;
