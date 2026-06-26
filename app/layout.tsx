@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthContext";
 import { ThemeScript } from "@/components/ThemeScript";
@@ -9,8 +9,12 @@ export const metadata: Metadata = {
   description: "AI-powered expense tracking and financial analytics for everyone",
   keywords: ["expense tracker", "finance", "budget", "spending", "AI"],
   authors: [{ name: "TrackTok Team" }],
-  viewport: "width=device-width, initial-scale=1",
   robots: "index, follow",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({

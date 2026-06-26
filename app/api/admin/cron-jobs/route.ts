@@ -17,7 +17,8 @@ export async function GET(request: NextRequest) {
     const res = await fetch(`${REACH_API_URL}/api/cron-jobs`, {
       headers: { 'X-API-Key': REACH_API_KEY },
     });
-    const jobs = await res.json();
+    const body = await res.json();
+    const jobs = Array.isArray(body) ? body : Array.isArray(body.jobs) ? body.jobs : [];
     return NextResponse.json({ jobs });
   } catch (e: any) {
     return NextResponse.json({ jobs: [], error: e.message }, { status: 502 });

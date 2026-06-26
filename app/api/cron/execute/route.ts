@@ -2,6 +2,29 @@ import { connectToDatabase } from '@/lib/mongodb';
 import { sendEmail } from '@/lib/mailer';
 import { NextRequest, NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
+import {
+  winBackEmail,
+  streakNudgeEmail,
+  weeklyInsightsEmail,
+  onboardingDripEmail,
+  onboardingDripSubject,
+  achievementEmail,
+  monthlyReportEmail,
+  splitGroupDigestEmail,
+  referralReminderEmail,
+  billPredictionEmail,
+  spendingAnomalyEmail,
+} from '@/lib/marketing-emails';
+import { systemSettingsKey } from '@/lib/marketing-crons';
+
+function formatINR(amount: number): string {
+  return `₹${Number(amount).toLocaleString('en-IN')}`;
+}
+
+async function getCronSettings(db: any, cronId: string) {
+  const doc = await db.collection('system_settings').findOne({ key: systemSettingsKey(cronId) });
+  return doc?.value?.settings || {};
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,7 +66,7 @@ export async function POST(request: NextRequest) {
         }
 
         const userName = member.firstName || member.displayName || member.name || 'there';
-        const amountStr = `₹${Number(reminder.amount).toLocaleString('en-IN')}`;
+        const amountStr = formatINR(reminder.amount);
         const dueStr = new Date(reminder.dueDate).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tracktok.app';
         const freq = reminder.frequency.charAt(0).toUpperCase() + reminder.frequency.slice(1);
@@ -61,16 +84,12 @@ export async function POST(request: NextRequest) {
     <tr>
       <td align="center">
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%;">
-
-          <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); padding: 32px 40px; border-radius: 16px 16px 0 0; text-align: center;">
               <h1 style="margin: 0 0 4px 0; font-size: 28px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px;">TrackTok</h1>
               <p style="margin: 0; font-size: 13px; color: #94a3b8; letter-spacing: 1.5px; text-transform: uppercase;">Expense Tracking Made Simple</p>
             </td>
           </tr>
-
-          <!-- Reminder Badge -->
           <tr>
             <td style="background-color: #ffffff; padding: 0 40px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
@@ -82,8 +101,6 @@ export async function POST(request: NextRequest) {
               </table>
             </td>
           </tr>
-
-          <!-- Body -->
           <tr>
             <td style="background-color: #ffffff; padding: 24px 40px 0 40px;">
               <p style="margin: 0 0 16px 0; font-size: 16px; color: #1a1a2e; line-height: 1.6;">Hi <strong>${userName}</strong>,</p>
@@ -92,8 +109,6 @@ export async function POST(request: NextRequest) {
               </p>
             </td>
           </tr>
-
-          <!-- Amount Card -->
           <tr>
             <td style="background-color: #ffffff; padding: 0 40px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
@@ -106,8 +121,6 @@ export async function POST(request: NextRequest) {
               </table>
             </td>
           </tr>
-
-          <!-- Details -->
           <tr>
             <td style="background-color: #ffffff; padding: 28px 40px 0 40px;">
               <p style="margin: 0 0 16px 0; font-size: 14px; font-weight: 600; color: #1a1a2e; text-transform: uppercase; letter-spacing: 0.5px;">Details</p>
@@ -129,22 +142,16 @@ export async function POST(request: NextRequest) {
               </div>
             </td>
           </tr>
-
-          <!-- CTA Button -->
           <tr>
             <td style="background-color: #ffffff; padding: 32px 40px; text-align: center;">
               <a href="${appUrl}/dashboard/reminders" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; padding: 14px 36px; border-radius: 10px; font-size: 15px; font-weight: 600; letter-spacing: 0.3px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">View Reminders →</a>
             </td>
           </tr>
-
-          <!-- Divider -->
           <tr>
             <td style="background-color: #ffffff; padding: 0 40px;">
               <div style="border-top: 1px solid #e2e8f0;"></div>
             </td>
           </tr>
-
-          <!-- Disclaimer -->
           <tr>
             <td style="background-color: #ffffff; padding: 20px 40px; border-radius: 0 0 16px 16px;">
               <p style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.6; text-align: center;">
@@ -152,8 +159,6 @@ export async function POST(request: NextRequest) {
               </p>
             </td>
           </tr>
-
-          <!-- Footer -->
           <tr>
             <td style="padding: 28px 40px; text-align: center;">
               <p style="margin: 0 0 6px 0;">
@@ -172,7 +177,6 @@ export async function POST(request: NextRequest) {
               </p>
             </td>
           </tr>
-
         </table>
       </td>
     </tr>
@@ -182,7 +186,7 @@ export async function POST(request: NextRequest) {
 
         await sendEmail({
           to: member.email,
-          subject: `Reminder: ${reminder.title} — ₹${Number(reminder.amount).toLocaleString('en-IN')}`,
+          subject: `Reminder: ${reminder.title} — ${amountStr}`,
           html,
         });
 
@@ -243,9 +247,8 @@ export async function POST(request: NextRequest) {
         let skipped = 0;
 
         for (const m of allMembers) {
-          const userCollection = m.collection || `expense_${m.code?.padStart(6, '0')}`;
           const latestTx = await db.collection('expenses')
-            .findOne({ collection: userCollection }, { sort: { createdAt: -1 }, projection: { createdAt: 1 } });
+            .findOne({ userId: m._id.toString() }, { sort: { createdAt: -1 }, projection: { createdAt: 1 } });
 
           if (latestTx && new Date(latestTx.createdAt) > sevenDaysAgo) {
             skipped++;
@@ -307,6 +310,560 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json({ success: true, message: `Nudge emails sent: ${sent}, skipped (active): ${skipped}`, sent, skipped });
+      }
+
+      // ── Marketing Crons ──
+
+      case 'win-back': {
+        const settings = await getCronSettings(db, 'win-back');
+        const inactiveDays: number[] = settings.inactiveDays || [14, 30, 60];
+        const allMembers = await db.collection('members').find({ email: { $exists: true, $ne: '' } }).toArray();
+        let sent = 0;
+
+        for (const m of allMembers) {
+          const latestTx = await db.collection('expenses')
+            .findOne({ userId: m._id.toString() }, { sort: { createdAt: -1 }, projection: { createdAt: 1 } });
+
+          if (!latestTx) continue;
+          const daysSince = Math.floor((Date.now() - new Date(latestTx.createdAt).getTime()) / 86400000);
+
+          const matchedThreshold = inactiveDays.find(d => daysSince >= d && daysSince < d + 1);
+          if (!matchedThreshold) continue;
+
+          const avgExpense = await db.collection('expenses').aggregate([
+            { $match: { userId: m._id.toString(), type: 'expense' } },
+            { $group: { _id: null, avg: { $avg: '$amount' }, count: { $sum: 1 } } },
+          ]).toArray();
+
+          const dailyAvg = avgExpense[0] ? (avgExpense[0].avg * avgExpense[0].count) / 30 : 0;
+          const estimatedMissed = formatINR(Math.round(dailyAvg * daysSince));
+          const userName = m.displayName || m.firstName || m.nickname || 'there';
+
+          try {
+            await sendEmail({
+              to: m.email,
+              subject: `We miss you, ${userName}! Come back to TrackTok`,
+              html: winBackEmail(userName, daysSince, estimatedMissed),
+            });
+            sent++;
+          } catch (e) {
+            console.error(`Win-back failed for ${m.email}:`, e);
+          }
+        }
+
+        return NextResponse.json({ success: true, sent });
+      }
+
+      case 'streak-nudge': {
+        const settings = await getCronSettings(db, 'streak-nudge');
+        const minStreak = settings.minStreakDays || 3;
+        const allMembers = await db.collection('members').find({ email: { $exists: true, $ne: '' } }).toArray();
+        let sent = 0;
+
+        for (const m of allMembers) {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          let streakDays = 0;
+
+          for (let i = 1; i <= 90; i++) {
+            const dayStart = new Date(today);
+            dayStart.setDate(dayStart.getDate() - i);
+            const dayEnd = new Date(dayStart);
+            dayEnd.setDate(dayEnd.getDate() + 1);
+
+            const hasExpense = await db.collection('expenses').findOne({
+              userId: m._id.toString(),
+              createdAt: { $gte: dayStart, $lt: dayEnd },
+            });
+
+            if (hasExpense) streakDays++;
+            else break;
+          }
+
+          if (streakDays < minStreak) continue;
+
+          const todayExpense = await db.collection('expenses').findOne({
+            userId: m._id.toString(),
+            createdAt: { $gte: today },
+          });
+
+          if (todayExpense) continue;
+
+          const userName = m.displayName || m.firstName || m.nickname || 'there';
+          try {
+            await sendEmail({
+              to: m.email,
+              subject: `🔥 Your ${streakDays}-day streak is at risk!`,
+              html: streakNudgeEmail(userName, streakDays),
+            });
+            sent++;
+          } catch (e) {
+            console.error(`Streak nudge failed for ${m.email}:`, e);
+          }
+        }
+
+        return NextResponse.json({ success: true, sent });
+      }
+
+      case 'weekly-insights': {
+        const allMembers = await db.collection('members').find({ email: { $exists: true, $ne: '' } }).toArray();
+        let sent = 0;
+
+        const now = new Date();
+        const thisWeekStart = new Date(now);
+        thisWeekStart.setDate(now.getDate() - 7);
+        const lastWeekStart = new Date(thisWeekStart);
+        lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+
+        for (const m of allMembers) {
+          const uid = m._id.toString();
+
+          const thisWeekExpenses = await db.collection('expenses').aggregate([
+            { $match: { userId: uid, type: 'expense', createdAt: { $gte: thisWeekStart } } },
+            { $group: { _id: '$category', total: { $sum: '$amount' }, count: { $sum: 1 } } },
+            { $sort: { total: -1 } },
+          ]).toArray();
+
+          if (thisWeekExpenses.length === 0) continue;
+
+          const thisWeekTotal = thisWeekExpenses.reduce((s, c) => s + c.total, 0);
+          const transactionCount = thisWeekExpenses.reduce((s, c) => s + c.count, 0);
+
+          const lastWeekAgg = await db.collection('expenses').aggregate([
+            { $match: { userId: uid, type: 'expense', createdAt: { $gte: lastWeekStart, $lt: thisWeekStart } } },
+            { $group: { _id: null, total: { $sum: '$amount' } } },
+          ]).toArray();
+          const lastWeekTotal = lastWeekAgg[0]?.total || 0;
+
+          const changePercent = lastWeekTotal > 0 ? Math.round(((thisWeekTotal - lastWeekTotal) / lastWeekTotal) * 100) : 0;
+          const userName = m.displayName || m.firstName || m.nickname || 'there';
+
+          try {
+            await sendEmail({
+              to: m.email,
+              subject: `📊 Your weekly spending: ${formatINR(thisWeekTotal)}`,
+              html: weeklyInsightsEmail({
+                userName,
+                thisWeekTotal: formatINR(thisWeekTotal),
+                lastWeekTotal: formatINR(lastWeekTotal),
+                changePercent,
+                topCategory: thisWeekExpenses[0]?._id || 'Other',
+                topCategoryAmount: formatINR(thisWeekExpenses[0]?.total || 0),
+                transactionCount,
+              }),
+            });
+            sent++;
+          } catch (e) {
+            console.error(`Weekly insights failed for ${m.email}:`, e);
+          }
+        }
+
+        return NextResponse.json({ success: true, sent });
+      }
+
+      case 'onboarding-drip': {
+        const settings = await getCronSettings(db, 'onboarding-drip');
+        const dripDays: number[] = settings.dripDays || [1, 3, 7, 14];
+        let sent = 0;
+
+        for (const dayNum of dripDays) {
+          const targetDate = new Date();
+          targetDate.setDate(targetDate.getDate() - dayNum);
+          const dayStart = new Date(targetDate);
+          dayStart.setHours(0, 0, 0, 0);
+          const dayEnd = new Date(dayStart);
+          dayEnd.setDate(dayEnd.getDate() + 1);
+
+          const newUsers = await db.collection('members').find({
+            email: { $exists: true, $ne: '' },
+            createdAt: { $gte: dayStart, $lt: dayEnd },
+          }).toArray();
+
+          for (const m of newUsers) {
+            const userName = m.displayName || m.firstName || m.nickname || 'there';
+            try {
+              await sendEmail({
+                to: m.email,
+                subject: onboardingDripSubject(dayNum),
+                html: onboardingDripEmail(userName, dayNum),
+              });
+              sent++;
+            } catch (e) {
+              console.error(`Onboarding drip (day ${dayNum}) failed for ${m.email}:`, e);
+            }
+          }
+        }
+
+        return NextResponse.json({ success: true, sent });
+      }
+
+      case 'achievement-emails': {
+        const settings = await getCronSettings(db, 'achievement-emails');
+        const milestones: number[] = settings.expenseMilestones || [10, 50, 100, 500, 1000];
+        const savingsThreshold: number = settings.savingsThreshold || 20;
+        const allMembers = await db.collection('members').find({ email: { $exists: true, $ne: '' } }).toArray();
+        let sent = 0;
+
+        const now = new Date();
+        const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+        for (const m of allMembers) {
+          const uid = m._id.toString();
+          const userName = m.displayName || m.firstName || m.nickname || 'there';
+
+          const totalExpenses = await db.collection('expenses').countDocuments({ userId: uid });
+          const hitMilestone = milestones.find(ms => totalExpenses === ms);
+
+          if (hitMilestone) {
+            try {
+              await sendEmail({
+                to: m.email,
+                subject: `🏆 ${hitMilestone} expenses tracked! — TrackTok`,
+                html: achievementEmail(userName, 'Expenses Tracked', `${hitMilestone}`, `You've logged ${hitMilestone} expenses on TrackTok. Keep going!`),
+              });
+              sent++;
+            } catch (e) {
+              console.error(`Achievement failed for ${m.email}:`, e);
+            }
+            continue;
+          }
+
+          const thisMonthAgg = await db.collection('expenses').aggregate([
+            { $match: { userId: uid, type: 'expense', createdAt: { $gte: thisMonthStart } } },
+            { $group: { _id: null, total: { $sum: '$amount' } } },
+          ]).toArray();
+          const lastMonthAgg = await db.collection('expenses').aggregate([
+            { $match: { userId: uid, type: 'expense', createdAt: { $gte: lastMonthStart, $lt: thisMonthStart } } },
+            { $group: { _id: null, total: { $sum: '$amount' } } },
+          ]).toArray();
+
+          const thisMonth = thisMonthAgg[0]?.total || 0;
+          const lastMonth = lastMonthAgg[0]?.total || 0;
+
+          if (lastMonth > 0 && thisMonth < lastMonth) {
+            const savedPercent = Math.round(((lastMonth - thisMonth) / lastMonth) * 100);
+            if (savedPercent >= savingsThreshold) {
+              try {
+                await sendEmail({
+                  to: m.email,
+                  subject: `🏆 You saved ${savedPercent}% this month! — TrackTok`,
+                  html: achievementEmail(userName, 'Savings This Month', `${savedPercent}%`, `You spent ${savedPercent}% less than last month. That's ${formatINR(lastMonth - thisMonth)} saved!`),
+                });
+                sent++;
+              } catch (e) {
+                console.error(`Achievement (savings) failed for ${m.email}:`, e);
+              }
+            }
+          }
+
+          const createdAt = new Date(m.createdAt);
+          const monthsOnPlatform = (now.getFullYear() - createdAt.getFullYear()) * 12 + (now.getMonth() - createdAt.getMonth());
+          if (monthsOnPlatform > 0 && monthsOnPlatform % 6 === 0) {
+            try {
+              await sendEmail({
+                to: m.email,
+                subject: `🏆 ${monthsOnPlatform} months on TrackTok!`,
+                html: achievementEmail(userName, 'Months on TrackTok', `${monthsOnPlatform}`, `You've been tracking your finances for ${monthsOnPlatform} months. Amazing commitment!`),
+              });
+              sent++;
+            } catch (e) {
+              console.error(`Achievement (anniversary) failed for ${m.email}:`, e);
+            }
+          }
+        }
+
+        return NextResponse.json({ success: true, sent });
+      }
+
+      case 'monthly-report': {
+        const allMembers = await db.collection('members').find({ email: { $exists: true, $ne: '' } }).toArray();
+        let sent = 0;
+
+        const now = new Date();
+        const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 1);
+        const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+        const monthName = lastMonthStart.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+
+        for (const m of allMembers) {
+          const uid = m._id.toString();
+
+          const categoryAgg = await db.collection('expenses').aggregate([
+            { $match: { userId: uid, type: 'expense', createdAt: { $gte: lastMonthStart, $lt: lastMonthEnd } } },
+            { $group: { _id: '$category', total: { $sum: '$amount' }, count: { $sum: 1 } } },
+            { $sort: { total: -1 } },
+          ]).toArray();
+
+          if (categoryAgg.length === 0) continue;
+
+          const totalSpent = categoryAgg.reduce((s, c) => s + c.total, 0);
+          const transactionCount = categoryAgg.reduce((s, c) => s + c.count, 0);
+
+          const incomeAgg = await db.collection('expenses').aggregate([
+            { $match: { userId: uid, type: 'income', createdAt: { $gte: lastMonthStart, $lt: lastMonthEnd } } },
+            { $group: { _id: null, total: { $sum: '$amount' } } },
+          ]).toArray();
+          const totalIncome = incomeAgg[0]?.total || 0;
+
+          const prevAgg = await db.collection('expenses').aggregate([
+            { $match: { userId: uid, type: 'expense', createdAt: { $gte: prevMonthStart, $lt: lastMonthStart } } },
+            { $group: { _id: null, total: { $sum: '$amount' } } },
+          ]).toArray();
+          const prevTotal = prevAgg[0]?.total || 0;
+          const vsLastMonth = prevTotal > 0 ? Math.round(((totalSpent - prevTotal) / prevTotal) * 100) : 0;
+
+          const topCategories = categoryAgg.slice(0, 5).map(c => ({
+            name: c._id || 'Other',
+            amount: formatINR(c.total),
+            percent: Math.round((c.total / totalSpent) * 100),
+          }));
+
+          const userName = m.displayName || m.firstName || m.nickname || 'there';
+
+          try {
+            await sendEmail({
+              to: m.email,
+              subject: `📋 Your ${monthName} Report — TrackTok`,
+              html: monthlyReportEmail({
+                userName,
+                monthName,
+                totalSpent: formatINR(totalSpent),
+                totalIncome: formatINR(totalIncome),
+                transactionCount,
+                topCategories,
+                vsLastMonth,
+              }),
+            });
+            sent++;
+          } catch (e) {
+            console.error(`Monthly report failed for ${m.email}:`, e);
+          }
+        }
+
+        return NextResponse.json({ success: true, sent });
+      }
+
+      case 'split-group-digest': {
+        const settings = await getCronSettings(db, 'split-group-digest');
+        const includeSettled = settings.includeSettled === 'yes';
+        const allMembers = await db.collection('members').find({ email: { $exists: true, $ne: '' } }).toArray();
+        let sent = 0;
+
+        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+        for (const m of allMembers) {
+          const uid = m._id.toString();
+          const filter: any = {
+            $or: [
+              { owner: uid },
+              { 'members.userId': uid },
+              { customer_id: m.customer_id },
+            ],
+          };
+          if (!includeSettled) filter.settledAt = { $exists: false };
+
+          const groups = await db.collection('split_groups').find(filter).toArray();
+          if (groups.length === 0) continue;
+
+          const groupData = [];
+          let totalOwed = 0;
+
+          for (const g of groups) {
+            const newExpenses = (g.expenses || []).filter((e: any) =>
+              new Date(e.createdAt || e.date) > weekAgo
+            ).length;
+
+            const memberBalance = (g.members || []).find((mem: any) =>
+              mem.userId === uid || mem.contactId === m.customer_id
+            );
+            const balance = memberBalance?.balance || 0;
+            totalOwed += balance;
+
+            groupData.push({
+              name: g.name,
+              newExpenses,
+              balance: formatINR(Math.abs(balance)),
+            });
+          }
+
+          if (groupData.every(g => g.newExpenses === 0)) continue;
+
+          const userName = m.displayName || m.firstName || m.nickname || 'there';
+          try {
+            await sendEmail({
+              to: m.email,
+              subject: `👥 Split Group Update — ${groupData.length} groups active`,
+              html: splitGroupDigestEmail({
+                userName,
+                groups: groupData,
+                totalOwed: formatINR(Math.abs(totalOwed)),
+              }),
+            });
+            sent++;
+          } catch (e) {
+            console.error(`Split digest failed for ${m.email}:`, e);
+          }
+        }
+
+        return NextResponse.json({ success: true, sent });
+      }
+
+      case 'referral-reminder': {
+        const settings = await getCronSettings(db, 'referral-reminder');
+        const minGroups = settings.minSplitGroups || 2;
+        const allMembers = await db.collection('members').find({ email: { $exists: true, $ne: '' } }).toArray();
+        let sent = 0;
+
+        for (const m of allMembers) {
+          const uid = m._id.toString();
+          const groupCount = await db.collection('split_groups').countDocuments({
+            $or: [{ owner: uid }, { 'members.userId': uid }],
+            settledAt: { $exists: false },
+          });
+
+          if (groupCount < minGroups) continue;
+
+          const userName = m.displayName || m.firstName || m.nickname || 'there';
+          try {
+            await sendEmail({
+              to: m.email,
+              subject: `🎁 Invite friends to TrackTok — split easier!`,
+              html: referralReminderEmail(userName, groupCount),
+            });
+            sent++;
+          } catch (e) {
+            console.error(`Referral reminder failed for ${m.email}:`, e);
+          }
+        }
+
+        return NextResponse.json({ success: true, sent });
+      }
+
+      case 'bill-prediction': {
+        const settings = await getCronSettings(db, 'bill-prediction');
+        const daysBeforeDue = settings.daysBeforeDue || 3;
+        const minOccurrences = settings.minOccurrences || 3;
+        const allMembers = await db.collection('members').find({ email: { $exists: true, $ne: '' } }).toArray();
+        let sent = 0;
+
+        for (const m of allMembers) {
+          const uid = m._id.toString();
+
+          const recurring = await db.collection('expenses').aggregate([
+            { $match: { userId: uid, type: 'expense' } },
+            { $group: {
+              _id: { description: { $toLower: '$description' }, category: '$category' },
+              count: { $sum: 1 },
+              avgAmount: { $avg: '$amount' },
+              dates: { $push: '$createdAt' },
+            }},
+            { $match: { count: { $gte: minOccurrences } } },
+          ]).toArray();
+
+          const predictions = [];
+          const today = new Date();
+
+          for (const r of recurring) {
+            const sortedDates = r.dates.map((d: any) => new Date(d)).sort((a: Date, b: Date) => a.getTime() - b.getTime());
+            if (sortedDates.length < 2) continue;
+
+            const intervals = [];
+            for (let i = 1; i < sortedDates.length; i++) {
+              intervals.push(sortedDates[i].getTime() - sortedDates[i - 1].getTime());
+            }
+            const avgInterval = intervals.reduce((a: number, b: number) => a + b, 0) / intervals.length;
+            const lastDate = sortedDates[sortedDates.length - 1];
+            const predictedDate = new Date(lastDate.getTime() + avgInterval);
+
+            const daysUntil = Math.floor((predictedDate.getTime() - today.getTime()) / 86400000);
+            if (daysUntil >= 0 && daysUntil <= daysBeforeDue) {
+              predictions.push({
+                description: r._id.description,
+                predictedAmount: formatINR(Math.round(r.avgAmount)),
+                predictedDate: predictedDate.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }),
+                category: r._id.category || 'Other',
+              });
+            }
+          }
+
+          if (predictions.length === 0) continue;
+
+          const userName = m.displayName || m.firstName || m.nickname || 'there';
+          try {
+            await sendEmail({
+              to: m.email,
+              subject: `🔮 ${predictions.length} bill(s) coming up — TrackTok`,
+              html: billPredictionEmail({ userName, bills: predictions }),
+            });
+            sent++;
+          } catch (e) {
+            console.error(`Bill prediction failed for ${m.email}:`, e);
+          }
+        }
+
+        return NextResponse.json({ success: true, sent });
+      }
+
+      case 'spending-anomaly': {
+        const settings = await getCronSettings(db, 'spending-anomaly');
+        const multiplierThreshold = settings.multiplierThreshold || 2;
+        const lookbackWeeks = settings.lookbackWeeks || 4;
+        const allMembers = await db.collection('members').find({ email: { $exists: true, $ne: '' } }).toArray();
+        let sent = 0;
+
+        const now = new Date();
+        const thisWeekStart = new Date(now);
+        thisWeekStart.setDate(now.getDate() - 7);
+        const lookbackStart = new Date(now);
+        lookbackStart.setDate(now.getDate() - (lookbackWeeks * 7));
+
+        for (const m of allMembers) {
+          const uid = m._id.toString();
+
+          const thisWeekByCategory = await db.collection('expenses').aggregate([
+            { $match: { userId: uid, type: 'expense', createdAt: { $gte: thisWeekStart } } },
+            { $group: { _id: '$category', total: { $sum: '$amount' } } },
+          ]).toArray();
+
+          if (thisWeekByCategory.length === 0) continue;
+
+          const avgByCategory = await db.collection('expenses').aggregate([
+            { $match: { userId: uid, type: 'expense', createdAt: { $gte: lookbackStart, $lt: thisWeekStart } } },
+            { $group: { _id: '$category', total: { $sum: '$amount' }, count: { $sum: 1 } } },
+          ]).toArray();
+
+          const avgMap = new Map(avgByCategory.map(c => [c._id, c.total / lookbackWeeks]));
+
+          for (const cat of thisWeekByCategory) {
+            const weeklyAvg = avgMap.get(cat._id);
+            if (!weeklyAvg || weeklyAvg === 0) continue;
+
+            const multiplier = cat.total / weeklyAvg;
+            if (multiplier < multiplierThreshold) continue;
+
+            const userName = m.displayName || m.firstName || m.nickname || 'there';
+            try {
+              await sendEmail({
+                to: m.email,
+                subject: `📈 Unusual spending in ${cat._id} — TrackTok`,
+                html: spendingAnomalyEmail({
+                  userName,
+                  category: cat._id || 'Other',
+                  currentAmount: formatINR(cat.total),
+                  averageAmount: formatINR(Math.round(weeklyAvg)),
+                  multiplier,
+                }),
+              });
+              sent++;
+              break;
+            } catch (e) {
+              console.error(`Anomaly alert failed for ${m.email}:`, e);
+            }
+          }
+        }
+
+        return NextResponse.json({ success: true, sent });
       }
 
       default:
