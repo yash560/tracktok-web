@@ -15,6 +15,7 @@ import {
   PiggyBank,
   Bell,
   ScrollText,
+  Shield,
 } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { useEffect, useState } from 'react';
@@ -28,7 +29,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
   const pathname = usePathname();
-  const { logout, token } = useAuth();
+  const { logout, token, isAdmin } = useAuth();
   const [splitGroups, setSplitGroups] = useState<SplitGroup[]>([]);
   const [expandSplits, setExpandSplits] = useState(false);
   const [loadingSplits, setLoadingSplits] = useState(false);
@@ -161,13 +162,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
             )}
           </nav>
 
-          <button
-            onClick={logout}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-danger hover:bg-danger/10 transition mt-auto"
-          >
-            <LogOut className="w-5 h-5" />
-            <span className="font-semibold">Logout</span>
-          </button>
+          <div className="mt-auto space-y-2">
+            {isAdmin && (
+              <Link
+                href="/admin"
+                onClick={() => setOpen(false)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition ${
+                  pathname.startsWith('/admin')
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'
+                }`}
+              >
+                <Shield className="w-5 h-5" />
+                <span className="font-semibold">Admin Panel</span>
+              </Link>
+            )}
+            <button
+              onClick={logout}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-danger hover:bg-danger/10 transition w-full"
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="font-semibold">Logout</span>
+            </button>
+          </div>
         </div>
       </aside>
     </>

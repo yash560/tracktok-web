@@ -9,6 +9,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   token: string | null;
+  isAdmin: boolean;
   login: (identifier: string, password: string, type?: 'email' | 'phone') => Promise<void>;
   googleLogin: (credential: string) => Promise<{ exists: boolean; googleProfile?: { email: string; name: string; picture: string } }>;
   linkGoogleAccount: (credential: string, phone: string) => Promise<void>;
@@ -138,9 +139,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const isAdmin = useMemo(
+    () => !!user?.roles?.some((r: any) => r.permission?.some((p: any) => p.key === 'admin')),
+    [user]
+  );
+
   const value = useMemo(
-    () => ({ user, token, loading, login, googleLogin, linkGoogleAccount, logout, register }),
-    [user, token, loading, login, googleLogin, linkGoogleAccount, logout, register]
+    () => ({ user, token, loading, isAdmin, login, googleLogin, linkGoogleAccount, logout, register }),
+    [user, token, loading, isAdmin, login, googleLogin, linkGoogleAccount, logout, register]
   );
 
   return (

@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
         code: user.code,
         collection: user.collection,
         customer_id: user.customer_id,
+        roles: user.roles || [],
         createdAt: user.createdAt,
       },
       { status: 200 }

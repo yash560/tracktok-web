@@ -1,3 +1,17 @@
+export interface Permission {
+  _id?: string;
+  key: string;
+  displayName: string;
+  description?: string;
+}
+
+export interface Role {
+  _id?: string;
+  displayName: string;
+  permission: Permission[];
+  description?: string;
+}
+
 export interface User {
   _id?: string;
   email: string;
@@ -14,6 +28,10 @@ export interface User {
   gender?: string;
   dateOfBirth?: string;
   countryCode?: string;
+  roles?: Role[];
+  collection?: string;
+  customer_id?: string;
+  code?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

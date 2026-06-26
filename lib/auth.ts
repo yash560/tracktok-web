@@ -39,3 +39,7 @@ export function getTokenFromCookie(cookieString: string): string | null {
   const tokenCookie = cookies.find((c) => c.trim().startsWith('auth_token='));
   return tokenCookie ? tokenCookie.split('=')[1] : null;
 }
+
+export function isAdmin(user: any): boolean {
+  return user?.roles?.some((r: any) => r.permission?.some((p: any) => p.key === 'admin'));
+}
