@@ -20,6 +20,30 @@ import {
 } from 'lucide-react';
 import { DateTooltip } from './DateTooltip';
 
+const CATEGORY_STYLES: Record<string, string> = {
+    food: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+    groceries: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+    shopping: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400',
+    entertainment: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+    transportation: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
+    bills: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+    utilities: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+    rent: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
+    salary: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+    transfer: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    health: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
+    education: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
+    insurance: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+    subscriptions: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400',
+    gifts: 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-400',
+    freelancing: 'bg-lime-100 text-lime-700 dark:bg-lime-900/30 dark:text-lime-400',
+    childcare: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400',
+};
+
+function getCategoryStyle(category: string): string {
+    return CATEGORY_STYLES[category?.toLowerCase()] || 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
+}
+
 interface TransactionDetailModalProps {
     readonly isOpen: boolean;
     readonly transaction: Record<string, unknown> | null;
@@ -164,7 +188,16 @@ export function TransactionDetailModal({
                                         </div>
                                         <div className="flex-1">
                                             <p className="text-sm text-gray-600 dark:text-gray-400">Category</p>
-                                            <p className="font-semibold capitalize">{transaction.category}</p>
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide ${getCategoryStyle(transaction.category)}`}>
+                                                    {transaction.category}
+                                                </span>
+                                                {transaction.personalizedCategory && transaction.personalizedCategory !== transaction.category && (
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                                                        {transaction.personalizedCategory}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 )}
@@ -198,14 +231,14 @@ export function TransactionDetailModal({
                                 )}
 
                                 {/* Location */}
-                                {transaction.city && (
+                                {(transaction.city || transaction.address) && (
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 bg-pink-500/10 rounded-lg flex items-center justify-center">
                                             <MapPin className="w-5 h-5 text-pink-600" />
                                         </div>
                                         <div className="flex-1">
                                             <p className="text-sm text-gray-600 dark:text-gray-400">Location</p>
-                                            <p className="font-semibold">{transaction.city}</p>
+                                            <p className="font-semibold">{transaction.city || transaction.address}</p>
                                         </div>
                                     </div>
                                 )}

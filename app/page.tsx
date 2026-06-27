@@ -16,6 +16,14 @@ import {
   ShieldCheck,
   ArrowRight,
   CheckCircle,
+  ChevronDown,
+  Smartphone,
+  Shield,
+  Brain,
+  Bell,
+  Star,
+  TrendingDown,
+  Sparkles,
 } from 'lucide-react';
 
 const features = [
@@ -90,11 +98,225 @@ const benefits = [
   'Export reports',
 ];
 
+function PhoneMockup() {
+  return (
+    <div className="relative">
+      {/* AI Insight floating card - top left */}
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6, delay: 0.8 }}
+        className="absolute -left-8 lg:-left-28 top-12 bg-white dark:bg-dark-card rounded-2xl shadow-xl p-4 w-52 z-10 hidden md:block"
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-secondary" />
+          </div>
+          <span className="font-semibold text-sm text-gray-900 dark:text-white">AI Insight</span>
+        </div>
+        <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+          You spent <span className="text-green-500 font-bold">18% less</span> on Food this month.
+          <br />Great job! 🎉
+        </p>
+      </motion.div>
+
+      {/* Top Location floating card - bottom left */}
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6, delay: 1.0 }}
+        className="absolute -left-4 lg:-left-20 bottom-32 bg-white dark:bg-dark-card rounded-2xl shadow-xl p-4 w-48 z-10 hidden md:block"
+      >
+        <p className="font-semibold text-sm text-gray-900 dark:text-white mb-2">Top Location</p>
+        <div className="flex gap-1 items-end mb-2">
+          <div className="w-4 h-6 bg-secondary/30 rounded-sm" />
+          <div className="w-4 h-10 bg-secondary/50 rounded-sm" />
+          <div className="w-4 h-14 bg-secondary rounded-sm" />
+          <div className="w-4 h-8 bg-secondary/40 rounded-sm" />
+          <div className="w-4 h-5 bg-secondary/20 rounded-sm" />
+        </div>
+        <p className="text-sm font-semibold text-gray-900 dark:text-white">Bengaluru</p>
+        <p className="text-xs text-gray-500">₹12,450</p>
+      </motion.div>
+
+      {/* Total Savings floating card - top right */}
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6, delay: 0.9 }}
+        className="absolute -right-4 lg:-right-20 top-20 bg-white dark:bg-dark-card rounded-2xl shadow-xl p-4 w-44 z-10 hidden md:block"
+      >
+        <p className="text-xs text-gray-500 mb-1">Total Savings</p>
+        <p className="text-2xl font-bold text-green-500">₹6,240</p>
+        <p className="text-xs text-gray-400">This Month</p>
+        <svg className="w-full h-8 mt-2" viewBox="0 0 120 30">
+          <polyline
+            points="0,25 15,20 30,22 45,15 60,18 75,10 90,12 105,5 120,8"
+            fill="none"
+            stroke="#4DD69B"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </motion.div>
+
+      {/* Ask AI floating card - bottom right */}
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6, delay: 1.1 }}
+        className="absolute -right-4 lg:-right-24 bottom-24 bg-white dark:bg-dark-card rounded-2xl shadow-xl p-4 w-52 z-10 hidden md:block"
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
+            <MessageSquare className="w-3.5 h-3.5 text-white" />
+          </div>
+          <span className="font-semibold text-sm text-gray-900 dark:text-white">Ask AI</span>
+        </div>
+        <p className="text-xs text-gray-500 bg-gray-100 dark:bg-dark-bg rounded-lg px-3 py-2">
+          How much did I spend on travel last month?
+        </p>
+      </motion.div>
+
+      {/* Phone frame */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.3 }}
+        className="relative mx-auto w-[280px] sm:w-[300px]"
+      >
+        <div className="bg-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
+          {/* Status bar */}
+          <div className="bg-white dark:bg-gray-800 rounded-[2rem] overflow-hidden">
+            <div className="flex items-center justify-between px-6 pt-3 pb-1">
+              <span className="text-[10px] font-semibold text-gray-900 dark:text-white">9:41</span>
+              <div className="w-20 h-5 bg-gray-900 rounded-full mx-auto" />
+              <div className="flex items-center gap-0.5">
+                <svg className="w-3 h-3 text-gray-900 dark:text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+                <svg className="w-4 h-3 text-gray-900 dark:text-white" fill="currentColor" viewBox="0 0 24 24"><rect x="2" y="6" width="18" height="12" rx="2" fillOpacity="0.3"/><rect x="2" y="6" width="14" height="12" rx="2"/><rect x="21" y="10" width="2" height="4" rx="1"/></svg>
+              </div>
+            </div>
+
+            {/* Dashboard content */}
+            <div className="px-4 pb-6 pt-2">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">Hello, Ankit 👋</p>
+                  <p className="text-[10px] text-gray-500">Here&apos;s your spending overview</p>
+                </div>
+                <div className="w-7 h-7 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                  <Bell className="w-3.5 h-3.5 text-gray-600 dark:text-gray-300" />
+                </div>
+              </div>
+
+              {/* Total Spent card */}
+              <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl p-3 mb-3">
+                <p className="text-[10px] text-white/80">Total Spent</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xl font-bold text-white">₹48,750</p>
+                  <span className="flex items-center gap-0.5 text-[9px] text-white/90 bg-white/20 rounded-full px-1.5 py-0.5">
+                    <TrendingDown className="w-2.5 h-2.5" /> 12%
+                  </span>
+                </div>
+                <p className="text-[9px] text-white/70">vs last month</p>
+              </div>
+
+              {/* Spending by Category */}
+              <div className="mb-3">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-bold text-gray-900 dark:text-white">Spending by Category</p>
+                  <span className="text-[9px] text-gray-400">This Month ▾</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  {/* Donut chart */}
+                  <div className="relative w-16 h-16 flex-shrink-0">
+                    <div
+                      className="w-full h-full rounded-full"
+                      style={{
+                        background: 'conic-gradient(#4DD69B 0% 30%, #8C7DFF 30% 50%, #FBA94D 50% 65%, #7C3AED 65% 80%, #94A3B8 80% 100%)',
+                      }}
+                    />
+                    <div className="absolute inset-2 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center">
+                      <div className="text-center">
+                        <p className="text-[8px] text-gray-400">Total</p>
+                        <p className="text-[9px] font-bold text-gray-900 dark:text-white">₹48,750</p>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Legend */}
+                  <div className="space-y-1 text-[9px]">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-[#4DD69B]" />
+                      <span className="text-gray-600 dark:text-gray-400">Food & Dining</span>
+                      <span className="ml-auto font-semibold text-gray-900 dark:text-white">30%</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-[#8C7DFF]" />
+                      <span className="text-gray-600 dark:text-gray-400">Travel</span>
+                      <span className="ml-auto font-semibold text-gray-900 dark:text-white">20%</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-[#FBA94D]" />
+                      <span className="text-gray-600 dark:text-gray-400">Shopping</span>
+                      <span className="ml-auto font-semibold text-gray-900 dark:text-white">15%</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-[#7C3AED]" />
+                      <span className="text-gray-600 dark:text-gray-400">Bills & Utilities</span>
+                      <span className="ml-auto font-semibold text-gray-900 dark:text-white">15%</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-[#94A3B8]" />
+                      <span className="text-gray-600 dark:text-gray-400">Others</span>
+                      <span className="ml-auto font-semibold text-gray-900 dark:text-white">20%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Transactions */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-bold text-gray-900 dark:text-white">Recent Transactions</p>
+                  <span className="text-[9px] text-secondary font-semibold">View All</span>
+                </div>
+                <div className="space-y-2">
+                  {[
+                    { name: 'Zomato', cat: 'Food & Dining', amount: '₹850', time: 'Today', color: 'bg-red-500', letter: 'Z' },
+                    { name: 'Uber', cat: 'Travel', amount: '₹620', time: 'Yesterday', color: 'bg-gray-900', letter: 'U' },
+                    { name: 'Amazon', cat: 'Shopping', amount: '₹1,499', time: '2 May', color: 'bg-orange-500', letter: 'A' },
+                  ].map((tx) => (
+                    <div key={tx.name} className="flex items-center gap-2">
+                      <div className={`w-7 h-7 rounded-lg ${tx.color} flex items-center justify-center flex-shrink-0`}>
+                        <span className="text-white text-[10px] font-bold">{tx.letter}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-semibold text-gray-900 dark:text-white">{tx.name}</p>
+                        <p className="text-[9px] text-gray-400">{tx.cat}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[11px] font-semibold text-gray-900 dark:text-white">- {tx.amount}</p>
+                        <p className="text-[9px] text-gray-400">{tx.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 export default function Home() {
   return (
     <>
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 glass border-b border-white/10 py-3 px-4 sm:px-6 md:px-12">
+      <nav className="fixed top-0 w-full z-50 bg-white/90 dark:bg-dark-bg/90 backdrop-blur-md border-b border-gray-200/50 dark:border-white/10 py-3 px-4 sm:px-6 md:px-12">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-xl overflow-hidden shadow-lg flex-shrink-0">
@@ -102,10 +324,26 @@ export default function Home() {
             </div>
             <span className="text-lg sm:text-2xl font-bold font-display text-primary">TrackTok</span>
           </div>
-          <div className="flex items-center gap-3 sm:gap-6">
+
+          <div className="hidden lg:flex items-center gap-8">
+            <button className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors font-medium">
+              Features <ChevronDown className="w-4 h-4" />
+            </button>
+            <Link href="#how-it-works" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors font-medium">
+              How it Works
+            </Link>
+            <Link href="#pricing" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors font-medium">
+              Pricing
+            </Link>
+            <Link href="#blog" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors font-medium">
+              Blog
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-3 sm:gap-5">
             <Link
               href="/auth"
-              className="hidden sm:block text-gray-600 dark:text-gray-300 hover:text-primary transition-colors text-sm"
+              className="hidden sm:block text-gray-600 dark:text-gray-300 hover:text-primary transition-colors text-sm font-medium"
             >
               Login
             </Link>
@@ -117,54 +355,119 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-24 sm:pt-32 pb-12 sm:pb-20 px-4 sm:px-6 md:px-12 text-center relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[400px] sm:h-[600px] bg-gradient-to-b from-primary/5 to-transparent -z-10 blur-3xl opacity-50" />
+      <section className="pt-24 sm:pt-32 pb-0 px-4 sm:px-6 md:px-12 relative overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] sm:h-[800px] bg-gradient-to-b from-secondary/5 via-primary/3 to-transparent -z-10 blur-3xl opacity-60" />
 
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            {/* Left side - Text content */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-center lg:text-left"
+            >
+              <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-secondary/10 text-secondary font-semibold rounded-full text-xs sm:text-sm mb-6">
+                <Sparkles className="w-4 h-4" /> AI-Powered Expense Tracker
+              </span>
+
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-extrabold tracking-tight mb-6 text-gray-900 dark:text-white leading-[1.1]">
+                Your Spending,{' '}
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-secondary to-purple-500">
+                  Smarter
+                </span>{' '}
+                with AI
+              </h1>
+
+              <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed">
+                Track every expense automatically, get AI insights, smart reports, and take total control of your money.
+                <br />No manual entry. No spreadsheets. Just clarity.
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 mb-8">
+                <Link href="/dashboard" className="btn-primary text-base px-8 py-3.5 w-full sm:w-auto flex items-center justify-center gap-2 group">
+                  🚀 Launch Dashboard
+                </Link>
+                <a
+                  href="https://play.google.com/store/apps/details?id=com.tracktok"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 px-8 py-3.5 w-full sm:w-auto border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:border-primary hover:text-primary transition-all text-base"
+                >
+                  <Smartphone className="w-4 h-4" /> Download Mobile App
+                </a>
+              </div>
+
+              {/* Feature pills */}
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-8">
+                <span className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-dark-card rounded-full text-xs text-gray-600 dark:text-gray-400 font-medium">
+                  <Zap className="w-3.5 h-3.5 text-yellow-500" /> Auto-detect Transactions
+                </span>
+                <span className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-dark-card rounded-full text-xs text-gray-600 dark:text-gray-400 font-medium">
+                  <Brain className="w-3.5 h-3.5 text-secondary" /> AI-Powered Insights
+                </span>
+                <span className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-dark-card rounded-full text-xs text-gray-600 dark:text-gray-400 font-medium">
+                  <Shield className="w-3.5 h-3.5 text-green-500" /> Bank Level Security
+                </span>
+              </div>
+
+              {/* Social proof */}
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 sm:gap-6">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">Trusted by <strong className="text-gray-900 dark:text-white">20,000+</strong> users</span>
+                  <div className="flex -space-x-2">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className="w-7 h-7 rounded-full bg-gradient-to-br from-secondary to-primary border-2 border-white dark:border-dark-bg flex items-center justify-center">
+                        <span className="text-[8px] text-white font-bold">{String.fromCharCode(65 + i)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                    ))}
+                  </div>
+                  <span className="text-sm font-bold text-gray-900 dark:text-white">4.8/5</span>
+                </div>
+                <span className="text-xs text-gray-500">On Play Store 🏴</span>
+              </div>
+            </motion.div>
+
+            {/* Right side - Phone mockup */}
+            <div className="flex justify-center lg:justify-end mt-8 lg:mt-0">
+              <PhoneMockup />
+            </div>
+          </div>
+        </div>
+
+        {/* Stats bar */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="max-w-4xl mx-auto"
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="max-w-5xl mx-auto mt-16 sm:mt-20 mb-8"
         >
-          <span className="inline-block px-3 sm:px-4 py-2 bg-primary/10 text-primary font-semibold rounded-full text-xs sm:text-sm uppercase tracking-wider mb-4 sm:mb-6">
-            ✨ Track Everything Instantly
-          </span>
-
-          <h1 className="text-3xl sm:text-5xl md:text-7xl font-display font-extrabold tracking-tight mb-6 sm:mb-8 bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary-light to-primary">
-            Your Spending at a Glance
-          </h1>
-
-          <p className="text-base sm:text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-8 sm:mb-12 max-w-2xl mx-auto leading-relaxed">
-            AI-powered dashboard that shows how, where, and when you spend your money, all automatically.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/dashboard" className="btn-primary text-lg px-10 py-4 w-full sm:w-auto flex items-center justify-center gap-2 group">
-              Launch Dashboard
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <a
-              href="https://play.google.com/store/apps/details?id=com.tracktok"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-secondary text-lg px-10 py-4 w-full sm:w-auto"
-            >
-              Download Mobile
-            </a>
-          </div>
-        </motion.div>
-
-        {/* Hero Visual */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.2 }}
-          className="mt-12 sm:mt-20 max-w-5xl mx-auto"
-        >
-          <div className="glass rounded-2xl sm:rounded-3xl p-4 sm:p-8 border-white/20 aspect-video flex flex-col items-center justify-center">
-            <Wallet className="w-16 sm:w-24 h-16 sm:h-24 text-primary/20 mb-3 sm:mb-4" />
-            <p className="text-base sm:text-lg text-gray-500 dark:text-gray-400 font-semibold">Dashboard Preview</p>
-            <p className="text-xs sm:text-sm text-gray-400 mt-2">Your financial data visualization will appear here</p>
+          <div className="bg-white dark:bg-dark-card rounded-2xl shadow-card border border-gray-100 dark:border-gray-800 p-6 sm:p-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
+              {[
+                { icon: Users, value: '20K+', label: 'Happy Users' },
+                { icon: BarChart3, value: '2M+', label: 'Transactions Tracked' },
+                { icon: Shield, value: '100%', label: 'Secure & Private' },
+                { icon: Star, value: '4.8★', label: 'Play Store Rating' },
+              ].map((stat) => (
+                <div key={stat.label} className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-secondary/10 flex items-center justify-center flex-shrink-0">
+                    <stat.icon className="w-5 h-5 sm:w-6 sm:h-6 text-secondary" />
+                  </div>
+                  <div>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                    <p className="text-xs sm:text-sm text-gray-500">{stat.label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </motion.div>
       </section>

@@ -16,10 +16,20 @@ import {
   Receipt,
   Eye,
   AlertTriangle,
+  Download,
+  Loader2,
 } from 'lucide-react';
 import axios from 'axios';
 import { useProtectedPage } from '@/lib/useProtectedPage';
 import { useCurrency } from '@/components/CurrencyContext';
+import {
+  NotificationModal,
+  ConfirmModal,
+  NotificationState,
+  ConfirmState,
+  initialNotification,
+  initialConfirm,
+} from '@/components/NotificationModal';
 import { TransactionModal } from '@/components/TransactionModal';
 import { TransactionDetailModal } from '@/components/TransactionDetailModal';
 import { DateTooltip } from '@/components/DateTooltip';
@@ -49,6 +59,7 @@ function TransactionsContent() {
   const [type, setType] = useState(searchParams.get('type') || 'all');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(
@@ -56,6 +67,9 @@ function TransactionsContent() {
   );
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [anomalyIds, setAnomalyIds] = useState<Set<string>>(new Set());
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+  const [notification, setNotification] = useState<NotificationState>(initialNotification);
+  const [confirmState, setConfirmState] = useState<ConfirmState>(initialConfirm);
 
   useEffect(() => {
     const fetchAnomalies = async () => {
@@ -70,13 +84,22 @@ function TransactionsContent() {
     fetchAnomalies();
   }, []);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, category, type, source, receiver]);
+
   const fetchTransactions = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: '15',
-        ...(search && { search }),
+        ...(debouncedSearch && { search: debouncedSearch }),
         ...(category !== 'all' && { category }),
         ...(minAmount && { minAmount }),
         ...(maxAmount && { maxAmount }),
@@ -89,6 +112,7 @@ function TransactionsContent() {
       const response = await axios.get(`/api/transactions?${params.toString()}`);
       setTransactions(response.data.transactions);
       setTotalPages(response.data.pagination.pages);
+      setTotalCount(response.data.pagination.total || 0);
     } catch (error: any) {
       if (error.response?.status !== 401) {
         console.error('Failed to fetch transactions:', error);
@@ -96,22 +120,31 @@ function TransactionsContent() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, category, minAmount, maxAmount, contact, source, receiver, type]);
+  }, [page, debouncedSearch, category, minAmount, maxAmount, contact, source, receiver, type]);
 
   useEffect(() => {
     fetchTransactions();
   }, [fetchTransactions]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this transaction?')) return;
-
-    try {
-      await axios.delete(`/api/transactions?id=${id}`);
-      fetchTransactions();
-    } catch (error) {
-      console.error('Failed to delete transaction:', error);
-      alert('Failed to delete transaction');
-    }
+  const handleDelete = (id: string) => {
+    setConfirmState({
+      isOpen: true,
+      title: 'Delete Transaction',
+      message: 'Are you sure you want to delete this transaction? This cannot be undone.',
+      onConfirm: async () => {
+        try {
+          await axios.delete(`/api/transactions?id=${id}`);
+          fetchTransactions();
+        } catch {
+          setNotification({
+            isOpen: true,
+            type: 'error',
+            title: 'Error',
+            message: 'Failed to delete transaction',
+          });
+        }
+      },
+    });
   };
 
   const openEditModal = (t: any) => {
@@ -129,6 +162,30 @@ function TransactionsContent() {
     setIsModalOpen(true);
   };
 
+  const exportCSV = useCallback(() => {
+    if (!transactions.length) return;
+
+    const headers = ['Date', 'Type', 'Amount', 'Category', 'Description', 'Receiver', 'Source'];
+    const rows = transactions.map((t: any) => [
+      t.date || '',
+      t.type || '',
+      t.amount || '',
+      t.category || '',
+      (t.description || '').replace(/,/g, ' '),
+      (t.receiver || '').replace(/,/g, ' '),
+      (t.source || '').replace(/,/g, ' '),
+    ]);
+
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `tracktok-transactions-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }, [transactions]);
+
   const handleViewInvoice = (transactionId: string) => {
     router.push(`/invoice/${transactionId}`);
   };
@@ -141,13 +198,23 @@ function TransactionsContent() {
           <h1 className="text-2xl sm:text-3xl font-bold font-display">Transactions</h1>
           <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400">View and manage your financial records</p>
         </div>
-        <button
-          onClick={openAddModal}
-          className="btn-primary flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 w-full sm:w-auto"
-        >
-          <Plus className="w-4 sm:w-5 h-4 sm:h-5" />
-          Add Transaction
-        </button>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <button
+            onClick={exportCSV}
+            disabled={!transactions.length}
+            className="btn-outline flex items-center gap-2 px-4 py-2 sm:py-3 rounded-lg text-sm disabled:opacity-50"
+          >
+            <Download className="w-4 h-4" />
+            Export CSV
+          </button>
+          <button
+            onClick={openAddModal}
+            className="btn-primary flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 flex-1 sm:flex-auto"
+          >
+            <Plus className="w-4 sm:w-5 h-4 sm:h-5" />
+            Add Transaction
+          </button>
+        </div>
       </div>
 
       {/* Filters & Search */}
@@ -160,8 +227,11 @@ function TransactionsContent() {
               placeholder="Search descriptions..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="input-field pl-11 px-3 sm:px-4 text-xs sm:text-sm md:text-base"
+              className="input-field pl-11 pr-10 px-3 sm:px-4 text-xs sm:text-sm md:text-base"
             />
+            {loading && search !== debouncedSearch && (
+              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-gray-400" />
+            )}
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
@@ -295,6 +365,33 @@ function TransactionsContent() {
         </AnimatePresence>
       </div>
 
+      {!loading && transactions.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="card p-3 sm:p-4 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
+            <p className="text-lg font-bold">{transactions.length} txns</p>
+          </div>
+          <div className="card p-3 sm:p-4 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400">Spent</p>
+            <p className="text-lg font-bold text-danger">
+              {fmt(transactions.filter((t: any) => t.type !== 'income').reduce((s: number, t: any) => s + (t.amount || 0), 0))}
+            </p>
+          </div>
+          <div className="card p-3 sm:p-4 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400">Received</p>
+            <p className="text-lg font-bold text-success">
+              {fmt(transactions.filter((t: any) => t.type === 'income').reduce((s: number, t: any) => s + (t.amount || 0), 0))}
+            </p>
+          </div>
+          <div className="card p-3 sm:p-4 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400">Avg Transaction</p>
+            <p className="text-lg font-bold">
+              {fmt(Math.round(transactions.reduce((s: number, t: any) => s + (t.amount || 0), 0) / transactions.length))}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Transactions Table */}
       <div className="card p-0 overflow-hidden">
         <div className="overflow-x-auto">
@@ -311,14 +408,26 @@ function TransactionsContent() {
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
               {loading ? (
-                <tr>
-                  <td colSpan={6} className="py-12 text-center text-gray-500">
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                      <span className="text-xs sm:text-sm md:text-base">Loading transactions...</span>
-                    </div>
-                  </td>
-                </tr>
+                <>
+                  {[...Array(5)].map((_, i) => (
+                    <tr key={i} className="animate-pulse">
+                      <td className="py-4 px-3 sm:px-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-xl" />
+                          <div>
+                            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-2" />
+                            <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded w-20" />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="hidden sm:table-cell py-4 px-6"><div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-lg w-20" /></td>
+                      <td className="hidden md:table-cell py-4 px-6"><div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24" /></td>
+                      <td className="hidden md:table-cell py-4 px-6"><div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20" /></td>
+                      <td className="py-4 px-6 text-right"><div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-16 ml-auto" /></td>
+                      <td className="py-4 px-6"><div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-24 mx-auto" /></td>
+                    </tr>
+                  ))}
+                </>
               ) : transactions.length > 0 ? (
                 transactions.map((t) => (
                   <tr
@@ -370,14 +479,14 @@ function TransactionsContent() {
                     <td className="py-3 sm:py-4 px-3 sm:px-6">
                       <div className="flex items-center justify-center gap-1 sm:gap-2">
                         <button
-                          onClick={() => handleViewInvoice(t._id)}
+                          onClick={(e) => { e.stopPropagation(); handleViewInvoice(t._id); }}
                           className="p-1.5 sm:p-2 hover:bg-blue-500/10 hover:text-blue-600 rounded-lg transition text-gray-400"
                           title="View invoice"
                         >
                           <Eye className="w-4 sm:w-5 h-4 sm:h-5" />
                         </button>
                         <button
-                          onClick={() => openEditModal(t)}
+                          onClick={(e) => { e.stopPropagation(); openEditModal(t); }}
                           disabled={t.isSplitTransaction && !t.isOwnTransaction}
                           className={`p-1.5 sm:p-2 rounded-lg transition ${
                             t.isSplitTransaction && !t.isOwnTransaction
@@ -389,7 +498,7 @@ function TransactionsContent() {
                           <Edit2 className="w-4 sm:w-5 h-4 sm:h-5" />
                         </button>
                         <button
-                          onClick={() => handleDelete(t._id)}
+                          onClick={(e) => { e.stopPropagation(); handleDelete(t._id); }}
                           disabled={t.isSplitTransaction && !t.isOwnTransaction}
                           className={`p-1.5 sm:p-2 rounded-lg transition ${
                             t.isSplitTransaction && !t.isOwnTransaction
@@ -424,7 +533,7 @@ function TransactionsContent() {
         {/* Pagination */}
         <div className="p-3 sm:p-6 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
           <p className="text-xs sm:text-sm text-gray-500">
-            Page {page} of {totalPages}
+            Page {page} of {totalPages} ({totalCount} transactions)
           </p>
           <div className="flex gap-2">
             <button
@@ -457,6 +566,9 @@ function TransactionsContent() {
         onSuccess={fetchTransactions}
         transaction={selectedTransaction}
       />
+
+      <NotificationModal notification={notification} onClose={() => setNotification(initialNotification)} />
+      <ConfirmModal confirm={confirmState} onClose={() => setConfirmState(initialConfirm)} />
     </div>
   );
 }

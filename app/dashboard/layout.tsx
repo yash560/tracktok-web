@@ -7,6 +7,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { ChatBot } from '@/components/ChatBot';
 import { CommandPalette } from '@/components/CommandPalette';
 import { useKeyboardShortcuts } from '@/lib/useKeyboardShortcuts';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 export default function DashboardLayout({
   children,
@@ -34,7 +35,7 @@ export default function DashboardLayout({
 
           <main className="flex-1 p-6 md:p-8">
             <div className="max-w-7xl mx-auto">
-              {children}
+              <ErrorBoundary>{children}</ErrorBoundary>
             </div>
           </main>
         </div>

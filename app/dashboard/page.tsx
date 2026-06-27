@@ -30,6 +30,7 @@ import {
   AlertTriangle,
   Bell,
   Clock,
+  Download,
 } from 'lucide-react';
 import {
   LineChart,
@@ -255,7 +256,6 @@ export default function DashboardPage() {
     fetchData();
   }, [dateRange, filterCategory, filterMinAmount, filterMaxAmount, filterContact]);
 
-  // Fetch split groups summary
   useEffect(() => {
     const fetchSplitSummary = async () => {
       try {
@@ -269,34 +269,40 @@ export default function DashboardPage() {
         let owed = 0;
         let owing = 0;
 
-        for (const group of groups) {
-          if (group.settledAt) continue;
-          try {
-            const groupRes = await axios.get(`/api/split-groups/${group._id}`);
-            const expenses = groupRes.data.expenses || [];
-            expenses.forEach((exp: any) => {
-              if (!exp.split) return;
-              const owner = exp.split.find((s: any) => s.owner);
-              if (!owner) return;
-              const isPayment = (owner.amount || 0) === 0;
-              exp.split.forEach((split: any) => {
-                if (split.phone === owner.phone) return;
-                const amt = split.amount || 0;
-                if (amt === 0) return;
-                if (!isPayment) {
-                  if (split.phone === userPhone) owing += amt;
-                  else if (owner.phone === userPhone) owed += amt;
-                }
-              });
+        const unsettledGroups = groups.filter((g: any) => !g.settledAt);
+        const groupDetails = await Promise.all(
+          unsettledGroups.map(async (group: any) => {
+            try {
+              const groupRes = await axios.get(`/api/split-groups/${group._id}`);
+              return groupRes.data;
+            } catch {
+              return null;
+            }
+          })
+        );
+
+        for (const detail of groupDetails) {
+          if (!detail) continue;
+          const expenses = detail.expenses || [];
+          expenses.forEach((exp: any) => {
+            if (!exp.split) return;
+            const owner = exp.split.find((s: any) => s.owner);
+            if (!owner) return;
+            const isPayment = (owner.amount || 0) === 0;
+            exp.split.forEach((split: any) => {
+              if (split.phone === owner.phone) return;
+              const amt = split.amount || 0;
+              if (amt === 0) return;
+              if (!isPayment) {
+                if (split.phone === userPhone) owing += amt;
+                else if (owner.phone === userPhone) owed += amt;
+              }
             });
-          } catch {
-            // skip failed groups
-          }
+          });
         }
         setTotalOwed(owed);
         setTotalOwing(owing);
       } catch {
-        // silently fail
       }
     };
     if (user) fetchSplitSummary();
@@ -325,30 +331,14 @@ export default function DashboardPage() {
     fetchBudgets();
   }, [analytics]);
 
-  // Fetch anomalies
   useEffect(() => {
-    const fetchAnomalies = async () => {
-      try {
-        const res = await axios.get('/api/analytics/anomalies');
-        setAnomalies(res.data.anomalies || []);
-      } catch {
-        // silently fail
-      }
-    };
-    fetchAnomalies();
-  }, []);
-
-  // Fetch reminders summary
-  useEffect(() => {
-    const fetchReminders = async () => {
-      try {
-        const res = await axios.get('/api/reminders');
-        setReminders(res.data.reminders || []);
-      } catch {
-        // silently fail
-      }
-    };
-    fetchReminders();
+    Promise.all([
+      axios.get('/api/analytics/anomalies').catch(() => ({ data: { anomalies: [] } })),
+      axios.get('/api/reminders').catch(() => ({ data: { reminders: [] } })),
+    ]).then(([anomaliesRes, remindersRes]) => {
+      setAnomalies(anomaliesRes.data.anomalies || []);
+      setReminders(remindersRes.data.reminders || []);
+    });
   }, []);
 
   // Calculate streaks from transactions
@@ -420,6 +410,42 @@ export default function DashboardPage() {
       setSendingDigest(false);
     }
   };
+
+  const budgetAlerts = useMemo(() => {
+    if (!budgets.length) return [];
+    return budgets
+      .map((b: any) => {
+        const spent = budgetSpending[b.category] || 0;
+        const pct = b.amount > 0 ? (spent / b.amount) * 100 : 0;
+        return { ...b, spent, pct };
+      })
+      .filter((b: any) => b.pct >= 75)
+      .sort((a: any, b: any) => b.pct - a.pct);
+  }, [budgets, budgetSpending]);
+
+  const exportCSV = useCallback(() => {
+    if (!transactions.length) return;
+
+    const headers = ['Date', 'Type', 'Amount', 'Category', 'Description', 'Receiver', 'Source'];
+    const rows = transactions.map((t: any) => [
+      t.date || '',
+      t.type || '',
+      t.amount || '',
+      t.category || '',
+      (t.description || '').replace(/,/g, ' '),
+      (t.receiver || '').replace(/,/g, ' '),
+      (t.source || '').replace(/,/g, ' '),
+    ]);
+
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `tracktok-transactions-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }, [transactions]);
 
   const dynamicKpis = useMemo(() => {
     const kpis: { id: string; label: string; value: string; sub: string; color: string; icon: string; priority: number }[] = [];
@@ -644,8 +670,26 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      <div className="p-6 space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="card p-6 animate-pulse">
+              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-3" />
+              <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-2" />
+              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20" />
+            </div>
+          ))}
+        </div>
+        <div className="card p-6 animate-pulse">
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-40 mb-4" />
+          <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded" />
+        </div>
+        <div className="card p-6 animate-pulse">
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-36 mb-4" />
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-12 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
+          ))}
+        </div>
       </div>
     );
   }
@@ -800,6 +844,37 @@ export default function DashboardPage() {
                 ))}
               </div>
             </div>
+          </div>
+        </motion.div>
+      )}
+
+      {budgetAlerts.length > 0 && (
+        <motion.div
+          variants={item}
+          className="card p-4 border-l-4 border-warning"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="w-5 h-5 text-warning" />
+            <h3 className="font-semibold text-sm">Budget Alerts</h3>
+          </div>
+          <div className="space-y-2">
+            {budgetAlerts.map((alert: any) => (
+              <div key={alert._id} className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="capitalize">{alert.category}</span>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                    alert.pct >= 100 ? 'bg-danger/10 text-danger' :
+                    alert.pct >= 90 ? 'bg-danger/10 text-danger' :
+                    'bg-warning/10 text-warning'
+                  }`}>
+                    {Math.round(alert.pct)}%
+                  </span>
+                </div>
+                <span className="text-gray-500 dark:text-gray-400">
+                  {fmt(alert.spent)} / {fmt(alert.amount)}
+                </span>
+              </div>
+            ))}
           </div>
         </motion.div>
       )}
@@ -1401,12 +1476,22 @@ export default function DashboardPage() {
       <motion.div variants={item} className="card">
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <h3 className="text-base sm:text-lg font-bold">Recent Transactions</h3>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="text-sm px-3 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition font-semibold"
-          >
-            {showFilters ? 'Hide Filters' : 'Show Filters'}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={exportCSV}
+              disabled={!transactions.length}
+              className="text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition font-semibold flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Export
+            </button>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="text-sm px-3 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition font-semibold"
+            >
+              {showFilters ? 'Hide Filters' : 'Show Filters'}
+            </button>
+          </div>
         </div>
 
         {/* Filter Section */}

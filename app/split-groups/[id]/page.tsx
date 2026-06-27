@@ -384,6 +384,7 @@ export default function SplitGroupPage() {
     isProcessing: false,
   });
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSettling, setIsSettling] = useState(false);
   const [isSendingReminders, setIsSendingReminders] = useState(false);
   const [showScheduleMenu, setShowScheduleMenu] = useState(false);
   const [reminderSchedule, setReminderSchedule] = useState<{ frequency: string; cronExpression: string; time: string } | null>(null);
@@ -733,6 +734,33 @@ export default function SplitGroupPage() {
     });
   };
 
+  const handleSettleGroup = () => {
+    const totalYouOwe = settlements.filter((s) => s.type === 'owes').reduce((sum, s) => sum + s.amount, 0);
+    const totalOwedToYou = settlements.filter((s) => s.type === 'owed').reduce((sum, s) => sum + s.amount, 0);
+    const hasOutstanding = totalYouOwe > 0 || totalOwedToYou > 0;
+    const warningMsg = hasOutstanding
+      ? `There are still outstanding balances (you owe ${fmt(totalYouOwe)}, owed to you ${fmt(totalOwedToYou)}). Settling will mark the entire group as settled regardless. This cannot be undone.`
+      : 'All balances are cleared. Mark this group as settled? This cannot be undone.';
+
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Settle Group',
+      message: warningMsg,
+      onConfirm: async () => {
+        setIsSettling(true);
+        try {
+          await axios.post(`/api/split-groups/${id}/settle`);
+          notify('success', 'Group Settled', 'This split group has been marked as settled.');
+          setTimeout(() => globalThis.location.reload(), 1500);
+        } catch (err: any) {
+          notify('error', 'Settle Failed', err.response?.data?.message || 'Failed to settle group');
+        } finally {
+          setIsSettling(false);
+        }
+      },
+    });
+  };
+
   const handleSendReminders = async () => {
     if (!settlements.some((s) => s.type === 'owed')) {
       notify('info', 'No Reminders Needed', 'No one owes you in this group');
@@ -1055,14 +1083,25 @@ export default function SplitGroupPage() {
           </button>
           <div className="flex gap-2 flex-wrap">
             {!isSettled && (
-              <button
-                onClick={() => setShowTransactionModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition text-sm font-semibold"
-                title="Add Expense"
-              >
-                <DollarSign className="w-4 h-4" />
-                <span className="hidden sm:inline">Add Expense</span>
-              </button>
+              <>
+                <button
+                  onClick={() => setShowTransactionModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition text-sm font-semibold"
+                  title="Add Expense"
+                >
+                  <DollarSign className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add Expense</span>
+                </button>
+                <button
+                  onClick={handleSettleGroup}
+                  disabled={isSettling}
+                  className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success/90 transition text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Settle Group"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="hidden sm:inline">{isSettling ? 'Settling...' : 'Settle Group'}</span>
+                </button>
+              </>
             )}
             {/* Feature #10: Export buttons */}
             <button
@@ -1193,12 +1232,17 @@ export default function SplitGroupPage() {
                 const memberSettlement = settlements.find(
                   (s) => phonesMatch(s.memberPhone, contact.phone) || s.memberName === contact.name
                 );
+                const balanceBorderClass = memberSettlement
+                  ? memberSettlement.type === 'owed'
+                    ? 'border-l-4 border-l-success'
+                    : 'border-l-4 border-l-warning'
+                  : 'border-l-4 border-l-gray-300 dark:border-l-gray-600';
 
                 return (
                   <div
                     key={contact.contactId}
                     onClick={() => setSelectedMember(contact)}
-                    className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary dark:hover:border-primary transition cursor-pointer"
+                    className={`p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary dark:hover:border-primary transition cursor-pointer ${balanceBorderClass}`}
                   >
                     <div className="flex items-center justify-between">
                       <div>
@@ -1211,10 +1255,24 @@ export default function SplitGroupPage() {
                         <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                           {fmt(memberTotal)}
                         </p>
-                        {memberSettlement && (
-                          <p className={`text-xs mt-1 ${memberSettlement.type === 'owes' ? 'text-warning' : 'text-success'}`}>
+                        {memberSettlement ? (
+                          <span className={`inline-flex items-center gap-1 text-xs font-medium mt-1 px-2 py-0.5 rounded-full ${
+                            memberSettlement.type === 'owes'
+                              ? 'bg-warning/10 text-warning'
+                              : 'bg-success/10 text-success'
+                          }`}>
+                            {memberSettlement.type === 'owes' ? (
+                              <TrendingDown className="w-3 h-3" />
+                            ) : (
+                              <TrendingUp className="w-3 h-3" />
+                            )}
                             {memberSettlement.type === 'owes' ? 'You owe' : 'Owes you'} {fmt(memberSettlement.amount)}
-                          </p>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-xs font-medium mt-1 px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                            <CheckCircle className="w-3 h-3" />
+                            Settled
+                          </span>
                         )}
                       </div>
                     </div>
@@ -2068,6 +2126,56 @@ export default function SplitGroupPage() {
               )}
             </div>
 
+            {(() => {
+              const totalYouOwe = settlements.filter((s) => s.type === 'owes').reduce((sum, s) => sum + s.amount, 0);
+              const totalOwedToYou = settlements.filter((s) => s.type === 'owed').reduce((sum, s) => sum + s.amount, 0);
+              const netBalance = totalOwedToYou - totalYouOwe;
+
+              if (isSettled || (totalYouOwe === 0 && totalOwedToYou === 0)) return null;
+
+              return (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                  <div className="p-4 bg-warning/5 border border-warning/20 rounded-xl text-center">
+                    <p className="text-xs font-semibold text-warning uppercase tracking-wide mb-1">You Owe</p>
+                    <p className="text-xl font-bold text-warning">{fmt(totalYouOwe)}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {settlements.filter((s) => s.type === 'owes').length} member{settlements.filter((s) => s.type === 'owes').length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-success/5 border border-success/20 rounded-xl text-center">
+                    <p className="text-xs font-semibold text-success uppercase tracking-wide mb-1">Owed to You</p>
+                    <p className="text-xl font-bold text-success">{fmt(totalOwedToYou)}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {settlements.filter((s) => s.type === 'owed').length} member{settlements.filter((s) => s.type === 'owed').length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <div className={`p-4 rounded-xl text-center border ${
+                    netBalance > 0
+                      ? 'bg-success/5 border-success/20'
+                      : netBalance < 0
+                        ? 'bg-warning/5 border-warning/20'
+                        : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+                  }`}>
+                    <p className={`text-xs font-semibold uppercase tracking-wide mb-1 ${
+                      netBalance > 0 ? 'text-success' : netBalance < 0 ? 'text-warning' : 'text-gray-500 dark:text-gray-400'
+                    }`}>
+                      Net Balance
+                    </p>
+                    <p className={`text-xl font-bold ${
+                      netBalance > 0 ? 'text-success' : netBalance < 0 ? 'text-warning' : 'text-gray-600 dark:text-gray-300'
+                    }`}>
+                      {netBalance > 0 ? '+' : ''}{fmt(Math.abs(netBalance))}
+                    </p>
+                    <p className={`text-xs mt-1 ${
+                      netBalance > 0 ? 'text-success/70' : netBalance < 0 ? 'text-warning/70' : 'text-gray-500 dark:text-gray-400'
+                    }`}>
+                      {netBalance > 0 ? 'You get back overall' : netBalance < 0 ? 'You owe overall' : 'All even'}
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* Feature #9: Simplified debts view */}
             {showSimplified && simplifiedDebts.length > 0 ? (
               <div className="space-y-4">
@@ -2349,19 +2457,38 @@ export default function SplitGroupPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-dark-card rounded-2xl shadow-2xl max-w-md w-full p-8">
             {paymentSuccess ? (
-              <div className="text-center">
-                <CheckCircle className="w-12 h-12 text-success mx-auto mb-4" />
-                <p className="font-semibold text-success mb-2">Payment Initiated!</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{paymentSuccess}</p>
+              <div className="text-center py-4">
+                <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-10 h-10 text-success" />
+                </div>
+                <p className="text-lg font-bold text-success mb-2">Payment Recorded</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{paymentSuccess}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">Refreshing in a moment...</p>
               </div>
             ) : (
               <>
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                  Pay {paymentModal.memberName}
+                  Record Payment
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-                  Total owed: {fmt(paymentModal.totalAmount)}
-                </p>
+                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg mb-6">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-primary text-sm font-bold">
+                      {(user?.firstName || user?.displayName || 'Y').charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Send className="w-4 h-4" />
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-warning/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-warning text-sm font-bold">
+                      {paymentModal.memberName.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{paymentModal.memberName}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Outstanding: {fmt(paymentModal.totalAmount)}</p>
+                  </div>
+                </div>
 
                 <div className="space-y-4">
                   <div>

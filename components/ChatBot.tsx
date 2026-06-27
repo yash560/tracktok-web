@@ -14,7 +14,7 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
 const SUGGESTIONS = [
   'How much did I spend this month?',
@@ -43,6 +43,18 @@ export const ChatBot: React.FC<{ onTransactionChange?: () => void }> = ({ onTran
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
+
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+      const welcomeMsg: ChatMessage = {
+        id: 'welcome',
+        role: 'assistant',
+        content: "Hi! I'm your finance buddy. Ask me about your spending, add expenses, or get insights. Try one of the suggestions below!",
+        timestamp: new Date(),
+      };
+      setMessages([welcomeMsg]);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen && !isMinimized) {
@@ -98,15 +110,21 @@ export const ChatBot: React.FC<{ onTransactionChange?: () => void }> = ({ onTran
 
       setMessages(prev => [...prev, assistantMsg]);
 
-      const mutationTools = ['add_expense', 'update_expense_fields', 'update_expense_split'];
+      const mutationTools = ['add_expense', 'update_expense_fields', 'update_expense_split', 'delete_expense'];
       if (actions?.some((a: string) => mutationTools.includes(a))) {
         onTransactionChange?.();
       }
     } catch (err: any) {
+      const status = err.response?.status;
+      let errorContent = 'Something went wrong. Please try again.';
+      if (status === 401) errorContent = 'Session expired. Please refresh the page.';
+      else if (status === 429) errorContent = 'Too many requests. Please wait a moment.';
+      else if (!err.response) errorContent = 'Network error. Check your connection.';
+
       const errorMsg: ChatMessage = {
         id: `error-${Date.now()}`,
         role: 'assistant',
-        content: err.response?.data?.error || 'Something went wrong. Please try again.',
+        content: errorContent,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMsg]);
@@ -116,7 +134,12 @@ export const ChatBot: React.FC<{ onTransactionChange?: () => void }> = ({ onTran
   };
 
   const clearChat = () => {
-    setMessages([]);
+    setMessages([{
+      id: 'welcome',
+      role: 'assistant',
+      content: "Hi! I'm your finance buddy. Ask me about your spending, add expenses, or get insights. Try one of the suggestions below!",
+      timestamp: new Date(),
+    }]);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -272,15 +295,15 @@ export const ChatBot: React.FC<{ onTransactionChange?: () => void }> = ({ onTran
         ))}
 
         {loading && (
-          <div className="flex gap-2">
-            <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center bg-gray-100 dark:bg-dark-bg text-primary dark:text-secondary">
-              <Bot className="w-3.5 h-3.5" />
+          <div className="flex items-start gap-2 mb-3">
+            <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Bot className="w-4 h-4 text-primary" />
             </div>
-            <div className="bg-gray-100 dark:bg-dark-bg rounded-2xl rounded-bl-md px-4 py-3">
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div className="bg-gray-100 dark:bg-gray-700 rounded-2xl rounded-tl-sm px-4 py-3">
+              <div className="flex gap-1">
+                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
             </div>
           </div>
