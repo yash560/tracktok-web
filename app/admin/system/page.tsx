@@ -72,6 +72,13 @@ function getToken(): string {
   return localStorage.getItem('auth_token') || '';
 }
 
+function resolveLastResult(lastResult: any): string {
+  if (typeof lastResult === 'object' && lastResult !== null) {
+    return lastResult.success ? 'success' : 'fail';
+  }
+  return lastResult || '';
+}
+
 function SettingsPanel({
   cron,
   onSave,
@@ -669,13 +676,13 @@ export default function SystemPage() {
                     <td className="px-4 py-3 text-gray-600 dark:text-gray-400 whitespace-nowrap">{timeAgo(job.lastExecutedAt)}</td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        job.lastResult === 'success'
+                        resolveLastResult(job.lastResult) === 'success'
                           ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                          : job.lastResult === 'fail'
+                          : resolveLastResult(job.lastResult) === 'fail'
                             ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                             : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
                       }`}>
-                        {job.lastResult || '-'}
+                        {resolveLastResult(job.lastResult) || '-'}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-gray-600 dark:text-gray-400 whitespace-nowrap">
