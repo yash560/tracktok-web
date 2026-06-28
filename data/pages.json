@@ -1,300 +1,488 @@
 {
-  "pages": [
-    {
-      "slug": "features",
-      "title": "Features",
-      "description": "Powerful AI finance features that make spending, saving, and sharing money feel effortless.",
-      "hero": {
-        "eyebrow": "Built for modern money",
-        "headline": "Features designed to help you control your cash with ease.",
-        "text": "TrackTok turns every transaction into a clear insight, with AI automation, smart categorization, and seamless split payments.",
-        "actions": [
-          { "label": "Start free", "href": "/register", "variant": "primary" },
-          { "label": "See pricing", "href": "/pricing", "variant": "secondary" }
-        ]
-      },
-      "sections": [
+    "pages": [
         {
-          "id": "core-features",
-          "type": "featureGrid",
-          "title": "Core features",
-          "subtitle": "Everything you need to track your money, without the clutter.",
-          "items": [
-            { "title": "Auto-detect Transactions", "description": "Capture spends from SMS, bank alerts, and UPI receipts automatically.", "icon": "Zap", "accent": "from-blue-500 to-cyan-500" },
-            { "title": "AI-Powered Analytics", "description": "Instant insights, trend summaries, and savings recommendations powered by AI.", "icon": "BarChart3", "accent": "from-purple-500 to-pink-500" },
-            { "title": "Smart Categorization", "description": "Automatically organizes every expense into meaningful categories.", "icon": "Tag", "accent": "from-pink-500 to-rose-500" },
-            { "title": "Shared Expenses", "description": "Split bills, track group spending, and settle up without manual math.", "icon": "Users", "accent": "from-amber-400 to-orange-500" },
-            { "title": "Location Insights", "description": "See your spending heatmap by city, merchant, and trip.", "icon": "MapPin", "accent": "from-sky-400 to-blue-500" },
-            { "title": "Chat-Based Reports", "description": "Ask TrackTok what you spent and get instant answers in plain language.", "icon": "MessageSquare", "accent": "from-emerald-400 to-teal-500" }
-          ]
-        },
-        {
-          "id": "why-it-works",
-          "type": "cards",
-          "title": "Why it works",
-          "subtitle": "The features behind the premium experience.",
-          "items": [
-            { "title": "Glassmorphism dashboard", "description": "A clean, spacious interface that feels like a luxury finance OS.", "icon": "Sparkles" },
-            { "title": "Secure by design", "description": "Bank-grade security with strong encryption and privacy defaults.", "icon": "ShieldCheck" },
-            { "title": "Built for growth", "description": "Scale from solo budgeting to family finance sharing with confidence.", "icon": "TrendingDown" }
-          ]
-        }
-      ]
-    },
-    {
-      "slug": "pricing",
-      "title": "Pricing",
-      "description": "Plans built for solo spenders, power users, and shared groups.",
-      "hero": {
-        "eyebrow": "Choose your vibe",
-        "headline": "Simple pricing for every finance journey.",
-        "text": "TrackTok gives you transparent plans with the power to track, save, and split smarter.",
-        "actions": [
-          { "label": "Start free", "href": "/register", "variant": "primary" },
-          { "label": "Contact sales", "href": "/contact", "variant": "secondary" }
-        ]
-      },
-      "sections": [
-        {
-          "id": "plans",
-          "type": "pricingGrid",
-          "title": "Flexible plans",
-          "subtitle": "From free basics to full-featured premium access.",
-          "items": [
-            { "name": "Starter", "price": "Free", "description": "Perfect for solo spenders who want essential AI tracking.", "bullets": ["1 connected account", "Weekly spend pulse", "Smart category tagging"], "featured": false },
-            { "name": "Pro", "price": "₹299/mo", "description": "Unlimited accounts, deeper analytics, and premium savings guidance.", "bullets": ["Unlimited accounts", "AI save suggestions", "Advanced budgets & goals"], "featured": true },
-            { "name": "Squad", "price": "₹499/mo", "description": "Shared wallets, group goals, and expenses built for teams.", "bullets": ["Group wallets", "Expense sharing", "Team reports"], "featured": false }
-          ]
-        },
-        {
-          "id": "pricing-benefits",
-          "type": "cards",
-          "title": "What you get",
-          "subtitle": "Everything you need to keep better financial habits.",
-          "items": [
-            { "title": "Unlimited accounts", "description": "Connect bank accounts, cards, wallets, and UPI in one place.", "icon": "Wallet" },
-            { "title": "Smart reminders", "description": "Never miss a bill or subscription renewal again.", "icon": "Bell" },
-            { "title": "Export reports", "description": "Download your statements, budgets, and savings plans on demand.", "icon": "Download" }
-          ]
-        }
-      ]
-    },
-    {
-      "slug": "security",
-      "title": "Security",
-      "description": "Fast, secure finance tools with strong encryption and privacy-first design.",
-      "hero": {
-        "eyebrow": "Security first",
-        "headline": "Built for trust, privacy, and peace of mind.",
-        "text": "TrackTok protects your data with enterprise-grade controls and clear policies you can trust.",
-        "actions": [
-          { "label": "Read privacy policy", "href": "/privacy", "variant": "secondary" },
-          { "label": "Get started", "href": "/register", "variant": "primary" }
-        ]
-      },
-      "sections": [
-        {
-          "id": "security-overview",
-          "type": "cards",
-          "title": "Security highlights",
-          "subtitle": "Your money story stays safe at every step.",
-          "items": [
-            { "title": "Bank-grade encryption", "description": "Data is encrypted in transit and at rest with industry-standard TLS and AES encryption.", "icon": "Shield" },
-            { "title": "Zero-knowledge privacy", "description": "We never sell your financial data and only use it to improve your experience.", "icon": "Lock" },
-            { "title": "Continuous monitoring", "description": "Real-time alerts and anomaly detection help keep your account secure.", "icon": "Bell" }
-          ]
-        },
-        {
-          "id": "security-principles",
-          "type": "text",
-          "title": "Our security principles",
-          "content": [
-            "Encryption is mandatory across all services.",
-            "Access is limited to verified systems and approved engineers.",
-            "Privacy defaults are enabled by design.",
-            "We perform regular security reviews and independent audits."
-          ]
-        }
-      ]
-    },
-    {
-      "slug": "about",
-      "title": "About",
-      "description": "A small team building premium AI finance tools for modern spenders.",
-      "hero": {
-        "eyebrow": "About TrackTok",
-        "headline": "A smarter way to see your money story.",
-        "text": "We built TrackTok to make finance feel less confusing and more empowering — with premium design and AI intelligence at the center.",
-        "actions": [
-          { "label": "Talk to us", "href": "/contact", "variant": "secondary" }
-        ]
-      },
-      "sections": [
-        {
-          "id": "our-story",
-          "type": "text",
-          "title": "Our story",
-          "content": [
-            "TrackTok started because finance apps felt clunky, noisy, and confusing.",
-            "We wanted a dashboard that felt calm, smart, and worthy of the premium finance insights it delivers.",
-            "Our mission is to give people clarity on their cash without adding another chore to their day."
-          ]
-        },
-        {
-          "id": "values",
-          "type": "cards",
-          "title": "What we believe",
-          "subtitle": "Design, trust, and intelligence for every user.",
-          "items": [
-            { "title": "Luxury simplicity", "description": "Less noise, more meaning — every element earns its place.", "icon": "Sparkles" },
-            { "title": "AI-native", "description": "Smart automation is built into every feature and dashboard summary.", "icon": "Brain" },
-            { "title": "User-first privacy", "description": "Your data belongs to you, and we keep it protected by default.", "icon": "ShieldCheck" }
-          ]
-        }
-      ]
-    },
-    {
-      "slug": "contact",
-      "title": "Contact",
-      "description": "Reach out for support, partnerships, or media inquiries.",
-      "hero": {
-        "eyebrow": "Contact",
-        "headline": "We’re here to help you with payments, security, and product questions.",
-        "text": "Whether you want support, want to partner, or just want to say hi, our team responds quickly.",
-        "actions": [
-          { "label": "Send a message", "href": "#contact-form", "variant": "primary" },
-          { "label": "Privacy policy", "href": "/privacy", "variant": "secondary" }
-        ]
-      },
-      "sections": [
-        {
-          "id": "contact-details",
-          "type": "contact",
-          "title": "Get in touch",
-          "subtitle": "Support requests are usually answered within one business day.",
-          "items": [
-            { "title": "Support", "value": "support@tracktok.app", "subtitle": "General help and account questions." },
-            { "title": "Partnerships", "value": "partners@tracktok.app", "subtitle": "API, integration, and business inquiries." },
-            { "title": "Press", "value": "press@tracktok.app", "subtitle": "Media and brand requests." }
-          ]
-        }
-      ]
-    },
-    {
-      "slug": "privacy",
-      "title": "Privacy",
-      "description": "Our privacy policy explains how your data is collected, used, and protected.",
-      "hero": {
-        "eyebrow": "Privacy",
-        "headline": "Your data is yours — and we keep it that way.",
-        "text": "We design our product with privacy-first defaults, transparent controls, and strong safeguards.",
-        "actions": [
-          { "label": "View terms", "href": "/terms", "variant": "secondary" },
-          { "label": "Start free", "href": "/register", "variant": "primary" }
-        ]
-      },
-      "sections": [
-        {
-          "id": "privacy-summary",
-          "type": "text",
-          "title": "Privacy highlights",
-          "content": [
-            "We only collect data needed to deliver the service.",
-            "We do not sell your data to third parties.",
-            "Your financial activity is encrypted and stored securely.",
-            "You can request data deletion at any time."
-          ]
-        }
-      ]
-    },
-    {
-      "slug": "terms",
-      "title": "Terms",
-      "description": "Terms of service for using TrackTok, including account rules and user obligations.",
-      "hero": {
-        "eyebrow": "Terms of Service",
-        "headline": "Know the basics of using TrackTok.",
-        "text": "Our terms cover accounts, payments, acceptable behavior, and how we help keep your data safe.",
-        "actions": [
-          { "label": "Start free", "href": "/register", "variant": "primary" }
-        ]
-      },
-      "sections": [
-        {
-          "id": "terms-summary",
-          "type": "text",
-          "title": "Key terms",
-          "content": [
-            "You must be 18+ to create an account and use TrackTok.",
-            "TrackTok is not a bank and does not provide financial advice.",
-            "You are responsible for maintaining your secure login credentials.",
-            "We may update these terms with notice when required."
-          ]
-        }
-      ]
-    },
-    {
-      "slug": "developer",
-      "title": "Developer Documentation",
-      "description": "API documentation and tools for developers building on TrackTok.",
-      "hero": {
-        "eyebrow": "Developer Docs",
-        "headline": "Build with the TrackTok API.",
-        "text": "Integrate spend tracking, analytics, and split payments into your own product with secure REST APIs.",
-        "actions": [
-          { "label": "View API reference", "href": "#api-reference", "variant": "primary" },
-          { "label": "Contact sales", "href": "/contact", "variant": "secondary" }
-        ]
-      },
-      "sections": [
-        {
-          "id": "api-reference",
-          "type": "apiDocs",
-          "title": "API reference",
-          "subtitle": "Ready-to-use endpoints for finance, accounts, and analytics.",
-          "items": [
-            {
-              "path": "/api/auth/login",
-              "method": "POST",
-              "summary": "Authenticate a user and receive a bearer token.",
-              "requestBody": "{ \"email\": \"you@example.com\", \"password\": \"YourPassword123\" }",
-              "responseExample": "{ \"token\": \"eyJ...\", \"user\": { \"name\": \"Aisha\" } }"
+            "slug": "features",
+            "title": "Features",
+            "description": "Powerful AI finance features that make spending, saving, and sharing money feel effortless.",
+            "hero": {
+                "eyebrow": "Built for modern money",
+                "headline": "Features designed to help you control your cash with ease.",
+                "text": "TrackTok turns every transaction into a clear insight, with AI automation, smart categorization, and seamless split payments.",
+                "actions": [
+                    {
+                        "label": "Start free",
+                        "href": "/register",
+                        "variant": "primary"
+                    },
+                    {
+                        "label": "See pricing",
+                        "href": "/pricing",
+                        "variant": "secondary"
+                    }
+                ]
             },
-            {
-              "path": "/api/transactions",
-              "method": "GET",
-              "summary": "Fetch the authenticated user’s transaction history.",
-              "requestBody": "None",
-              "responseExample": "[{ \"id\": \"tx_123\", \"amount\": 1200, \"category\": \"Food\" }]"
-            },
-            {
-              "path": "/api/analytics/monthly",
-              "method": "GET",
-              "summary": "Retrieve monthly spending summaries and trends.",
-              "requestBody": "None",
-              "responseExample": "{ \"totalSpent\": 48750, \"topCategory\": \"Food\" }"
-            },
-            {
-              "path": "/api/split-groups",
-              "method": "POST",
-              "summary": "Create a new split group with members and shared expenses.",
-              "requestBody": "{ \"name\": \"Trip to Goa\", \"members\": [\"alice@example.com\", \"arjun@example.com\"] }",
-              "responseExample": "{ \"groupId\": \"sg_789\", \"status\": \"created\" }"
-            }
-          ]
+            "sections": [
+                {
+                    "id": "core-features",
+                    "type": "featureGrid",
+                    "title": "Core features",
+                    "subtitle": "Everything you need to track your money, without the clutter.",
+                    "items": [
+                        {
+                            "title": "Auto-detect Transactions",
+                            "description": "Capture spends from SMS, bank alerts, and UPI receipts automatically.",
+                            "icon": "Zap",
+                            "accent": "from-blue-500 to-cyan-500"
+                        },
+                        {
+                            "title": "AI-Powered Analytics",
+                            "description": "Instant insights, trend summaries, and savings recommendations powered by AI.",
+                            "icon": "BarChart3",
+                            "accent": "from-purple-500 to-pink-500"
+                        },
+                        {
+                            "title": "Smart Categorization",
+                            "description": "Automatically organizes every expense into meaningful categories.",
+                            "icon": "Tag",
+                            "accent": "from-pink-500 to-rose-500"
+                        },
+                        {
+                            "title": "Shared Expenses",
+                            "description": "Split bills, track group spending, and settle up without manual math.",
+                            "icon": "Users",
+                            "accent": "from-amber-400 to-orange-500"
+                        },
+                        {
+                            "title": "Location Insights",
+                            "description": "See your spending heatmap by city, merchant, and trip.",
+                            "icon": "MapPin",
+                            "accent": "from-sky-400 to-blue-500"
+                        },
+                        {
+                            "title": "Chat-Based Reports",
+                            "description": "Ask TrackTok what you spent and get instant answers in plain language.",
+                            "icon": "MessageSquare",
+                            "accent": "from-emerald-400 to-teal-500"
+                        }
+                    ]
+                },
+                {
+                    "id": "why-it-works",
+                    "type": "cards",
+                    "title": "Why it works",
+                    "subtitle": "The features behind the premium experience.",
+                    "items": [
+                        {
+                            "title": "Glassmorphism dashboard",
+                            "description": "A clean, spacious interface that feels like a luxury finance OS.",
+                            "icon": "Sparkles"
+                        },
+                        {
+                            "title": "Secure by design",
+                            "description": "Bank-grade security with strong encryption and privacy defaults.",
+                            "icon": "ShieldCheck"
+                        },
+                        {
+                            "title": "Built for growth",
+                            "description": "Scale from solo budgeting to family finance sharing with confidence.",
+                            "icon": "TrendingDown"
+                        }
+                    ]
+                }
+            ]
         },
         {
-          "id": "developer-notes",
-          "type": "cards",
-          "title": "Developer workflow",
-          "subtitle": "APIs built for fast integration and secure data exchange.",
-          "items": [
-            { "title": "Bearer auth", "description": "Use OAuth tokens in the Authorization header for every request.", "icon": "Shield" },
-            { "title": "Sandbox ready", "description": "Test integrations safely before launching with production credentials.", "icon": "ShieldCheck" },
-            { "title": "Clear error messages", "description": "Every response includes structured errors for fast debugging.", "icon": "AlertTriangle" }
-          ]
+            "slug": "pricing",
+            "title": "Pricing",
+            "description": "Plans built for solo spenders, power users, and shared groups.",
+            "hero": {
+                "eyebrow": "Choose your vibe",
+                "headline": "Simple pricing for every finance journey.",
+                "text": "TrackTok gives you transparent plans with the power to track, save, and split smarter.",
+                "actions": [
+                    {
+                        "label": "Start free",
+                        "href": "/register",
+                        "variant": "primary"
+                    },
+                    {
+                        "label": "Contact sales",
+                        "href": "/contact",
+                        "variant": "secondary"
+                    }
+                ]
+            },
+            "sections": [
+                {
+                    "id": "plans",
+                    "type": "pricingGrid",
+                    "title": "Flexible plans",
+                    "subtitle": "From free basics to full-featured premium access.",
+                    "items": [
+                        {
+                            "name": "Starter",
+                            "price": "Free",
+                            "description": "Perfect for solo spenders who want essential AI tracking.",
+                            "bullets": [
+                                "1 connected account",
+                                "Weekly spend pulse",
+                                "Smart category tagging"
+                            ],
+                            "featured": false
+                        },
+                        {
+                            "name": "Pro",
+                            "price": "₹299/mo",
+                            "description": "Unlimited accounts, deeper analytics, and premium savings guidance.",
+                            "bullets": [
+                                "Unlimited accounts",
+                                "AI save suggestions",
+                                "Advanced budgets & goals"
+                            ],
+                            "featured": true
+                        },
+                        {
+                            "name": "Squad",
+                            "price": "₹499/mo",
+                            "description": "Shared wallets, group goals, and expenses built for teams.",
+                            "bullets": [
+                                "Group wallets",
+                                "Expense sharing",
+                                "Team reports"
+                            ],
+                            "featured": false
+                        }
+                    ]
+                },
+                {
+                    "id": "pricing-benefits",
+                    "type": "cards",
+                    "title": "What you get",
+                    "subtitle": "Everything you need to keep better financial habits.",
+                    "items": [
+                        {
+                            "title": "Unlimited accounts",
+                            "description": "Connect bank accounts, cards, wallets, and UPI in one place.",
+                            "icon": "Wallet"
+                        },
+                        {
+                            "title": "Smart reminders",
+                            "description": "Never miss a bill or subscription renewal again.",
+                            "icon": "Bell"
+                        },
+                        {
+                            "title": "Export reports",
+                            "description": "Download your statements, budgets, and savings plans on demand.",
+                            "icon": "Download"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "slug": "security",
+            "title": "Security",
+            "description": "Fast, secure finance tools with strong encryption and privacy-first design.",
+            "hero": {
+                "eyebrow": "Security first",
+                "headline": "Built for trust, privacy, and peace of mind.",
+                "text": "TrackTok protects your data with enterprise-grade controls and clear policies you can trust.",
+                "actions": [
+                    {
+                        "label": "Read privacy policy",
+                        "href": "/privacy",
+                        "variant": "secondary"
+                    },
+                    {
+                        "label": "Get started",
+                        "href": "/register",
+                        "variant": "primary"
+                    }
+                ]
+            },
+            "sections": [
+                {
+                    "id": "security-overview",
+                    "type": "cards",
+                    "title": "Security highlights",
+                    "subtitle": "Your money story stays safe at every step.",
+                    "items": [
+                        {
+                            "title": "Bank-grade encryption",
+                            "description": "Data is encrypted in transit and at rest with industry-standard TLS and AES encryption.",
+                            "icon": "Shield"
+                        },
+                        {
+                            "title": "Zero-knowledge privacy",
+                            "description": "We never sell your financial data and only use it to improve your experience.",
+                            "icon": "Lock"
+                        },
+                        {
+                            "title": "Continuous monitoring",
+                            "description": "Real-time alerts and anomaly detection help keep your account secure.",
+                            "icon": "Bell"
+                        }
+                    ]
+                },
+                {
+                    "id": "security-principles",
+                    "type": "text",
+                    "title": "Our security principles",
+                    "content": [
+                        "Encryption is mandatory across all services.",
+                        "Access is limited to verified systems and approved engineers.",
+                        "Privacy defaults are enabled by design.",
+                        "We perform regular security reviews and independent audits."
+                    ]
+                }
+            ]
+        },
+        {
+            "slug": "about",
+            "title": "About",
+            "description": "A small team building premium AI finance tools for modern spenders.",
+            "hero": {
+                "eyebrow": "About TrackTok",
+                "headline": "A smarter way to see your money story.",
+                "text": "We built TrackTok to make finance feel less confusing and more empowering — with premium design and AI intelligence at the center.",
+                "actions": [
+                    {
+                        "label": "Talk to us",
+                        "href": "/contact",
+                        "variant": "secondary"
+                    }
+                ]
+            },
+            "sections": [
+                {
+                    "id": "our-story",
+                    "type": "text",
+                    "title": "Our story",
+                    "content": [
+                        "TrackTok started because finance apps felt clunky, noisy, and confusing.",
+                        "We wanted a dashboard that felt calm, smart, and worthy of the premium finance insights it delivers.",
+                        "Our mission is to give people clarity on their cash without adding another chore to their day."
+                    ]
+                },
+                {
+                    "id": "values",
+                    "type": "cards",
+                    "title": "What we believe",
+                    "subtitle": "Design, trust, and intelligence for every user.",
+                    "items": [
+                        {
+                            "title": "Luxury simplicity",
+                            "description": "Less noise, more meaning — every element earns its place.",
+                            "icon": "Sparkles"
+                        },
+                        {
+                            "title": "AI-native",
+                            "description": "Smart automation is built into every feature and dashboard summary.",
+                            "icon": "Brain"
+                        },
+                        {
+                            "title": "User-first privacy",
+                            "description": "Your data belongs to you, and we keep it protected by default.",
+                            "icon": "ShieldCheck"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "slug": "contact",
+            "title": "Contact",
+            "description": "Reach out for support, partnerships, or media inquiries.",
+            "hero": {
+                "eyebrow": "Contact",
+                "headline": "We’re here to help you with payments, security, and product questions.",
+                "text": "Whether you want support, want to partner, or just want to say hi, our team responds quickly.",
+                "actions": [
+                    {
+                        "label": "Send a message",
+                        "href": "#contact-form",
+                        "variant": "primary"
+                    },
+                    {
+                        "label": "Privacy policy",
+                        "href": "/privacy",
+                        "variant": "secondary"
+                    }
+                ]
+            },
+            "sections": [
+                {
+                    "id": "contact-details",
+                    "type": "contact",
+                    "title": "Get in touch",
+                    "subtitle": "Support requests are usually answered within one business day.",
+                    "items": [
+                        {
+                            "title": "Support",
+                            "value": "support@tracktok.app",
+                            "subtitle": "General help and account questions."
+                        },
+                        {
+                            "title": "Partnerships",
+                            "value": "partners@tracktok.app",
+                            "subtitle": "API, integration, and business inquiries."
+                        },
+                        {
+                            "title": "Press",
+                            "value": "press@tracktok.app",
+                            "subtitle": "Media and brand requests."
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "slug": "privacy",
+            "title": "Privacy",
+            "description": "Our privacy policy explains how your data is collected, used, and protected.",
+            "hero": {
+                "eyebrow": "Privacy",
+                "headline": "Your data is yours — and we keep it that way.",
+                "text": "We design our product with privacy-first defaults, transparent controls, and strong safeguards.",
+                "actions": [
+                    {
+                        "label": "View terms",
+                        "href": "/terms",
+                        "variant": "secondary"
+                    },
+                    {
+                        "label": "Start free",
+                        "href": "/register",
+                        "variant": "primary"
+                    }
+                ]
+            },
+            "sections": [
+                {
+                    "id": "privacy-summary",
+                    "type": "text",
+                    "title": "Privacy highlights",
+                    "content": [
+                        "We only collect data needed to deliver the service.",
+                        "We do not sell your data to third parties.",
+                        "Your financial activity is encrypted and stored securely.",
+                        "You can request data deletion at any time."
+                    ]
+                }
+            ]
+        },
+        {
+            "slug": "terms",
+            "title": "Terms",
+            "description": "Terms of service for using TrackTok, including account rules and user obligations.",
+            "hero": {
+                "eyebrow": "Terms of Service",
+                "headline": "Know the basics of using TrackTok.",
+                "text": "Our terms cover accounts, payments, acceptable behavior, and how we help keep your data safe.",
+                "actions": [
+                    {
+                        "label": "Start free",
+                        "href": "/register",
+                        "variant": "primary"
+                    }
+                ]
+            },
+            "sections": [
+                {
+                    "id": "terms-summary",
+                    "type": "text",
+                    "title": "Key terms",
+                    "content": [
+                        "You must be 18+ to create an account and use TrackTok.",
+                        "TrackTok is not a bank and does not provide financial advice.",
+                        "You are responsible for maintaining your secure login credentials.",
+                        "We may update these terms with notice when required."
+                    ]
+                }
+            ]
+        },
+        {
+            "slug": "developer",
+            "title": "Developer Documentation",
+            "description": "API documentation and tools for developers building on TrackTok.",
+            "hero": {
+                "eyebrow": "Developer Docs",
+                "headline": "Build with the TrackTok API.",
+                "text": "Integrate spend tracking, analytics, and split payments into your own product with secure REST APIs.",
+                "actions": [
+                    {
+                        "label": "View API reference",
+                        "href": "#api-reference",
+                        "variant": "primary"
+                    },
+                    {
+                        "label": "Contact sales",
+                        "href": "/contact",
+                        "variant": "secondary"
+                    }
+                ]
+            },
+            "sections": [
+                {
+                    "id": "api-reference",
+                    "type": "apiDocs",
+                    "title": "API reference",
+                    "subtitle": "Ready-to-use endpoints for finance, accounts, and analytics.",
+                    "items": [
+                        {
+                            "path": "/api/auth/login",
+                            "method": "POST",
+                            "summary": "Authenticate a user and receive a bearer token.",
+                            "requestBody": "{ \"email\": \"you@example.com\", \"password\": \"YourPassword123\" }",
+                            "responseExample": "{ \"token\": \"eyJ...\", \"user\": { \"name\": \"Aisha\" } }"
+                        },
+                        {
+                            "path": "/api/transactions",
+                            "method": "GET",
+                            "summary": "Fetch the authenticated user’s transaction history.",
+                            "requestBody": "None",
+                            "responseExample": "[{ \"id\": \"tx_123\", \"amount\": 1200, \"category\": \"Food\" }]"
+                        },
+                        {
+                            "path": "/api/analytics/monthly",
+                            "method": "GET",
+                            "summary": "Retrieve monthly spending summaries and trends.",
+                            "requestBody": "None",
+                            "responseExample": "{ \"totalSpent\": 48750, \"topCategory\": \"Food\" }"
+                        },
+                        {
+                            "path": "/api/split-groups",
+                            "method": "POST",
+                            "summary": "Create a new split group with members and shared expenses.",
+                            "requestBody": "{ \"name\": \"Trip to Goa\", \"members\": [\"alice@example.com\", \"arjun@example.com\"] }",
+                            "responseExample": "{ \"groupId\": \"sg_789\", \"status\": \"created\" }"
+                        }
+                    ]
+                },
+                {
+                    "id": "developer-notes",
+                    "type": "cards",
+                    "title": "Developer workflow",
+                    "subtitle": "APIs built for fast integration and secure data exchange.",
+                    "items": [
+                        {
+                            "title": "Bearer auth",
+                            "description": "Use OAuth tokens in the Authorization header for every request.",
+                            "icon": "Shield"
+                        },
+                        {
+                            "title": "Sandbox ready",
+                            "description": "Test integrations safely before launching with production credentials.",
+                            "icon": "ShieldCheck"
+                        },
+                        {
+                            "title": "Clear error messages",
+                            "description": "Every response includes structured errors for fast debugging.",
+                            "icon": "AlertTriangle"
+                        }
+                    ]
+                }
+            ]
         }
-      ]
-    }
-  ]
+    ]
 }

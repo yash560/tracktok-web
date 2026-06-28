@@ -3,10 +3,10 @@ import { getPageData } from '@/lib/content';
 import { notFound } from 'next/navigation';
 
 export default function FeaturesPage() {
-  const pageData = getPageData('features');
-  if (!pageData) {
-    notFound();
-  }
+    const pageData = getPageData('features');
+    if (!pageData) {
+        notFound();
+    }
 
-  return <MarketingPage pageData={pageData} />;
+    return <MarketingPage pageData={pageData} />;
 }

@@ -103,8 +103,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
                   href={item.href}
                   onClick={() => setOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition ${isActive
-                      ? 'bg-primary text-white shadow-lg'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    ? 'bg-primary text-white shadow-lg'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -125,9 +125,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
                     <span className="font-semibold">Split Groups</span>
                   </div>
                   <ChevronDown
-                    className={`w-4 h-4 transition-transform ${
-                      expandSplits ? 'rotate-180' : ''
-                    }`}
+                    className={`w-4 h-4 transition-transform ${expandSplits ? 'rotate-180' : ''
+                      }`}
                   />
                 </button>
 
@@ -145,11 +144,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
                             key={group._id}
                             href={`/split-groups/${group._id}`}
                             onClick={() => setOpen(false)}
-                            className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition ${
-                              isActive
+                            className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition ${isActive
                                 ? 'bg-primary/10 text-primary dark:text-primary'
                                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                            }`}
+                              }`}
                           >
                             <span className="font-medium truncate">{group.name}</span>
                           </Link>
@@ -167,11 +165,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
               <Link
                 href="/admin"
                 onClick={() => setOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition ${
-                  pathname.startsWith('/admin')
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition ${pathname.startsWith('/admin')
                     ? 'bg-indigo-600 text-white'
                     : 'text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'
-                }`}
+                  }`}
               >
                 <Shield className="w-5 h-5" />
                 <span className="font-semibold">Admin Panel</span>
