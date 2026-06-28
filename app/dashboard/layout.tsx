@@ -23,7 +23,7 @@ export default function DashboardLayout({
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 dark:bg-dark-bg">
+      <div className="min-h-screen bg-skin-base dark:bg-dark-bg text-skin-base">
         <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
 
         <div className="md:pl-64 flex flex-col min-h-screen">
@@ -33,7 +33,7 @@ export default function DashboardLayout({
             onSearchClick={() => setCommandPaletteOpen(true)}
           />
 
-          <main className="flex-1 p-6 md:p-8">
+          <main className="flex-1 px-6 py-10 md:px-10 md:py-12 lg:px-12 lg:py-14">
             <div className="max-w-7xl mx-auto">
               <ErrorBoundary>{children}</ErrorBoundary>
             </div>

@@ -9,40 +9,40 @@
 
 :root {
   /* Brand */
-  --color-primary: #2F2E51;
-  --color-primary-light: #47468A;
-  --color-primary-dark: #232247;
-  --color-secondary: #8C7DFF;
-  --color-secondary-light: #A99BFF;
-  --color-secondary-dark: #6B5CE7;
+  --color-primary: #6C63FF;
+  --color-primary-light: #8F7CFF;
+  --color-primary-dark: #524CD6;
+  --color-secondary: #A855F7;
+  --color-secondary-light: #C47AFF;
+  --color-secondary-dark: #7A3CD5;
   --color-accent: #FBA94D;
-  --color-accent-light: #FCC97D;
-  --color-accent-dark: #E8922A;
+  --color-accent-light: #FED28C;
+  --color-accent-dark: #E78E28;
 
   /* Semantic */
-  --color-success: #4DD69B;
-  --color-success-light: #7DE4B8;
-  --color-success-dark: #2AB87A;
-  --color-danger: #F37373;
-  --color-danger-light: #F79A9A;
-  --color-danger-dark: #E04B4B;
-  --color-warning: #FBA94D;
-  --color-warning-light: #FCC97D;
-  --color-warning-dark: #E8922A;
+  --color-success: #22C55E;
+  --color-success-light: #7EE3A6;
+  --color-success-dark: #158646;
+  --color-danger: #EF4444;
+  --color-danger-light: #FCA5A5;
+  --color-danger-dark: #DC2626;
+  --color-warning: #F59E0B;
+  --color-warning-light: #FCD34D;
+  --color-warning-dark: #B45309;
   --color-info: #5B9BF5;
-  --color-info-light: #89B8F8;
-  --color-info-dark: #3A7DE0;
+  --color-info-light: #A7C9FF;
+  --color-info-dark: #2B6CB0;
 
   /* Surfaces */
-  --color-bg: #FFFFFF;
-  --color-bg-alt: #F8F9FA;
-  --color-surface: #F5F5F5;
-  --color-surface-hover: #EBEBEB;
-  --color-surface-active: #E0E0E0;
+  --color-bg: #FAFBFF;
+  --color-bg-alt: #F4F5FB;
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #F3F4FB;
+  --color-surface-active: #E8EAF4;
   --color-elevated: #FFFFFF;
 
   /* Text */
-  --color-text: #1A1A2E;
+  --color-text: #111827;
   --color-text-secondary: #6B7280;
   --color-text-tertiary: #9CA3AF;
   --color-text-inverse: #FFFFFF;
@@ -50,109 +50,109 @@
   --color-text-on-secondary: #FFFFFF;
 
   /* Borders */
-  --color-border: #E5E7EB;
-  --color-border-light: #F3F4F6;
-  --color-border-focus: #8C7DFF;
+  --color-border: rgba(0, 0, 0, 0.06);
+  --color-border-light: rgba(15, 23, 42, 0.08);
+  --color-border-focus: #6C63FF;
 
   /* Shadows */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12);
-  --shadow-primary: 0 10px 30px rgba(47, 46, 81, 0.2);
-  --shadow-secondary: 0 10px 30px rgba(140, 125, 255, 0.2);
-  --shadow-glow: 0 0 20px rgba(140, 125, 255, 0.15);
+  --shadow-xs: 0 4px 12px rgba(17, 24, 39, 0.04);
+  --shadow-sm: 0 8px 30px rgba(17, 24, 39, 0.06);
+  --shadow-md: 0 12px 40px rgba(17, 24, 39, 0.08);
+  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.08);
+  --shadow-xl: 0 32px 90px rgba(17, 24, 39, 0.1);
+  --shadow-primary: 0 24px 70px rgba(108, 99, 255, 0.16);
+  --shadow-secondary: 0 20px 60px rgba(168, 101, 255, 0.15);
+  --shadow-glow: 0 0 26px rgba(108, 99, 255, 0.16);
 
   /* Radius */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
+  --radius-sm: 10px;
+  --radius-md: 18px;
+  --radius-lg: 28px;
+  --radius-xl: 32px;
   --radius-full: 9999px;
 
   /* Sidebar (dashboard) */
   --sidebar-width: 260px;
   --sidebar-collapsed-width: 72px;
-  --sidebar-bg: #2F2E51;
-  --sidebar-text: rgba(255, 255, 255, 0.7);
-  --sidebar-text-active: #FFFFFF;
-  --sidebar-item-hover: rgba(255, 255, 255, 0.08);
-  --sidebar-item-active: rgba(140, 125, 255, 0.2);
+  --sidebar-bg: rgba(255, 255, 255, 0.96);
+  --sidebar-text: rgba(17, 24, 39, 0.72);
+  --sidebar-text-active: #111827;
+  --sidebar-item-hover: rgba(108, 99, 255, 0.08);
+  --sidebar-item-active: rgba(108, 99, 255, 0.12);
 
   /* Navbar */
-  --navbar-height: 64px;
-  --navbar-bg: rgba(255, 255, 255, 0.8);
-  --navbar-border: var(--color-border-light);
+  --navbar-height: 88px;
+  --navbar-bg: rgba(255, 255, 255, 0.75);
+  --navbar-border: rgba(0, 0, 0, 0.05);
 }
 
 .dark {
   /* Brand stays same */
-  --color-primary: #47468A;
-  --color-primary-light: #5D5CA8;
-  --color-primary-dark: #2F2E51;
-  --color-secondary: #A99BFF;
-  --color-secondary-light: #C4BAFF;
-  --color-secondary-dark: #8C7DFF;
-  --color-accent: #FCC97D;
+  --color-primary: #8F7CFF;
+  --color-primary-light: #AFA0FF;
+  --color-primary-dark: #6C5DD6;
+  --color-secondary: #C47AFF;
+  --color-secondary-light: #D9B7FF;
+  --color-secondary-dark: #8F5AE8;
+  --color-accent: #FBC57F;
   --color-accent-light: #FDD9A0;
-  --color-accent-dark: #FBA94D;
+  --color-accent-dark: #F7A52C;
 
   /* Semantic */
-  --color-success: #7DE4B8;
-  --color-success-light: #A5EDD0;
-  --color-success-dark: #4DD69B;
+  --color-success: #7EE3A6;
+  --color-success-light: #B8F0C8;
+  --color-success-dark: #34A56C;
   --color-danger: #F79A9A;
-  --color-danger-light: #FABCBC;
-  --color-danger-dark: #F37373;
-  --color-warning: #FCC97D;
-  --color-warning-light: #FDD9A0;
-  --color-warning-dark: #FBA94D;
-  --color-info: #89B8F8;
-  --color-info-light: #AED0FA;
-  --color-info-dark: #5B9BF5;
+  --color-danger-light: #FFC2C2;
+  --color-danger-dark: #F16262;
+  --color-warning: #FCD34D;
+  --color-warning-light: #FDE9A8;
+  --color-warning-dark: #D97706;
+  --color-info: #A7C9FF;
+  --color-info-light: #D6E8FF;
+  --color-info-dark: #5B96F5;
 
   /* Surfaces */
-  --color-bg: #181A20;
-  --color-bg-alt: #1A1C24;
-  --color-surface: #1F222A;
-  --color-surface-hover: #282B35;
-  --color-surface-active: #313540;
-  --color-elevated: #252830;
+  --color-bg: #0F172A;
+  --color-bg-alt: #111827;
+  --color-surface: rgba(15, 23, 42, 0.95);
+  --color-surface-hover: #161E39;
+  --color-surface-active: #1D2446;
+  --color-elevated: #131B33;
 
   /* Text */
-  --color-text: #F0F0F5;
-  --color-text-secondary: #9CA3AF;
-  --color-text-tertiary: #6B7280;
-  --color-text-inverse: #1A1A2E;
+  --color-text: #F8FAFC;
+  --color-text-secondary: #CBD5E1;
+  --color-text-tertiary: #94A3B8;
+  --color-text-inverse: #111827;
   --color-text-on-primary: #FFFFFF;
   --color-text-on-secondary: #FFFFFF;
 
   /* Borders */
-  --color-border: #2D3039;
-  --color-border-light: #252830;
-  --color-border-focus: #A99BFF;
+  --color-border: rgba(148, 163, 184, 0.14);
+  --color-border-light: rgba(148, 163, 184, 0.08);
+  --color-border-focus: #AFA0FF;
 
   /* Shadows */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.25);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.35);
-  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.4);
-  --shadow-primary: 0 10px 30px rgba(71, 70, 138, 0.3);
-  --shadow-secondary: 0 10px 30px rgba(169, 155, 255, 0.2);
-  --shadow-glow: 0 0 20px rgba(169, 155, 255, 0.2);
+  --shadow-xs: 0 4px 12px rgba(0, 0, 0, 0.18);
+  --shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 12px 40px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.36);
+  --shadow-xl: 0 32px 90px rgba(0, 0, 0, 0.42);
+  --shadow-primary: 0 24px 70px rgba(143, 124, 255, 0.24);
+  --shadow-secondary: 0 20px 60px rgba(196, 122, 247, 0.18);
+  --shadow-glow: 0 0 26px rgba(196, 122, 247, 0.2);
 
   /* Sidebar */
-  --sidebar-bg: #1F222A;
-  --sidebar-text: rgba(255, 255, 255, 0.6);
+  --sidebar-bg: rgba(15, 23, 42, 0.98);
+  --sidebar-text: rgba(248, 250, 252, 0.75);
   --sidebar-text-active: #FFFFFF;
-  --sidebar-item-hover: rgba(255, 255, 255, 0.06);
-  --sidebar-item-active: rgba(169, 155, 255, 0.2);
+  --sidebar-item-hover: rgba(248, 250, 252, 0.08);
+  --sidebar-item-active: rgba(196, 122, 247, 0.18);
 
   /* Navbar */
-  --navbar-bg: rgba(24, 26, 32, 0.85);
-  --navbar-border: var(--color-border);
+  --navbar-bg: rgba(15, 23, 42, 0.85);
+  --navbar-border: rgba(148, 163, 184, 0.1);
 }
 
 /* ──────────────────────────────────────────
@@ -165,8 +165,13 @@
   }
 
   body {
+    min-height: 100vh;
     background-color: var(--color-bg);
     color: var(--color-text);
+    background-image: radial-gradient(circle at 12% 10%, rgba(108, 99, 255, 0.18), transparent 24%),
+      radial-gradient(circle at 88% 8%, rgba(168, 101, 255, 0.12), transparent 22%),
+      radial-gradient(circle at 50% 90%, rgba(108, 99, 255, 0.08), transparent 32%);
+    background-attachment: fixed;
     transition: background-color 0.3s, color 0.3s;
   }
 
@@ -183,46 +188,53 @@
 @layer components {
   /* Buttons */
   .btn-primary {
-    @apply px-6 py-3 rounded-lg font-semibold transition-all duration-200 active:scale-95 cursor-pointer;
-    background-color: var(--color-secondary);
+    @apply px-7 py-3.5 font-semibold transition-all duration-200 active:scale-95 cursor-pointer;
+    border-radius: var(--radius-md);
+    background-image: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
     color: var(--color-text-on-secondary);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-primary);
   }
   .btn-primary:hover {
-    background-color: var(--color-secondary-dark);
+    background-image: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
     box-shadow: var(--shadow-secondary);
   }
 
   .btn-secondary {
-    @apply px-6 py-3 rounded-lg font-semibold transition-all duration-200 active:scale-95 cursor-pointer;
-    background-color: var(--color-surface);
+    @apply px-7 py-3.5 font-semibold transition-all duration-200 active:scale-95 cursor-pointer;
+    border-radius: var(--radius-md);
+    background-color: rgba(255, 255, 255, 0.95);
     color: var(--color-text);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: var(--shadow-xs);
   }
   .btn-secondary:hover {
     background-color: var(--color-surface-hover);
   }
 
   .btn-outline {
-    @apply px-6 py-3 border-2 rounded-lg font-semibold transition-all duration-200 active:scale-95 cursor-pointer;
-    border-color: var(--color-secondary);
-    color: var(--color-secondary);
+    @apply px-7 py-3.5 font-semibold transition-all duration-200 active:scale-95 cursor-pointer;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-primary);
+    color: var(--color-primary);
+    background-color: transparent;
   }
   .btn-outline:hover {
-    background-color: var(--color-secondary);
-    color: var(--color-text-on-secondary);
+    background-color: rgba(108, 99, 255, 0.08);
+    color: var(--color-primary-dark);
   }
 
   .btn-ghost {
-    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 cursor-pointer;
+    @apply px-4 py-2 rounded-full font-medium transition-all duration-200 cursor-pointer;
     color: var(--color-text-secondary);
   }
   .btn-ghost:hover {
-    background-color: var(--color-surface);
+    background-color: rgba(15, 23, 42, 0.04);
     color: var(--color-text);
   }
 
   .btn-danger {
-    @apply px-6 py-3 rounded-lg font-semibold transition-all duration-200 active:scale-95 cursor-pointer;
+    @apply px-7 py-3.5 font-semibold transition-all duration-200 active:scale-95 cursor-pointer;
+    border-radius: var(--radius-md);
     background-color: var(--color-danger);
     color: #FFFFFF;
   }
@@ -239,55 +251,75 @@
   }
 
   .btn-icon {
-    @apply p-2.5 rounded-lg transition-all duration-200 cursor-pointer;
+    @apply p-3 rounded-full transition-all duration-200 cursor-pointer;
     color: var(--color-text-secondary);
+    background-color: rgba(255, 255, 255, 0.9);
+    box-shadow: var(--shadow-xs);
   }
   .btn-icon:hover {
-    background-color: var(--color-surface);
+    background-color: rgba(255, 255, 255, 1);
     color: var(--color-text);
   }
 
   /* Cards */
   .card {
-    @apply rounded-xl p-6 transition-all duration-200;
-    background-color: var(--color-surface);
-    box-shadow: var(--shadow-sm);
+    @apply transition-all duration-300;
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    background-color: var(--color-elevated);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(18px);
   }
   .card:hover {
-    box-shadow: var(--shadow-md);
-  }
-
-  .card-elevated {
-    @apply rounded-xl p-6 transition-all duration-200;
-    background-color: var(--color-elevated);
-    box-shadow: var(--shadow-md);
-  }
-
-  .card-hover {
-    @apply rounded-xl p-6 cursor-pointer transition-all duration-200;
-    background-color: var(--color-surface);
-    box-shadow: var(--shadow-sm);
-  }
-  .card-hover:hover {
     box-shadow: var(--shadow-lg);
     transform: translateY(-2px);
   }
 
-  .card-interactive {
-    @apply rounded-xl p-6 cursor-pointer transition-all duration-200;
-    background-color: var(--color-surface);
+  .card-elevated {
+    @apply transition-all duration-300;
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    background-color: var(--color-elevated);
+    box-shadow: var(--shadow-xl);
+    border: 1px solid rgba(15, 23, 42, 0.05);
+    backdrop-filter: blur(14px);
+  }
+
+  .card-hover {
+    @apply cursor-pointer transition-all duration-300;
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    background-color: var(--color-elevated);
     border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+  }
+  .card-hover:hover {
+    border-color: rgba(108, 99, 255, 0.16);
+    box-shadow: var(--shadow-xl);
+    transform: translateY(-4px) scale(1.01);
+  }
+
+  .card-interactive {
+    @apply cursor-pointer transition-all duration-300;
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    background-color: var(--color-elevated);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-xs);
   }
   .card-interactive:hover {
     border-color: var(--color-secondary);
     box-shadow: var(--shadow-glow);
+    transform: translateY(-2px);
   }
 
   /* Glass effect */
   .glass {
-    @apply backdrop-blur-md;
-    background-color: color-mix(in srgb, var(--color-elevated) 80%, transparent);
-    border: 1px solid color-mix(in srgb, var(--color-border) 50%, transparent);
+    @apply backdrop-blur-xl;
+    background-color: color-mix(in srgb, var(--color-elevated) 72%, transparent);
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    box-shadow: var(--shadow-glow);
   }
 
   /* Inputs */
@@ -354,13 +386,17 @@
 
   /* Stat card (dashboard) */
   .stat-card {
-    @apply rounded-xl p-5 transition-all duration-200;
-    background-color: var(--color-elevated);
+    @apply transition-all duration-300;
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(15, 23, 42, 0.06);
     box-shadow: var(--shadow-sm);
-    border: 1px solid var(--color-border-light);
+    backdrop-filter: blur(18px);
   }
   .stat-card:hover {
     box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
   }
 
   /* Sidebar (dashboard) */
@@ -369,10 +405,12 @@
     background-color: var(--sidebar-bg);
     color: var(--sidebar-text);
     @apply h-screen fixed left-0 top-0 transition-all duration-300 z-40;
+    border-right: 1px solid rgba(15, 23, 42, 0.06);
+    backdrop-filter: blur(24px);
   }
 
   .sidebar-item {
-    @apply flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 cursor-pointer;
+    @apply flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 cursor-pointer;
     color: var(--sidebar-text);
   }
   .sidebar-item:hover {
@@ -382,6 +420,7 @@
   .sidebar-item.active {
     background-color: var(--sidebar-item-active);
     color: var(--sidebar-text-active);
+    box-shadow: inset 0 0 0 1px rgba(108, 99, 255, 0.16);
   }
 
   /* Navbar */
@@ -389,18 +428,19 @@
     height: var(--navbar-height);
     background-color: var(--navbar-bg);
     border-bottom: 1px solid var(--navbar-border);
-    @apply backdrop-blur-md fixed top-0 w-full z-50 transition-all duration-200;
+    @apply backdrop-blur-xl fixed top-0 w-full z-50 transition-all duration-200;
   }
 
   /* Section typography */
   .section-header {
-    @apply text-3xl md:text-4xl font-bold mb-2;
+    @apply text-3xl md:text-5xl font-semibold mb-3 tracking-tight;
     color: var(--color-text);
   }
 
   .section-subtitle {
-    @apply text-lg;
+    @apply text-lg max-w-3xl mx-auto;
     color: var(--color-text-secondary);
+    line-height: 1.8;
   }
 
   /* Dividers */
@@ -462,17 +502,19 @@
 
   /* Pill / Chip */
   .pill {
-    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium cursor-pointer transition-all duration-200;
-    background-color: var(--color-surface);
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium cursor-pointer transition-all duration-200;
+    background-color: rgba(255, 255, 255, 0.92);
     color: var(--color-text-secondary);
-    border: 1px solid var(--color-border);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: var(--shadow-xs);
   }
   .pill:hover {
     border-color: var(--color-secondary);
     color: var(--color-secondary);
+    background-color: rgba(108, 99, 255, 0.06);
   }
   .pill.active {
-    background-color: color-mix(in srgb, var(--color-secondary) 15%, transparent);
+    background-color: rgba(108, 99, 255, 0.12);
     border-color: var(--color-secondary);
     color: var(--color-secondary);
   }
