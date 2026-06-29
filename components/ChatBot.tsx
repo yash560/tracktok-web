@@ -14,7 +14,7 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || '';
 
 const SUGGESTIONS = [
   'How much did I spend this month?',
