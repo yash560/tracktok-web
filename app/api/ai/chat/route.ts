@@ -1,31 +1,43 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import axios from "axios";
 
-const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || '';
-const BACKEND_TOKEN = process.env.NEXT_PUBLIC_BACKEND_TOKEN || '';
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || "";
+const BACKEND_TOKEN = process.env.NEXT_PUBLIC_BACKEND_TOKEN || "";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    const response = await fetch(`${BACKEND_API_URL}/api/ai/expenses/chat/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(BACKEND_TOKEN ? { Authorization: `Bearer ${BACKEND_TOKEN}` } : {}),
-      },
-      body: JSON.stringify(body),
-    });
+    console.log(BACKEND_API_URL, BACKEND_TOKEN, body);
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
+    const { data } = await axios.post(
+      `${BACKEND_API_URL}ai/expenses/chat/`,
+      body,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...(BACKEND_TOKEN
+            ? { Authorization: `Bearer ${BACKEND_TOKEN}` }
+            : {}),
+        },
+      }
+    );
 
     return NextResponse.json(data);
-  } catch {
+  } catch (error: any) {
+    console.error(error);
+
+    if (axios.isAxiosError(error)) {
+      return NextResponse.json(
+        error.response?.data ?? { error: "Backend request failed" },
+        {
+          status: error.response?.status ?? 502,
+        }
+      );
+    }
+
     return NextResponse.json(
-      { error: 'Failed to connect to AI service' },
+      { error: "Failed to connect to AI service" },
       { status: 502 }
     );
   }

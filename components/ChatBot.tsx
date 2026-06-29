@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { MessageCircle, X, Send, Loader2, Bot, User, Trash2, Minimize2 } from 'lucide-react';
+import { MessageCircle, X, Send, Loader2, Bot, User, Trash2, Minimize2, Sparkles, Search, BarChart3, Zap } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '@/components/AuthContext';
 
@@ -23,6 +23,13 @@ const SUGGESTIONS = [
   'Add 500 for food today',
 ];
 
+const THINKING_STEPS = [
+  { icon: Search, text: 'Searching your transactions...' },
+  { icon: BarChart3, text: 'Crunching the numbers...' },
+  { icon: Sparkles, text: 'Working some magic...' },
+  { icon: Zap, text: 'Putting it all together...' },
+];
+
 export const ChatBot: React.FC<{ onTransactionChange?: () => void }> = ({ onTransactionChange }) => {
   const { user } = useAuth();
   const userCode = (user as any)?.code || 'DEFAULT_USER';
@@ -31,6 +38,7 @@ export const ChatBot: React.FC<{ onTransactionChange?: () => void }> = ({ onTran
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [thinkingStep, setThinkingStep] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -59,6 +67,17 @@ export const ChatBot: React.FC<{ onTransactionChange?: () => void }> = ({ onTran
       inputRef.current?.focus();
     }
   }, [isOpen, isMinimized]);
+
+  useEffect(() => {
+    if (!loading) {
+      setThinkingStep(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setThinkingStep(prev => (prev + 1) % THINKING_STEPS.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [loading]);
 
   const buildHistory = (): Array<{ role: string; content: string }> => {
     return messages.slice(-10).map(m => ({ role: m.role, content: m.content }));
@@ -258,22 +277,6 @@ export const ChatBot: React.FC<{ onTransactionChange?: () => void }> = ({ onTran
               }`}
             >
               <p className="whitespace-pre-wrap">{msg.content}</p>
-              {msg.actions && msg.actions.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {msg.actions.map((a, i) => (
-                    <span
-                      key={i}
-                      className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                        msg.role === 'user'
-                          ? 'bg-white/20 text-white'
-                          : 'bg-primary/10 text-primary dark:bg-secondary/20 dark:text-secondary'
-                      }`}
-                    >
-                      {a.replace(/_/g, ' ')}
-                    </span>
-                  ))}
-                </div>
-              )}
               <p
                 className={`text-[10px] mt-1 ${
                   msg.role === 'user' ? 'text-white/50 text-right' : 'text-gray-400'
@@ -285,20 +288,32 @@ export const ChatBot: React.FC<{ onTransactionChange?: () => void }> = ({ onTran
           </div>
         ))}
 
-        {loading && (
-          <div className="flex items-start gap-2 mb-3">
-            <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Bot className="w-4 h-4 text-primary" />
-            </div>
-            <div className="bg-gray-100 dark:bg-gray-700 rounded-2xl rounded-tl-sm px-4 py-3">
-              <div className="flex gap-1">
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+        {loading && (() => {
+          const StepIcon = THINKING_STEPS[thinkingStep].icon;
+          return (
+            <div className="flex items-start gap-2 mb-3">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center flex-shrink-0 animate-pulse">
+                <Bot className="w-3.5 h-3.5 text-white" />
+              </div>
+              <div className="bg-gray-100 dark:bg-gray-700 rounded-2xl rounded-bl-md px-4 py-3 max-w-[80%]">
+                <div className="flex items-center gap-2.5">
+                  <div className="relative w-5 h-5 flex-shrink-0">
+                    <StepIcon
+                      key={thinkingStep}
+                      className="w-5 h-5 text-primary dark:text-secondary absolute inset-0 animate-[fadeSlideIn_0.4s_ease-out]"
+                    />
+                  </div>
+                  <span
+                    key={thinkingStep}
+                    className="text-sm text-gray-600 dark:text-gray-300 font-medium animate-[fadeSlideIn_0.4s_ease-out]"
+                  >
+                    {THINKING_STEPS[thinkingStep].text}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         <div ref={messagesEndRef} />
       </div>
