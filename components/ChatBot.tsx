@@ -14,8 +14,6 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || '';
-
 const SUGGESTIONS = [
   'How much did I spend this month?',
   'Compare this month vs last month',
@@ -82,20 +80,13 @@ export const ChatBot: React.FC<{ onTransactionChange?: () => void }> = ({ onTran
     setLoading(true);
 
     try {
-      const token = process.env.NEXT_PUBLIC_BACKEND_TOKEN;
-      const result = await axios.post(
-        `${API_BASE_URL}/api/ai/expenses/chat/`,
-        {
-          user_prompt: prompt,
-          user_code: userCode,
-          context: {
-            history: buildHistory(),
-          },
+      const result = await axios.post('/api/ai/chat', {
+        user_prompt: prompt,
+        user_code: userCode,
+        context: {
+          history: buildHistory(),
         },
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        }
-      );
+      });
 
       const { actions, data, aiSummary } = result.data;
 
