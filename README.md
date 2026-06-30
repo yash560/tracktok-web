@@ -276,7 +276,7 @@ This project is licensed under the MIT License - see LICENSE file for details.
 
 For issues and questions:
 - GitHub Issues: [Create an issue](https://github.com/yourusername/tracktok-web/issues)
-- Email: support@tracktok.app
+- Email: info@thewebvale.com
 - Discord: [Join community](https://discord.gg/tracktok)
 
 ## 🙏 Acknowledgments

@@ -276,7 +276,7 @@ For **production**:
 ## 📞 Support
 
 - GitHub Issues: https://github.com/yourusername/tracktok-web/issues
-- Email: support@tracktok.app
+- Email: info@thewebvale.com
 - Discord: https://discord.gg/tracktok
 
 ---

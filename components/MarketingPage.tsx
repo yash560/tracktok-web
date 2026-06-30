@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
@@ -185,6 +186,32 @@ function TextSection({ section }: { section: { title: string; content: string[] 
 }
 
 function ContactSection({ section }: { section: { title: string; subtitle?: string; items: ContactItem[] } }) {
+    const [fields, setFields] = useState({ name: '', email: '', message: '' });
+    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [errorMsg, setErrorMsg] = useState('');
+
+    async function handleSubmit(e: { preventDefault(): void }) {
+        e.preventDefault();
+        setStatus('loading');
+        setErrorMsg('');
+        try {
+            const res = await fetch('/api/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(fields),
+            });
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error ?? 'Something went wrong');
+            }
+            setStatus('success');
+            setFields({ name: '', email: '', message: '' });
+        } catch (err) {
+            setErrorMsg(err instanceof Error ? err.message : 'Something went wrong');
+            setStatus('error');
+        }
+    }
+
     return (
         <section className="space-y-8" id="contact-form">
             <div className="max-w-3xl">
@@ -201,20 +228,60 @@ function ContactSection({ section }: { section: { title: string; subtitle?: stri
                         </div>
                     ))}
                 </div>
-                <form className="rounded-[32px] border border-gray-200 dark:border-gray-800 bg-elevated dark:bg-dark-card p-8 shadow-card space-y-5">
-                    <div>
-                        <label className="input-label" htmlFor="name">Name</label>
-                        <input id="name" type="text" className="input-field" placeholder="Your name" />
-                    </div>
-                    <div>
-                        <label className="input-label" htmlFor="email">Email</label>
-                        <input id="email" type="email" className="input-field" placeholder="you@example.com" />
-                    </div>
-                    <div>
-                        <label className="input-label" htmlFor="message">Message</label>
-                        <textarea id="message" rows={6} className="input-field" placeholder="How can we help?"></textarea>
-                    </div>
-                    <button type="button" className="btn-primary w-full text-center">Send message</button>
+                <form onSubmit={handleSubmit} className="rounded-[32px] border border-gray-200 dark:border-gray-800 bg-elevated dark:bg-dark-card p-8 shadow-card space-y-5">
+                    {status === 'success' ? (
+                        <div className="flex flex-col items-center justify-center py-10 gap-4 text-center">
+                            <CheckCircle className="w-12 h-12 text-success" />
+                            <p className="text-lg font-semibold">Message sent!</p>
+                            <p className="text-sm text-gray-500">We&apos;ll get back to you within one business day.</p>
+                            <button type="button" onClick={() => setStatus('idle')} className="btn-outline mt-2">Send another</button>
+                        </div>
+                    ) : (
+                        <>
+                            <div>
+                                <label className="input-label" htmlFor="contact-name">Name</label>
+                                <input
+                                    id="contact-name"
+                                    type="text"
+                                    required
+                                    className="input-field"
+                                    placeholder="Your name"
+                                    value={fields.name}
+                                    onChange={(e) => setFields((f) => ({ ...f, name: e.target.value }))}
+                                />
+                            </div>
+                            <div>
+                                <label className="input-label" htmlFor="contact-email">Email</label>
+                                <input
+                                    id="contact-email"
+                                    type="email"
+                                    required
+                                    className="input-field"
+                                    placeholder="you@example.com"
+                                    value={fields.email}
+                                    onChange={(e) => setFields((f) => ({ ...f, email: e.target.value }))}
+                                />
+                            </div>
+                            <div>
+                                <label className="input-label" htmlFor="contact-message">Message</label>
+                                <textarea
+                                    id="contact-message"
+                                    rows={6}
+                                    required
+                                    className="input-field"
+                                    placeholder="How can we help?"
+                                    value={fields.message}
+                                    onChange={(e) => setFields((f) => ({ ...f, message: e.target.value }))}
+                                />
+                            </div>
+                            {status === 'error' && (
+                                <p className="text-sm text-red-500">{errorMsg}</p>
+                            )}
+                            <button type="submit" disabled={status === 'loading'} className="btn-primary w-full text-center disabled:opacity-60">
+                                {status === 'loading' ? 'Sending…' : 'Send message'}
+                            </button>
+                        </>
+                    )}
                 </form>
             </div>
         </section>

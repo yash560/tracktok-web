@@ -408,7 +408,7 @@ Target metrics:
 ## 📞 Support & Contact
 
 - **GitHub**: https://github.com/yourusername/tracktok-web
-- **Email**: support@tracktok.app
+- **Email**: info@thewebvale.com
 - **Issues**: Create GitHub issues for bugs
 - **Discord**: https://discord.gg/tracktok
 

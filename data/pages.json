@@ -319,18 +319,13 @@
                     "items": [
                         {
                             "title": "Support",
-                            "value": "support@tracktok.app",
+                            "value": "info@thewebvale.com",
                             "subtitle": "General help and account questions."
                         },
                         {
                             "title": "Partnerships",
-                            "value": "partners@tracktok.app",
+                            "value": "+91 8770183178",
                             "subtitle": "API, integration, and business inquiries."
-                        },
-                        {
-                            "title": "Press",
-                            "value": "press@tracktok.app",
-                            "subtitle": "Media and brand requests."
                         }
                     ]
                 }

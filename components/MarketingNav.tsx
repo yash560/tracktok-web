@@ -97,7 +97,7 @@ export function MarketingNav() {
 
           <Link href="/#how-it-works" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors font-medium">How it Works</Link>
           <Link href="/pricing" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors font-medium">Pricing</Link>
-          <Link href="/#learn" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors font-medium">Learn</Link>
+          <Link href="/#faq" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors font-medium">FAQ</Link>
         </div>
 
         <div className="flex items-center gap-3 sm:gap-5">

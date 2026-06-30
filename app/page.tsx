@@ -23,8 +23,126 @@ import {
   TrendingDown,
   Sparkles,
 } from 'lucide-react';
+import { useState } from 'react';
 import { MarketingNav } from '@/components/MarketingNav';
 import { MarketingFooter } from '@/components/MarketingFooter';
+
+const testimonials = [
+  {
+    name: 'Priya Sharma',
+    role: 'Software Engineer, Bengaluru',
+    initials: 'PS',
+    color: 'bg-violet-500',
+    quote: 'TrackTok found ₹3,200/month in subscriptions I forgot about. Cancelled 4 in one sitting. Best app I installed this year.',
+    badge: '₹38,400/yr saved',
+  },
+  {
+    name: 'Arjun Mehta',
+    role: 'MBA Student, Mumbai',
+    initials: 'AM',
+    color: 'bg-blue-500',
+    quote: 'Used to dread the "where did my money go?" panic. TrackTok answers that in real time. My savings rate went from 8% to 24%.',
+    badge: '3× savings rate',
+  },
+  {
+    name: 'Neha Gupta',
+    role: 'Freelance Designer, Delhi',
+    initials: 'NG',
+    color: 'bg-pink-500',
+    quote: 'The split feature is insane. Our Goa trip settlement that took 3 WhatsApp groups and 2 weeks now takes 5 minutes.',
+    badge: 'Zero awkward IOUs',
+  },
+  {
+    name: 'Rohan Desai',
+    role: 'Product Manager, Pune',
+    initials: 'RD',
+    color: 'bg-emerald-500',
+    quote: 'Asked the AI "am I spending more than last quarter?" and it gave me a proper breakdown by category. No other app does this.',
+    badge: 'Instant AI answers',
+  },
+  {
+    name: 'Kavya Reddy',
+    role: 'Doctor, Hyderabad',
+    initials: 'KR',
+    color: 'bg-orange-500',
+    quote: 'I work crazy hours — no time to manually track anything. TrackTok auto-detects everything from my bank SMS. I just check the weekly report.',
+    badge: '2 hrs/week saved',
+  },
+  {
+    name: 'Vikram Singh',
+    role: 'Startup Founder, Bengaluru',
+    initials: 'VS',
+    color: 'bg-indigo-500',
+    quote: 'Privacy was my main concern. Read-only SMS access, AES-256 encryption, no data selling. After reading their policy (actually readable!) I trusted them.',
+    badge: 'Full data control',
+  },
+];
+
+const faqs = [
+  {
+    q: 'Is my banking data safe with TrackTok?',
+    a: 'Yes. TrackTok reads SMS notifications using read-only access — we cannot initiate payments or access your banking apps. All data is AES-256 encrypted at rest and in transit. We are SOC 2 Type II certified and RBI-compliant.',
+  },
+  {
+    q: 'Do you sell my financial data?',
+    a: 'Never. Your transactions, spending habits, and personal data are never sold to advertisers, data brokers, or any third parties. Our business model is subscription revenue from users — not your data.',
+  },
+  {
+    q: 'How does TrackTok make money?',
+    a: 'We charge ₹299/month for Pro and ₹499/month for Squad. That\'s it. No ads, no data monetization, no referral fees from financial products.',
+  },
+  {
+    q: 'Which banks and payment apps are supported?',
+    a: 'We support 50+ Indian banks including HDFC, SBI, ICICI, Axis, Kotak, and all major UPI apps — Google Pay, PhonePe, Paytm, and CRED. If we\'re missing yours, let us know and we\'ll add it.',
+  },
+  {
+    q: 'Can TrackTok transfer or move my money?',
+    a: 'No. TrackTok only reads SMS notifications. We never have your banking credentials and cannot initiate any transaction under any circumstances.',
+  },
+  {
+    q: 'What happens to my data if I delete my account?',
+    a: 'All your data is permanently deleted from our servers within 24 hours of deletion. You can export everything as CSV or JSON before you go.',
+  },
+  {
+    q: 'Does it work without giving bank access?',
+    a: 'Yes — the core auto-detect feature works from SMS notifications only. You can also add transactions manually. No bank login required.',
+  },
+  {
+    q: 'Is there a free plan?',
+    a: 'Yes. The Starter plan is permanently free with 1 connected account, weekly spending pulse, and auto category tagging. No credit card required to start.',
+  },
+];
+
+function FAQAccordion() {
+  const [open, setOpen] = useState<number | null>(null);
+  return (
+    <div className="space-y-3">
+      {faqs.map((faq, idx) => (
+        <motion.div
+          key={idx}
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: idx * 0.05 }}
+          className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-dark-card overflow-hidden"
+        >
+          <button
+            onClick={() => setOpen(open === idx ? null : idx)}
+            className="w-full flex items-center justify-between gap-4 px-6 py-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+          >
+            <span className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white">{faq.q}</span>
+            <span className={`text-xl font-light text-gray-400 flex-shrink-0 transition-transform duration-200 ${open === idx ? 'rotate-45' : ''}`}>+</span>
+          </button>
+          {open === idx && (
+            <div className="px-6 pb-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{faq.a}</p>
+            </div>
+          )}
+        </motion.div>
+      ))}
+    </div>
+  );
+}
 
 const features = [
   {
@@ -692,6 +810,79 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Testimonials */}
+        <section className="py-16 sm:py-24 px-4 sm:px-6 md:px-12 bg-gradient-to-b from-transparent via-secondary/5 to-transparent">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12 sm:mb-16">
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-secondary/10 text-secondary rounded-full text-xs font-semibold mb-4">
+                <Star className="w-4 h-4 fill-current" /> 4.8 on Play Store · 400+ users
+              </span>
+              <h2 className="section-header">Real people, real results</h2>
+              <p className="section-subtitle max-w-xl mx-auto">What happens when you stop guessing and start knowing exactly where your money goes.</p>
+            </div>
+
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {testimonials.map((t, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.07 }}
+                  className="rounded-[28px] border border-gray-100 dark:border-gray-800 bg-white dark:bg-dark-card p-6 shadow-sm flex flex-col gap-4"
+                >
+                  <div className="flex items-center gap-1 text-yellow-400">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-3.5 h-3.5 fill-current" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed flex-1">&ldquo;{t.quote}&rdquo;</p>
+                  <div className="flex items-center justify-between gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-full ${t.color} flex items-center justify-center flex-shrink-0`}>
+                        <span className="text-white text-xs font-bold">{t.initials}</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{t.name}</p>
+                        <p className="text-xs text-gray-400">{t.role}</p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-secondary bg-secondary/10 px-2.5 py-1 rounded-full whitespace-nowrap">{t.badge}</span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Trust bar */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="mt-12 rounded-[28px] bg-white dark:bg-dark-card border border-gray-100 dark:border-gray-800 p-6 flex flex-wrap items-center justify-center gap-8 text-center shadow-sm"
+            >
+              {[
+                { icon: ShieldCheck, label: 'SOC 2 Certified', sub: 'Audited annually' },
+                { icon: Shield, label: 'AES-256 Encrypted', sub: 'All data, always' },
+                { icon: Star, label: '4.8 ★ Rating', sub: '100+ reviews' },
+                { icon: Users, label: '400+ Users', sub: 'Growing daily' },
+              ].map((item, idx) => {
+                const Icon = item.icon;
+                return (
+                  <div key={idx} className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-5 h-5 text-secondary" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-bold text-gray-900 dark:text-white">{item.label}</p>
+                      <p className="text-xs text-gray-400">{item.sub}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </motion.div>
+          </div>
+        </section>
+
         <section id="pricing" className="py-16 sm:py-24 px-4 sm:px-6 md:px-12 bg-gradient-to-b from-transparent via-secondary/10 to-transparent">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12 sm:mb-16">
@@ -724,6 +915,22 @@ export default function Home() {
                 </motion.div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section id="faq" className="py-16 sm:py-24 px-4 sm:px-6 md:px-12">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="section-header">Common questions, honest answers</h2>
+              <p className="section-subtitle max-w-xl mx-auto">No corporate fluff. Just what you actually want to know before trusting us with your money data.</p>
+            </div>
+            <FAQAccordion />
+            <p className="text-center text-sm text-gray-400 mt-8">
+              Still have questions?{' '}
+              <Link href="/contact" className="text-primary font-semibold hover:underline">Talk to us</Link>
+              {' '}— we reply within 2 hours.
+            </p>
           </div>
         </section>
 

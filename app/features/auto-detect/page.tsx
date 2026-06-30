@@ -255,7 +255,7 @@ export default function AutoDetectPage() {
             <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-white mb-4">
               Stop tracking manually
             </h2>
-            <p className="text-blue-100 mb-8 text-lg">Join 20,000+ users who let TrackTok handle it automatically.</p>
+            <p className="text-blue-100 mb-8 text-lg">Join 400+ users who let TrackTok handle it automatically.</p>
             <Link href="/dashboard" className="inline-flex items-center gap-2 bg-white text-blue-600 font-bold px-8 py-3.5 rounded-2xl hover:bg-blue-50 transition-colors text-base shadow-lg">
               Get Started Free <ArrowRight className="w-4 h-4" />
             </Link>
