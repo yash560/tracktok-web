@@ -1,6 +1,5 @@
 "use client";
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
@@ -16,7 +15,6 @@ import {
   ShieldCheck,
   ArrowRight,
   CheckCircle,
-  ChevronDown,
   Smartphone,
   Shield,
   Brain,
@@ -25,6 +23,8 @@ import {
   TrendingDown,
   Sparkles,
 } from 'lucide-react';
+import { MarketingNav } from '@/components/MarketingNav';
+import { MarketingFooter } from '@/components/MarketingFooter';
 
 const features = [
   {
@@ -221,7 +221,7 @@ function DashboardMockup() {
 function PhoneMockup() {
   return (
     <div className="relative">
-      <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.8 }} className="absolute -left-8 lg:-left-28 top-12 bg-white dark:bg-dark-card rounded-2xl shadow-xl p-4 w-52 z-10 hidden md:block">
+      <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0, y: [0, -10, 0] }} transition={{ opacity: { duration: 0.6, delay: 0.8 }, x: { duration: 0.6, delay: 0.8 }, y: { duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 1.6 } }} className="absolute -left-8 lg:-left-28 top-12 bg-white dark:bg-dark-card rounded-2xl shadow-xl p-4 w-52 z-10 hidden md:block">
         <div className="flex items-center gap-2 mb-2">
           <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center">
             <Sparkles className="w-4 h-4 text-secondary" />
@@ -234,7 +234,7 @@ function PhoneMockup() {
         </p>
       </motion.div>
 
-      <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 1.0 }} className="absolute -left-4 lg:-left-20 bottom-32 bg-white dark:bg-dark-card rounded-2xl shadow-xl p-4 w-48 z-10 hidden md:block">
+      <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0, y: [0, -8, 0] }} transition={{ opacity: { duration: 0.6, delay: 1 }, x: { duration: 0.6, delay: 1 }, y: { duration: 3.8, repeat: Infinity, ease: 'easeInOut', delay: 2 } }} className="absolute -left-4 lg:-left-20 bottom-32 bg-white dark:bg-dark-card rounded-2xl shadow-xl p-4 w-48 z-10 hidden md:block">
         <p className="font-semibold text-sm text-gray-900 dark:text-white mb-2">Top Location</p>
         <div className="flex gap-1 items-end mb-2">
           <div className="w-4 h-6 bg-secondary/30 rounded-sm" />
@@ -247,7 +247,7 @@ function PhoneMockup() {
         <p className="text-xs text-gray-500">₹12,450</p>
       </motion.div>
 
-      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.9 }} className="absolute -right-4 lg:-right-20 top-20 bg-white dark:bg-dark-card rounded-2xl shadow-xl p-4 w-44 z-10 hidden md:block">
+      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0, y: [0, -12, 0] }} transition={{ opacity: { duration: 0.6, delay: 0.9 }, x: { duration: 0.6, delay: 0.9 }, y: { duration: 2.8, repeat: Infinity, ease: 'easeInOut', delay: 1.7 } }} className="absolute -right-4 lg:-right-20 top-20 bg-white dark:bg-dark-card rounded-2xl shadow-xl p-4 w-44 z-10 hidden md:block">
         <p className="text-xs text-gray-500 mb-1">Total Savings</p>
         <p className="text-2xl font-bold text-green-500">₹6,240</p>
         <p className="text-xs text-gray-400">This Month</p>
@@ -256,7 +256,7 @@ function PhoneMockup() {
         </svg>
       </motion.div>
 
-      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 1.1 }} className="absolute -right-4 lg:-right-24 bottom-24 bg-white dark:bg-dark-card rounded-2xl shadow-xl p-4 w-52 z-10 hidden md:block">
+      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0, y: [0, -9, 0] }} transition={{ opacity: { duration: 0.6, delay: 1.1 }, x: { duration: 0.6, delay: 1.1 }, y: { duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 2.2 } }} className="absolute -right-4 lg:-right-24 bottom-24 bg-white dark:bg-dark-card rounded-2xl shadow-xl p-4 w-52 z-10 hidden md:block">
         <div className="flex items-center gap-2 mb-2">
           <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
             <MessageSquare className="w-3.5 h-3.5 text-white" />
@@ -269,6 +269,7 @@ function PhoneMockup() {
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }} className="relative mx-auto w-[280px] sm:w-[300px]">
+        <motion.div animate={{ y: [0, -7, 0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1.2 }}>
         <div className="bg-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
           <div className="bg-white dark:bg-gray-800 rounded-[2rem] overflow-hidden">
             <div className="flex items-center justify-between px-6 pt-3 pb-1">
@@ -377,6 +378,7 @@ function PhoneMockup() {
             </div>
           </div>
         </div>
+        </motion.div>
       </motion.div>
     </div>
   );
@@ -385,32 +387,14 @@ function PhoneMockup() {
 export default function Home() {
   return (
     <>
-      <nav className="fixed top-0 w-full z-50 bg-white/90 dark:bg-dark-bg/90 backdrop-blur-md border-b border-gray-200/50 dark:border-white/10 py-3 px-4 sm:px-6 md:px-12">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-xl overflow-hidden shadow-lg flex-shrink-0">
-              <Image src="/logo.png" alt="TrackTok Logo" width={40} height={40} className="w-full h-full object-cover" />
-            </div>
-            <span className="text-lg sm:text-2xl font-bold font-display text-primary">TrackTok</span>
-          </div>
-
-          <div className="hidden lg:flex items-center gap-8">
-            <Link href="#features" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors font-medium">Features</Link>
-            <Link href="#how-it-works" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors font-medium">How it Works</Link>
-            <Link href="#pricing" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors font-medium">Pricing</Link>
-            <Link href="#learn" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors font-medium">Learn</Link>
-          </div>
-
-          <div className="flex items-center gap-3 sm:gap-5">
-            <Link href="/auth" className="hidden sm:block text-gray-600 dark:text-gray-300 hover:text-primary transition-colors text-sm font-medium">Login</Link>
-            <Link href="/dashboard" className="btn-primary text-sm sm:text-base">Get Started</Link>
-          </div>
-        </div>
-      </nav>
+      <MarketingNav />
 
       <main>
         <section className="pt-24 sm:pt-32 pb-0 px-4 sm:px-6 md:px-12 relative overflow-hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] sm:h-[800px] bg-gradient-to-b from-secondary/5 via-primary/3 to-transparent -z-10 blur-3xl opacity-60" />
+          <motion.div animate={{ scale: [1, 1.25, 1], x: [0, 40, 0], y: [0, -30, 0] }} transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }} className="pointer-events-none absolute -top-10 -left-20 w-80 h-80 rounded-full bg-secondary/20 blur-3xl -z-10" />
+          <motion.div animate={{ scale: [1, 1.15, 1], x: [0, -35, 0], y: [0, 25, 0] }} transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut', delay: 2 }} className="pointer-events-none absolute top-40 right-0 w-96 h-96 rounded-full bg-primary/15 blur-3xl -z-10" />
+          <motion.div animate={{ scale: [1, 1.3, 1], x: [0, 20, 0], y: [0, -20, 0] }} transition={{ duration: 13, repeat: Infinity, ease: 'easeInOut', delay: 4 }} className="pointer-events-none absolute bottom-0 left-1/3 w-72 h-72 rounded-full bg-violet-500/10 blur-3xl -z-10" />
 
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
@@ -777,56 +761,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="py-8 sm:py-12 px-4 sm:px-6 md:px-12 border-t border-gray-200 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-6 sm:mb-8">
-            <div className="col-span-2 sm:col-span-1">
-              <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                <div className="w-6 sm:w-8 h-6 sm:h-8 rounded-lg overflow-hidden flex-shrink-0">
-                  <Image src="/logo.png" alt="TrackTok Logo" width={32} height={32} className="w-full h-full object-cover" />
-                </div>
-                <span className="font-bold font-display text-primary text-sm sm:text-base">TrackTok</span>
-              </div>
-              <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">AI-powered expense tracking for everyone.</p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white text-sm">Product</h4>
-              <ul className="space-y-1 sm:space-y-2 text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
-                <li><a href="#features" className="hover:text-primary transition-colors">Features</a></li>
-                <li><a href="#pricing" className="hover:text-primary transition-colors">Pricing</a></li>
-                <li><a href="#learn" className="hover:text-primary transition-colors">Security</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white text-sm">Company</h4>
-              <ul className="space-y-1 sm:space-y-2 text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
-                <li><a href="#" className="hover:text-primary transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Contact</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white text-sm">Legal</h4>
-              <ul className="space-y-1 sm:space-y-2 text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
-                <li><a href="#" className="hover:text-primary transition-colors">Privacy</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Terms</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Cookies</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-200 dark:border-gray-800 pt-6 sm:pt-8">
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4">
-              <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">© 2026 TrackTok AI. All rights reserved.</p>
-              <div className="flex gap-4 sm:gap-6">
-                <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-primary text-xs sm:text-sm">Twitter</a>
-                <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-primary text-xs sm:text-sm">LinkedIn</a>
-                <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-primary text-xs sm:text-sm">GitHub</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <MarketingFooter />
     </>
   );
 }
