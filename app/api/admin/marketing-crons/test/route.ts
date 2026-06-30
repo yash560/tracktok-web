@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
 
       case 'achievement-emails':
         html = achievementEmail(userName, 'Expenses Tracked', '100', 'You\'ve logged 100 expenses on TrackTok. Keep going!');
-        subject = `🏆 100 expenses tracked! — TrackTok`;
+        subject = `🏆 100 expenses tracked! - TrackTok`;
         break;
 
       case 'monthly-report': {
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
           ],
           vsLastMonth: -12,
         });
-        subject = `📋 Your ${monthName} Report — TrackTok`;
+        subject = `📋 Your ${monthName} Report - TrackTok`;
         break;
       }
 
@@ -120,12 +120,12 @@ export async function POST(request: NextRequest) {
           ],
           totalOwed: '₹4,850',
         });
-        subject = `👥 Split Group Update — 3 groups active`;
+        subject = `👥 Split Group Update - 3 groups active`;
         break;
 
       case 'referral-reminder':
         html = referralReminderEmail(userName, 4);
-        subject = `🎁 Invite friends to TrackTok — split easier!`;
+        subject = `🎁 Invite friends to TrackTok - split easier!`;
         break;
 
       case 'bill-prediction':
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
             { description: 'Mobile Recharge', predictedAmount: '₹599', predictedDate: 'Jul 7', category: 'Bills & Utilities' },
           ],
         });
-        subject = `🔮 3 bill(s) coming up — TrackTok`;
+        subject = `🔮 3 bill(s) coming up - TrackTok`;
         break;
 
       case 'spending-anomaly':
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
           averageAmount: '₹4,500',
           multiplier: 2.7,
         });
-        subject = `📈 Unusual spending in Shopping — TrackTok`;
+        subject = `📈 Unusual spending in Shopping - TrackTok`;
         break;
 
       default:
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     success: failed === 0,
-    message: `Sent: ${sent}, Failed: ${failed}` + (failed > 0 ? ` — ${errors.slice(0, 3).join('; ')}` : ''),
+    message: `Sent: ${sent}, Failed: ${failed}` + (failed > 0 ? ` - ${errors.slice(0, 3).join('; ')}` : ''),
     sent,
     failed,
     total: members.length,

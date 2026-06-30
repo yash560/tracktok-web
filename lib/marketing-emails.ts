@@ -91,7 +91,7 @@ export function winBackEmail(userName: string, daysSince: number, estimatedMisse
     bodyText(userName, [
       `It's been <strong style="color:#1a1a2e;">${daysSince} days</strong> since you last tracked an expense.`,
       `During that time, you may have spent an estimated <strong style="color:#dc2626;">${estimatedMissed}</strong> without tracking it.`,
-      'Getting back on track takes just 30 seconds — log one expense and you\'re back in control.',
+      'Getting back on track takes just 30 seconds - log one expense and you\'re back in control.',
     ]) +
     statCard('Estimated Untracked', estimatedMissed) +
     ctaButton('Log an Expense →', `${APP_URL}/dashboard`),
@@ -106,7 +106,7 @@ export function streakNudgeEmail(userName: string, streakDays: number, userId?: 
     `🔥 ${streakDays}-Day Streak!`, '#fef3c7', '#92400e',
     bodyText(userName, [
       `You're on a <strong style="color:#f59e0b;">${streakDays}-day tracking streak</strong>! That's impressive.`,
-      'Don\'t let it break — log today\'s expenses to keep your momentum going.',
+      'Don\'t let it break - log today\'s expenses to keep your momentum going.',
     ]) +
     statCard('Current Streak', `${streakDays} days`, '#f59e0b') +
     ctaButton('Keep the Streak →', `${APP_URL}/dashboard`, '#f59e0b', '#d97706'),
@@ -146,7 +146,7 @@ export function weeklyInsightsEmail(data: WeeklyInsightsData): string {
     `<tr><td style="background-color:#fff;padding:16px 40px;">
       <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;">
         <p style="margin:0 0 4px;font-size:12px;color:#64748b;text-transform:uppercase;font-weight:600;">Top Category</p>
-        <p style="margin:0;font-size:18px;font-weight:700;color:#1a1a2e;">${data.topCategory} — ${data.topCategoryAmount}</p>
+        <p style="margin:0;font-size:18px;font-weight:700;color:#1a1a2e;">${data.topCategory} - ${data.topCategoryAmount}</p>
       </div>
     </td></tr>` +
     ctaButton('View Full Breakdown →', `${APP_URL}/dashboard`, '#3b82f6', '#2563eb'),
@@ -163,7 +163,7 @@ export function onboardingDripEmail(userName: string, dayNumber: number, userId?
       subject: 'Welcome!',
       body: [
         'Welcome aboard! TrackTok makes it easy to stay on top of your finances.',
-        'Start by logging your first expense — it takes just a few seconds.',
+        'Start by logging your first expense - it takes just a few seconds.',
       ],
       cta: 'Log Your First Expense →',
       ctaLink: `${APP_URL}/dashboard`,
@@ -173,7 +173,7 @@ export function onboardingDripEmail(userName: string, dayNumber: number, userId?
       subject: 'Split with friends',
       body: [
         'Did you know you can split expenses with friends?',
-        'Create a split group for your next trip, dinner, or shared expense — everyone gets notified automatically.',
+        'Create a split group for your next trip, dinner, or shared expense - everyone gets notified automatically.',
       ],
       cta: 'Create a Split Group →',
       ctaLink: `${APP_URL}/dashboard/splits`,
@@ -192,7 +192,7 @@ export function onboardingDripEmail(userName: string, dayNumber: number, userId?
       badge: '⏰ Day 14 Tip',
       subject: 'Never miss a bill',
       body: [
-        'Two weeks in — you\'re building a great habit!',
+        'Two weeks in - you\'re building a great habit!',
         'Set up reminders for recurring bills so you never miss a payment.',
       ],
       cta: 'Set a Reminder →',
@@ -214,7 +214,7 @@ export function onboardingDripSubject(dayNumber: number): string {
     1: 'Welcome to TrackTok! Start tracking in seconds',
     3: 'Split expenses with friends on TrackTok',
     7: 'Set your first budget on TrackTok',
-    14: 'Never miss a bill — set up reminders',
+    14: 'Never miss a bill - set up reminders',
   };
   return subjects[dayNumber] || subjects[1];
 }
@@ -338,7 +338,7 @@ export function referralReminderEmail(userName: string, splitGroupCount: number,
   return emailWrapper(
     '🎁 Invite Friends', '#dcfce7', '#166534',
     bodyText(userName, [
-      `You're in <strong style="color:#1a1a2e;">${splitGroupCount} split groups</strong> — splitting expenses is better when everyone is on TrackTok!`,
+      `You're in <strong style="color:#1a1a2e;">${splitGroupCount} split groups</strong> - splitting expenses is better when everyone is on TrackTok!`,
       'Invite your friends so they can track their share, get reminders, and settle up instantly.',
     ]) +
     statCard('Your Split Groups', `${splitGroupCount}`, '#10b981') +
@@ -404,7 +404,7 @@ export function spendingAnomalyEmail(data: SpendingAnomalyData): string {
     '📈 Spending Alert', '#fef2f2', '#991b1b',
     bodyText(data.userName, [
       `Heads up! Your spending in <strong style="color:#1a1a2e;">${data.category}</strong> this week is <strong style="color:#dc2626;">${data.multiplier.toFixed(1)}x</strong> higher than usual.`,
-      'This isn\'t necessarily a problem — just making sure you\'re aware!',
+      'This isn\'t necessarily a problem - just making sure you\'re aware!',
     ]) +
     multiStatRow([
       { label: 'This Week', value: data.currentAmount, color: '#dc2626' },

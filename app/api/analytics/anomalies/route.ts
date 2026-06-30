@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
 
       // Check 1: New category
       if (!knownCategories.has(cat)) {
-        reasons.push(`New spending category "${cat}" — not seen in your last 6 months`);
+        reasons.push(`New spending category "${cat}" - not seen in your last 6 months`);
         anomalyType = 'new_category';
       }
 

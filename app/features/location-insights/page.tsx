@@ -213,7 +213,7 @@ export default function LocationInsightsPage() {
           <div className="grid gap-6 sm:grid-cols-3">
             {[
               { icon: Navigation, title: 'Auto-tagged by merchant', desc: 'We map every merchant to its real-world location using our Indian merchant database.', color: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' },
-              { icon: MapPin, title: 'Heatmap view', desc: 'See intensity clusters on a map — darker areas mean heavier spending in that zone.', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400' },
+              { icon: MapPin, title: 'Heatmap view', desc: 'See intensity clusters on a map - darker areas mean heavier spending in that zone.', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400' },
               { icon: BarChart3, title: 'City comparisons', desc: 'Traveling between cities? See how your spending behavior changes location to location.', color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' },
             ].map((item, idx) => {
               const Icon = item.icon;

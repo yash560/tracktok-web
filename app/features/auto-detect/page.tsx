@@ -134,7 +134,7 @@ export default function AutoDetectPage() {
                 </span>
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-                TrackTok reads your SMS alerts and bank notifications to detect transactions the moment they happen. No manual entry, no missed expenses — just instant, accurate tracking.
+                TrackTok reads your SMS alerts and bank notifications to detect transactions the moment they happen. No manual entry, no missed expenses - just instant, accurate tracking.
               </p>
               <div className="flex flex-wrap gap-3 mb-8">
                 {['HDFC Bank', 'SBI', 'ICICI', 'Axis', 'Kotak', 'GPay', 'PhonePe', 'Paytm', '+40 more'].map((b) => (
@@ -171,8 +171,8 @@ export default function AutoDetectPage() {
           <div className="grid gap-6 sm:grid-cols-3">
             {[
               { icon: Bell, step: '01', title: 'Receive notification', desc: 'Your bank sends an SMS or push notification for any debit, credit, or UPI transaction.', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' },
-              { icon: Zap, step: '02', title: 'AI parses in real-time', desc: 'Our NLP engine extracts the merchant, amount, date, and account from any format — instantly.', color: 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400' },
-              { icon: CheckCircle, step: '03', title: 'Transaction added', desc: 'A clean, categorized entry appears in your dashboard. Review, edit, or ignore — you\'re in control.', color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
+              { icon: Zap, step: '02', title: 'AI parses in real-time', desc: 'Our NLP engine extracts the merchant, amount, date, and account from any format - instantly.', color: 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400' },
+              { icon: CheckCircle, step: '03', title: 'Transaction added', desc: 'A clean, categorized entry appears in your dashboard. Review, edit, or ignore - you\'re in control.', color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
             ].map((item, idx) => {
               const Icon = item.icon;
               return (
@@ -224,7 +224,7 @@ export default function AutoDetectPage() {
             {[
               { icon: Clock, title: 'Save 2+ hours/week', desc: 'Never manually enter a transaction again. TrackTok does it instantly for you.', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' },
               { icon: Smartphone, title: 'Works in the background', desc: 'You don\'t even need to open the app. Transactions are detected as they happen.', color: 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400' },
-              { icon: Shield, title: 'Read-only access', desc: 'We only read SMS notifications — we cannot send messages or access your banking apps.', color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
+              { icon: Shield, title: 'Read-only access', desc: 'We only read SMS notifications - we cannot send messages or access your banking apps.', color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
             ].map((item, idx) => {
               const Icon = item.icon;
               return (

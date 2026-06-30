@@ -366,7 +366,7 @@ export default function AuthPage() {
       <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" onLoad={initializeGoogle} />
 
       <div className="min-h-screen flex">
-        {/* Left brand panel — hidden on mobile */}
+        {/* Left brand panel - hidden on mobile */}
         <div className="hidden lg:flex lg:w-[45%] xl:w-[50%] relative overflow-hidden bg-primary">
           <div className="absolute inset-0">
             <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-primary-light/30 blur-3xl animate-pulse" />
@@ -473,7 +473,7 @@ export default function AuthPage() {
                   {identifierChip}
                   {!(phoneAccountFound && googleCredential) && (
                     <div className="rounded-xl bg-primary/5 border border-primary/15 px-4 py-2.5">
-                      <p className="text-xs text-primary font-medium">No account found — create one below</p>
+                      <p className="text-xs text-primary font-medium">No account found - create one below</p>
                     </div>
                   )}
                   <div>

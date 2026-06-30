@@ -112,7 +112,7 @@ export default function AIAnalyticsPage() {
                 </span>
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-                TrackTok&apos;s AI transforms raw transaction data into meaningful visual stories. Understand exactly where your money goes — by day, week, month, or category.
+                TrackTok&apos;s AI transforms raw transaction data into meaningful visual stories. Understand exactly where your money goes - by day, week, month, or category.
               </p>
               <div className="grid grid-cols-2 gap-4 mb-8">
                 {[
@@ -155,11 +155,11 @@ export default function AIAnalyticsPage() {
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              { title: 'Weekly Pulse', desc: 'Every Monday, get a digest of last week — wins, spends, and what to watch this week.', tag: 'Auto-generated', color: 'from-purple-500 to-violet-600' },
+              { title: 'Weekly Pulse', desc: 'Every Monday, get a digest of last week - wins, spends, and what to watch this week.', tag: 'Auto-generated', color: 'from-purple-500 to-violet-600' },
               { title: 'Spending Heatmap', desc: 'See which days you spend most on a calendar-style heatmap. Spot patterns instantly.', tag: 'Visual', color: 'from-pink-500 to-rose-500' },
-              { title: 'Anomaly Alerts', desc: 'TrackTok flags unusual charges or suddenly high spend in a category — before it\'s a problem.', tag: 'Proactive', color: 'from-orange-500 to-amber-500' },
+              { title: 'Anomaly Alerts', desc: 'TrackTok flags unusual charges or suddenly high spend in a category - before it\'s a problem.', tag: 'Proactive', color: 'from-orange-500 to-amber-500' },
               { title: 'Category Trends', desc: 'Track how your food, travel, or shopping spend evolves over months, not just this month.', tag: 'Long-term', color: 'from-blue-500 to-cyan-500' },
-              { title: 'AI Suggestions', desc: 'Personalized tips based on your actual habits — not generic advice.', tag: 'Personalized', color: 'from-emerald-500 to-teal-500' },
+              { title: 'AI Suggestions', desc: 'Personalized tips based on your actual habits - not generic advice.', tag: 'Personalized', color: 'from-emerald-500 to-teal-500' },
               { title: 'Custom Reports', desc: 'Filter by date, category, account, or tag. Export to PDF or CSV for your records.', tag: 'Flexible', color: 'from-indigo-500 to-purple-500' },
             ].map((item, idx) => (
               <motion.div

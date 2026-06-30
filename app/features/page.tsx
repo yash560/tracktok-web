@@ -33,7 +33,7 @@ const features = [
   {
     href: '/features/smart-categorization',
     title: 'Smart Categorization',
-    description: 'AI automatically tags transactions into Food, Shopping, Bills, and more — and gets smarter over time.',
+    description: 'AI automatically tags transactions into Food, Shopping, Bills, and more - and gets smarter over time.',
     icon: Tag,
     gradient: 'from-pink-500 to-rose-500',
     bg: 'bg-pink-50 dark:bg-pink-950/30',
@@ -77,7 +77,7 @@ const features = [
   {
     href: '/features/ai-chat',
     title: 'AI Chat Reports',
-    description: 'Ask our AI anything — "How much did I spend on food?" — and get instant, clear answers.',
+    description: 'Ask our AI anything - "How much did I spend on food?" - and get instant, clear answers.',
     icon: MessageSquare,
     gradient: 'from-green-500 to-emerald-600',
     bg: 'bg-green-50 dark:bg-green-950/30',
@@ -127,7 +127,7 @@ export default function FeaturesPage() {
               </span>
             </h1>
             <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
-              From automatic expense detection to AI-powered insights, TrackTok packs everything you need to take control of your money — without the boring spreadsheets.
+              From automatic expense detection to AI-powered insights, TrackTok packs everything you need to take control of your money - without the boring spreadsheets.
             </p>
           </motion.div>
         </div>

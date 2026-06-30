@@ -244,7 +244,7 @@
             "hero": {
                 "eyebrow": "About TrackTok",
                 "headline": "A smarter way to see your money story.",
-                "text": "We built TrackTok to make finance feel less confusing and more empowering — with premium design and AI intelligence at the center.",
+                "text": "We built TrackTok to make finance feel less confusing and more empowering - with premium design and AI intelligence at the center.",
                 "actions": [
                     {
                         "label": "Talk to us",
@@ -272,7 +272,7 @@
                     "items": [
                         {
                             "title": "Luxury simplicity",
-                            "description": "Less noise, more meaning — every element earns its place.",
+                            "description": "Less noise, more meaning - every element earns its place.",
                             "icon": "Sparkles"
                         },
                         {
@@ -342,7 +342,7 @@
             "description": "Our privacy policy explains how your data is collected, used, and protected.",
             "hero": {
                 "eyebrow": "Privacy",
-                "headline": "Your data is yours — and we keep it that way.",
+                "headline": "Your data is yours - and we keep it that way.",
                 "text": "We design our product with privacy-first defaults, transparent controls, and strong safeguards.",
                 "actions": [
                     {

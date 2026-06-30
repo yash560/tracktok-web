@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
 
         await sendEmail({
           to: member.email,
-          subject: `Reminder: ${reminder.title} — ${amountStr}`,
+          subject: `Reminder: ${reminder.title} - ${amountStr}`,
           html,
         });
 
@@ -304,7 +304,7 @@ export async function POST(request: NextRequest) {
           try {
             await sendEmail({
               to: m.email,
-              subject: `We miss you, ${userName}! 👋 — TrackTok`,
+              subject: `We miss you, ${userName}! 👋 - TrackTok`,
               html,
             });
             sent++;
@@ -534,7 +534,7 @@ export async function POST(request: NextRequest) {
             try {
               await sendEmail({
                 to: m.email,
-                subject: `🏆 ${hitMilestone} expenses tracked! — TrackTok`,
+                subject: `🏆 ${hitMilestone} expenses tracked! - TrackTok`,
                 html: achievementEmail(userName, 'Expenses Tracked', `${hitMilestone}`, `You've logged ${hitMilestone} expenses on TrackTok. Keep going!`, uid),
               });
               sent++;
@@ -562,7 +562,7 @@ export async function POST(request: NextRequest) {
               try {
                 await sendEmail({
                   to: m.email,
-                  subject: `🏆 You saved ${savedPercent}% this month! — TrackTok`,
+                  subject: `🏆 You saved ${savedPercent}% this month! - TrackTok`,
                   html: achievementEmail(userName, 'Savings This Month', `${savedPercent}%`, `You spent ${savedPercent}% less than last month. That's ${formatINR(lastMonth - thisMonth)} saved!`, uid),
                 });
                 sent++;
@@ -640,7 +640,7 @@ export async function POST(request: NextRequest) {
           try {
             await sendEmail({
               to: m.email,
-              subject: `📋 Your ${monthName} Report — TrackTok`,
+              subject: `📋 Your ${monthName} Report - TrackTok`,
               html: monthlyReportEmail({
                 userName,
                 monthName,
@@ -712,7 +712,7 @@ export async function POST(request: NextRequest) {
           try {
             await sendEmail({
               to: m.email,
-              subject: `👥 Split Group Update — ${groupData.length} groups active`,
+              subject: `👥 Split Group Update - ${groupData.length} groups active`,
               html: splitGroupDigestEmail({
                 userName,
                 groups: groupData,
@@ -750,7 +750,7 @@ export async function POST(request: NextRequest) {
           try {
             await sendEmail({
               to: m.email,
-              subject: `🎁 Invite friends to TrackTok — split easier!`,
+              subject: `🎁 Invite friends to TrackTok - split easier!`,
               html: referralReminderEmail(userName, groupCount, uid),
             });
             sent++;
@@ -775,12 +775,14 @@ export async function POST(request: NextRequest) {
 
           const recurring = await db.collection('expenses').aggregate([
             { $match: { userId: uid, type: 'expense' } },
-            { $group: {
-              _id: { description: { $toLower: '$description' }, category: '$category' },
-              count: { $sum: 1 },
-              avgAmount: { $avg: '$amount' },
-              dates: { $push: '$createdAt' },
-            }},
+            {
+              $group: {
+                _id: { description: { $toLower: '$description' }, category: '$category' },
+                count: { $sum: 1 },
+                avgAmount: { $avg: '$amount' },
+                dates: { $push: '$createdAt' },
+              }
+            },
             { $match: { count: { $gte: minOccurrences } } },
           ]).toArray();
 
@@ -816,7 +818,7 @@ export async function POST(request: NextRequest) {
           try {
             await sendEmail({
               to: m.email,
-              subject: `🔮 ${predictions.length} bill(s) coming up — TrackTok`,
+              subject: `🔮 ${predictions.length} bill(s) coming up - TrackTok`,
               html: billPredictionEmail({ userName, bills: predictions, userId: uid }),
             });
             sent++;
@@ -870,7 +872,7 @@ export async function POST(request: NextRequest) {
             try {
               await sendEmail({
                 to: m.email,
-                subject: `📈 Unusual spending in ${cat._id} — TrackTok`,
+                subject: `📈 Unusual spending in ${cat._id} - TrackTok`,
                 html: spendingAnomalyEmail({
                   userName,
                   category: cat._id || 'Other',

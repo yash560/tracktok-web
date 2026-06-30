@@ -161,11 +161,11 @@ export default function SharedExpensesPage() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[
               { icon: Users, title: 'Flexible splitting', desc: 'Split equally, by percentage, or custom amounts. Perfect for unequal shares.', color: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' },
-              { icon: Bell, title: 'Auto reminders', desc: 'TrackTok gently nudges pending members to settle — so you don\'t have to.', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' },
+              { icon: Bell, title: 'Auto reminders', desc: 'TrackTok gently nudges pending members to settle - so you don\'t have to.', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' },
               { icon: Wallet, title: 'Settlement tracking', desc: 'Mark payments as settled via UPI, cash, or bank transfer. Full audit trail.', color: 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400' },
               { icon: MessageSquare, title: 'Group chat', desc: 'Discuss expenses right in the app. No WhatsApp confusion.', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' },
               { icon: CheckCircle, title: 'Expense history', desc: 'See every expense ever added to the group with a full searchable history.', color: 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400' },
-              { icon: ArrowRight, title: 'Minimal simplify', desc: 'TrackTok auto-simplifies debts — if A owes B and B owes C, you only pay C.', color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
+              { icon: ArrowRight, title: 'Minimal simplify', desc: 'TrackTok auto-simplifies debts - if A owes B and B owes C, you only pay C.', color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
             ].map((item, idx) => {
               const Icon = item.icon;
               return (

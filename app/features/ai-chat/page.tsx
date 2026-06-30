@@ -8,7 +8,7 @@ import { MessageSquare, ArrowRight, Send, Sparkles, Bot, User } from 'lucide-rea
 const sampleConversations = [
   {
     q: 'How much did I spend on food last month?',
-    a: 'You spent ₹14,250 on Food & Dining in May — that\'s 29% of your total spend. Zomato (₹4,800) and Swiggy (₹3,200) were your top merchants. Want me to break it down by week?',
+    a: 'You spent ₹14,250 on Food & Dining in May - that\'s 29% of your total spend. Zomato (₹4,800) and Swiggy (₹3,200) were your top merchants. Want me to break it down by week?',
   },
   {
     q: 'Am I overspending on subscriptions?',
@@ -84,11 +84,10 @@ function AIChatMockup() {
             <button
               key={idx}
               onClick={() => setActiveIdx(idx)}
-              className={`text-[10px] px-2.5 py-1.5 rounded-full border transition-all font-medium ${
-                activeIdx === idx
+              className={`text-[10px] px-2.5 py-1.5 rounded-full border transition-all font-medium ${activeIdx === idx
                   ? 'bg-emerald-500 text-white border-emerald-500'
                   : 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-emerald-300'
-              }`}
+                }`}
             >
               Q{idx + 1}
             </button>
@@ -134,7 +133,7 @@ export default function AIChatPage() {
                 </span>
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-                Our AI understands your spending habits and answers natural questions — no finance degree needed. Just ask, and get instant, personalized insights.
+                Our AI understands your spending habits and answers natural questions - no finance degree needed. Just ask, and get instant, personalized insights.
               </p>
               <div className="space-y-2 mb-8">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Try asking</p>
@@ -165,17 +164,17 @@ export default function AIChatPage() {
               More than a chatbot
             </h2>
             <p className="text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
-              TrackTok AI has full context of your finances — every transaction, every category, every month.
+              TrackTok AI has full context of your finances - every transaction, every category, every month.
             </p>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[
               { title: 'Spending summaries', desc: 'Ask for weekly or monthly summaries in plain English. Get tables, totals, and commentary.', emoji: '📊' },
-              { title: 'Budget check-ins', desc: '"Am I on track this month?" — TrackTok compares your current pace against your goals.', emoji: '🎯' },
+              { title: 'Budget check-ins', desc: '"Am I on track this month?" - TrackTok compares your current pace against your goals.', emoji: '🎯' },
               { title: 'Saving ideas', desc: 'Based on your actual habits, AI suggests specific cuts that add up to real money.', emoji: '💡' },
-              { title: 'Merchant lookup', desc: '"What did I spend at Swiggy in March?" — drill into any merchant, any date range.', emoji: '🔍' },
-              { title: 'Anomaly questions', desc: '"Did I have any unusual charges?" — AI flags spikes and one-off transactions.', emoji: '⚡' },
-              { title: 'Comparison analysis', desc: '"How does this month compare to last year?" — longitudinal analysis on demand.', emoji: '📈' },
+              { title: 'Merchant lookup', desc: '"What did I spend at Swiggy in March?" - drill into any merchant, any date range.', emoji: '🔍' },
+              { title: 'Anomaly questions', desc: '"Did I have any unusual charges?" - AI flags spikes and one-off transactions.', emoji: '⚡' },
+              { title: 'Comparison analysis', desc: '"How does this month compare to last year?" - longitudinal analysis on demand.', emoji: '📈' },
             ].map((item, idx) => (
               <motion.div
                 key={idx}

@@ -603,7 +603,7 @@ console.log(transactions);
 
 **POST** `/cron/execute`
 
-Webhook endpoint called by [Reach](../reach) cron-as-a-service. **Not authenticated via JWT** — uses `X-Webhook-Secret` header instead.
+Webhook endpoint called by [Reach](../reach) cron-as-a-service. **Not authenticated via JWT** - uses `X-Webhook-Secret` header instead.
 
 **Headers:**
 
@@ -638,10 +638,10 @@ Webhook endpoint called by [Reach](../reach) cron-as-a-service. **Not authentica
 
 **Error Responses:**
 
-- `401` — Missing or invalid `X-Webhook-Secret`
-- `400` — Missing `action` or `reminderId`, unknown action, or user has no email
-- `404` — Reminder not found
-- `500` — Email sending or internal error
+- `401` - Missing or invalid `X-Webhook-Secret`
+- `400` - Missing `action` or `reminderId`, unknown action, or user has no email
+- `404` - Reminder not found
+- `500` - Email sending or internal error
 
 **How it works:**
 

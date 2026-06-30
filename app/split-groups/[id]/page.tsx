@@ -150,7 +150,7 @@ function calculateSettlements(expenses: Invoice[], userPhone: string): Settlemen
   return settlements;
 }
 
-// Feature #9: Debt simplification — minimize number of transactions
+// Feature #9: Debt simplification - minimize number of transactions
 function simplifyDebts(expenses: Invoice[], contacts: SplitGroup['contacts']): SimplifiedDebt[] {
   const balances: { [phone: string]: { amount: number; name: string } } = {};
 
@@ -581,14 +581,14 @@ export default function SplitGroupPage() {
         const isPayment = (owner.amount || 0) === 0;
 
         if (phonesMatch(split.phone, userPhone)) {
-          // User is in split — they owe
+          // User is in split - they owe
           if (isPayment) {
             runningBalance += amt;
           } else {
             runningBalance -= amt;
           }
         } else if (phonesMatch(owner.phone, userPhone)) {
-          // User is owner — they're owed
+          // User is owner - they're owed
           if (isPayment) {
             runningBalance -= amt;
           } else {
@@ -789,7 +789,7 @@ export default function SplitGroupPage() {
     if (id) {
       axios.get(`/api/split-groups/${id}/schedule-reminders`)
         .then(res => setReminderSchedule(res.data.reminderSchedule))
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [id]);
 
@@ -1256,11 +1256,10 @@ export default function SplitGroupPage() {
                           {fmt(memberTotal)}
                         </p>
                         {memberSettlement ? (
-                          <span className={`inline-flex items-center gap-1 text-xs font-medium mt-1 px-2 py-0.5 rounded-full ${
-                            memberSettlement.type === 'owes'
+                          <span className={`inline-flex items-center gap-1 text-xs font-medium mt-1 px-2 py-0.5 rounded-full ${memberSettlement.type === 'owes'
                               ? 'bg-warning/10 text-warning'
                               : 'bg-success/10 text-success'
-                          }`}>
+                            }`}>
                             {memberSettlement.type === 'owes' ? (
                               <TrendingDown className="w-3 h-3" />
                             ) : (
@@ -1305,8 +1304,8 @@ export default function SplitGroupPage() {
                     key={tab.key}
                     onClick={() => setActiveInsightTab(tab.key)}
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition ${activeInsightTab === tab.key
-                        ? 'bg-primary text-white'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      ? 'bg-primary text-white'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                       }`}
                   >
                     {tab.icon}
@@ -1401,7 +1400,7 @@ export default function SplitGroupPage() {
                           formatter={(value: any) => [fmt(Number(value)), 'Balance']}
                           labelFormatter={(_, payload) => {
                             const item = payload?.[0]?.payload;
-                            return item ? `${item.date} — ${item.event}` : '';
+                            return item ? `${item.date} - ${item.event}` : '';
                           }}
                         />
                         <Line
@@ -1502,8 +1501,8 @@ export default function SplitGroupPage() {
                   <button
                     onClick={() => setShowFilters(!showFilters)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition ${showFilters
-                        ? 'bg-primary text-white border-primary'
-                        : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                       }`}
                   >
                     <Filter className="w-4 h-4" />
@@ -1752,8 +1751,8 @@ export default function SplitGroupPage() {
                                                               });
                                                             }}
                                                             className={`w-7 h-7 rounded text-xs font-bold transition ${currentShare === s
-                                                                ? 'bg-primary text-white'
-                                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                                              ? 'bg-primary text-white'
+                                                              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
                                                               }`}
                                                           >
                                                             {s}
@@ -1853,8 +1852,8 @@ export default function SplitGroupPage() {
                                                     }
                                                   }}
                                                   className={`px-2.5 py-1 rounded text-xs font-medium transition ${currentMode === mode
-                                                      ? 'bg-primary text-white'
-                                                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                                    ? 'bg-primary text-white'
+                                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
                                                     }`}
                                                 >
                                                   {mode === 'equal' ? '= Equal' : mode === 'shares' ? '⊞ Shares' : mode === 'percentage' ? '% Percent' : '₹ Amount'}
@@ -1866,7 +1865,7 @@ export default function SplitGroupPage() {
                                               {Math.abs(diff) < 0.01
                                                 ? `Total: ${fmt(expense.amount)} ✓`
                                                 : diff < 0
-                                                  ? `Over by ${fmt(Math.abs(diff))} — total cannot exceed ${fmt(expense.amount)}`
+                                                  ? `Over by ${fmt(Math.abs(diff))} - total cannot exceed ${fmt(expense.amount)}`
                                                   : `${fmt(diff)} unassigned of ${fmt(expense.amount)}`
                                               }
                                             </div>
@@ -1990,8 +1989,8 @@ export default function SplitGroupPage() {
                             <button
                               onClick={() => toggleComments(String(expense._id ?? expenseIndex))}
                               className={`inline-flex items-center gap-1 px-3 py-2 border rounded-lg transition text-xs sm:text-sm font-medium whitespace-nowrap ${openComments === String(expense._id ?? expenseIndex)
-                                  ? 'border-primary text-primary bg-primary/5'
-                                  : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-primary'
+                                ? 'border-primary text-primary bg-primary/5'
+                                : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-primary'
                                 }`}
                             >
                               <MessageCircle className="w-4 h-4" />
@@ -2116,8 +2115,8 @@ export default function SplitGroupPage() {
                 <button
                   onClick={() => setShowSimplified(!showSimplified)}
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition ${showSimplified
-                      ? 'bg-primary text-white'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-primary text-white'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                     }`}
                 >
                   <Zap className="w-4 h-4" />
@@ -2149,26 +2148,22 @@ export default function SplitGroupPage() {
                       {settlements.filter((s) => s.type === 'owed').length} member{settlements.filter((s) => s.type === 'owed').length !== 1 ? 's' : ''}
                     </p>
                   </div>
-                  <div className={`p-4 rounded-xl text-center border ${
-                    netBalance > 0
+                  <div className={`p-4 rounded-xl text-center border ${netBalance > 0
                       ? 'bg-success/5 border-success/20'
                       : netBalance < 0
                         ? 'bg-warning/5 border-warning/20'
                         : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
-                  }`}>
-                    <p className={`text-xs font-semibold uppercase tracking-wide mb-1 ${
-                      netBalance > 0 ? 'text-success' : netBalance < 0 ? 'text-warning' : 'text-gray-500 dark:text-gray-400'
                     }`}>
+                    <p className={`text-xs font-semibold uppercase tracking-wide mb-1 ${netBalance > 0 ? 'text-success' : netBalance < 0 ? 'text-warning' : 'text-gray-500 dark:text-gray-400'
+                      }`}>
                       Net Balance
                     </p>
-                    <p className={`text-xl font-bold ${
-                      netBalance > 0 ? 'text-success' : netBalance < 0 ? 'text-warning' : 'text-gray-600 dark:text-gray-300'
-                    }`}>
+                    <p className={`text-xl font-bold ${netBalance > 0 ? 'text-success' : netBalance < 0 ? 'text-warning' : 'text-gray-600 dark:text-gray-300'
+                      }`}>
                       {netBalance > 0 ? '+' : ''}{fmt(Math.abs(netBalance))}
                     </p>
-                    <p className={`text-xs mt-1 ${
-                      netBalance > 0 ? 'text-success/70' : netBalance < 0 ? 'text-warning/70' : 'text-gray-500 dark:text-gray-400'
-                    }`}>
+                    <p className={`text-xs mt-1 ${netBalance > 0 ? 'text-success/70' : netBalance < 0 ? 'text-warning/70' : 'text-gray-500 dark:text-gray-400'
+                      }`}>
                       {netBalance > 0 ? 'You get back overall' : netBalance < 0 ? 'You owe overall' : 'All even'}
                     </p>
                   </div>
@@ -2317,11 +2312,10 @@ export default function SplitGroupPage() {
                               <button
                                 onClick={() => setShowScheduleMenu(!showScheduleMenu)}
                                 disabled={isSettled}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition font-medium text-xs sm:text-sm border disabled:opacity-50 disabled:cursor-not-allowed ${
-                                  reminderSchedule
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition font-medium text-xs sm:text-sm border disabled:opacity-50 disabled:cursor-not-allowed ${reminderSchedule
                                     ? 'bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-400'
                                     : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
-                                }`}
+                                  }`}
                                 title={reminderSchedule ? `Auto: ${reminderSchedule.frequency}` : 'Schedule auto-reminders'}
                               >
                                 {reminderSchedule ? <Bell className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
@@ -2350,11 +2344,10 @@ export default function SplitGroupPage() {
                                         key={opt.key}
                                         onClick={() => handleScheduleReminder(opt.key)}
                                         disabled={isScheduling}
-                                        className={`w-full text-left px-3 py-2 text-sm rounded-lg transition ${
-                                          reminderSchedule?.frequency === opt.key
+                                        className={`w-full text-left px-3 py-2 text-sm rounded-lg transition ${reminderSchedule?.frequency === opt.key
                                             ? 'bg-primary/10 text-primary font-semibold'
                                             : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
-                                        } disabled:opacity-50`}
+                                          } disabled:opacity-50`}
                                       >
                                         {opt.label}
                                         {reminderSchedule?.frequency === opt.key && ' ✓'}

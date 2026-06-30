@@ -105,11 +105,11 @@ export default function AdminUserDetailPage() {
   };
 
   const getName = (u: UserDetail) =>
-    u.displayName || [u.firstName, u.lastName].filter(Boolean).join(' ') || '—';
+    u.displayName || [u.firstName, u.lastName].filter(Boolean).join(' ') || '-';
 
   const getInitial = (u: UserDetail) => {
     const name = getName(u);
-    return name !== '—' ? name.charAt(0).toUpperCase() : '?';
+    return name !== '-' ? name.charAt(0).toUpperCase() : '?';
   };
 
   if (loading) {
@@ -159,35 +159,35 @@ export default function AdminUserDetailPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3 mt-4 text-sm">
               <div>
                 <span className="text-gray-400 dark:text-gray-500">Phone</span>
-                <p className="text-gray-900 dark:text-white">{user.phoneNumber || '—'}</p>
+                <p className="text-gray-900 dark:text-white">{user.phoneNumber || '-'}</p>
               </div>
               <div>
                 <span className="text-gray-400 dark:text-gray-500">UPI ID</span>
-                <p className="text-gray-900 dark:text-white">{user.upiId || '—'}</p>
+                <p className="text-gray-900 dark:text-white">{user.upiId || '-'}</p>
               </div>
               <div>
                 <span className="text-gray-400 dark:text-gray-500">Gender</span>
-                <p className="text-gray-900 dark:text-white capitalize">{user.gender || '—'}</p>
+                <p className="text-gray-900 dark:text-white capitalize">{user.gender || '-'}</p>
               </div>
               <div>
                 <span className="text-gray-400 dark:text-gray-500">Date of Birth</span>
                 <p className="text-gray-900 dark:text-white">
                   {user.dateOfBirth
                     ? new Date(user.dateOfBirth).toLocaleDateString('en-IN', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      })
-                    : '—'}
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })
+                    : '-'}
                 </p>
               </div>
               <div>
                 <span className="text-gray-400 dark:text-gray-500">Collection</span>
-                <p className="text-gray-900 dark:text-white">{user.collection || '—'}</p>
+                <p className="text-gray-900 dark:text-white">{user.collection || '-'}</p>
               </div>
               <div>
                 <span className="text-gray-400 dark:text-gray-500">Code</span>
-                <p className="text-gray-900 dark:text-white font-mono">{user.code || '—'}</p>
+                <p className="text-gray-900 dark:text-white font-mono">{user.code || '-'}</p>
               </div>
               <div>
                 <span className="text-gray-400 dark:text-gray-500">Member Since</span>
@@ -254,19 +254,18 @@ export default function AdminUserDetailPage() {
                         year: 'numeric',
                       })}
                     </td>
-                    <td className="px-4 py-3 text-gray-900 dark:text-white">{tx.description || '—'}</td>
+                    <td className="px-4 py-3 text-gray-900 dark:text-white">{tx.description || '-'}</td>
                     <td
-                      className={`px-4 py-3 text-right font-medium whitespace-nowrap ${
-                        tx.type === 'debit'
+                      className={`px-4 py-3 text-right font-medium whitespace-nowrap ${tx.type === 'debit'
                           ? 'text-red-600 dark:text-red-400'
                           : 'text-green-600 dark:text-green-400'
-                      }`}
+                        }`}
                     >
                       {tx.type === 'debit' ? '- ' : '+ '}
                       {formatINR(tx.amount)}
                     </td>
                     <td className="px-4 py-3 text-gray-500 dark:text-gray-400 capitalize">
-                      {tx.category || '—'}
+                      {tx.category || '-'}
                     </td>
                   </tr>
                 ))}

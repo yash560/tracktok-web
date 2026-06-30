@@ -7,7 +7,7 @@ import { ShieldCheck, ArrowRight, Lock, Eye, EyeOff, Server, KeyRound, FileText 
 const principles = [
   { icon: Lock, title: 'AES-256 encryption', desc: 'All your data is encrypted at rest and in transit using military-grade AES-256 encryption.', color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
   { icon: EyeOff, title: 'Zero data selling', desc: 'We never sell your financial data to advertisers, data brokers, or any third parties. Ever.', color: 'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400' },
-  { icon: Eye, title: 'Read-only access', desc: 'TrackTok can only read your transaction data — it cannot initiate payments or transfers.', color: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' },
+  { icon: Eye, title: 'Read-only access', desc: 'TrackTok can only read your transaction data - it cannot initiate payments or transfers.', color: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' },
   { icon: Server, title: 'India-based servers', desc: 'Your data is stored on servers hosted in India, complying with all RBI data localization norms.', color: 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400' },
   { icon: KeyRound, title: 'No password storage', desc: 'We use OAuth2 and bank-level APIs. We never see or store your banking passwords.', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' },
   { icon: FileText, title: 'Transparent data policy', desc: 'Plain-English privacy policy. You can export or delete all your data at any time, instantly.', color: 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400' },
@@ -112,7 +112,7 @@ export default function PrivacyPage() {
                 </span>
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-                We built TrackTok with privacy at the core, not as an afterthought. Bank-grade encryption, zero data selling, and complete transparency — because your financial life is personal.
+                We built TrackTok with privacy at the core, not as an afterthought. Bank-grade encryption, zero data selling, and complete transparency - because your financial life is personal.
               </p>
               <div className="flex flex-wrap gap-3 mb-8">
                 {['SOC 2 Type II', 'RBI Compliant', 'ISO 27001', 'GDPR Ready', 'End-to-end Encrypted'].map((cert) => (

@@ -136,7 +136,7 @@ export default function SmartCategorizationPage() {
           </div>
           <div className="grid gap-6 sm:grid-cols-3">
             {[
-              { icon: Sparkles, title: 'Merchant recognition', desc: 'Recognizes 10,000+ Indian merchants out of the box — Swiggy, Zomato, Flipkart, Ola, and more.', color: 'bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400' },
+              { icon: Sparkles, title: 'Merchant recognition', desc: 'Recognizes 10,000+ Indian merchants out of the box - Swiggy, Zomato, Flipkart, Ola, and more.', color: 'bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400' },
               { icon: RefreshCw, title: 'Gets smarter over time', desc: 'Each correction you make trains your personal model. After 30 days, accuracy exceeds 98%.', color: 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400' },
               { icon: Pencil, title: 'Always editable', desc: 'Disagree with a category? Fix it in one tap. Your correction is learned instantly.', color: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' },
             ].map((item, idx) => {
@@ -187,7 +187,7 @@ export default function SmartCategorizationPage() {
         <div className="max-w-5xl mx-auto">
           <div className="grid gap-5 sm:grid-cols-2">
             {[
-              { title: 'Custom categories', desc: 'Create your own tags — "Client dinners", "Side hustle", or whatever fits your life.', icon: Tag },
+              { title: 'Custom categories', desc: 'Create your own tags - "Client dinners", "Side hustle", or whatever fits your life.', icon: Tag },
               { title: 'Bulk re-categorize', desc: 'Select multiple transactions and change their category at once. Fast and painless.', icon: CheckCircle },
               { title: 'Category budgets', desc: 'Set monthly limits per category and get notified when you\'re approaching your cap.', icon: Sparkles },
               { title: 'Export by category', desc: 'Download all Food expenses for the year with a single click. Perfect for taxes.', icon: ArrowRight },

@@ -28,6 +28,6 @@ export async function logAudit(
       createdAt: new Date(),
     });
   } catch {
-    // fire-and-forget — never block the caller
+    // fire-and-forget - never block the caller
   }
 }

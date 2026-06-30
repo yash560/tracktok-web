@@ -111,9 +111,9 @@ export default function AdminUsersPage() {
     );
 
   const getName = (u: User) =>
-    u.displayName || [u.firstName, u.lastName].filter(Boolean).join(' ') || '—';
+    u.displayName || [u.firstName, u.lastName].filter(Boolean).join(' ') || '-';
 
-  const getPhone = (u: User) => u.phoneNumber || u.phone || '—';
+  const getPhone = (u: User) => u.phoneNumber || u.phone || '-';
 
   return (
     <div>
@@ -176,7 +176,7 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{user.email}</td>
                     <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{getPhone(user)}</td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{user.collection || '—'}</td>
+                    <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{user.collection || '-'}</td>
                     <td className="px-4 py-3">
                       {hasAdmin(user) ? (
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300">

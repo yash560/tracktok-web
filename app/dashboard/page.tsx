@@ -839,7 +839,7 @@ export default function DashboardPage() {
               <div className="mt-1 space-y-0.5">
                 {anomalies.slice(0, 3).map((a: any) => (
                   <p key={a._id} className="text-xs text-amber-700 dark:text-amber-300 truncate">
-                    {a.description} — {a.anomalyReason}
+                    {a.description} - {a.anomalyReason}
                   </p>
                 ))}
               </div>
@@ -862,11 +862,10 @@ export default function DashboardPage() {
               <div key={alert._id} className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
                   <span className="capitalize">{alert.category}</span>
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                    alert.pct >= 100 ? 'bg-danger/10 text-danger' :
-                    alert.pct >= 90 ? 'bg-danger/10 text-danger' :
-                    'bg-warning/10 text-warning'
-                  }`}>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${alert.pct >= 100 ? 'bg-danger/10 text-danger' :
+                      alert.pct >= 90 ? 'bg-danger/10 text-danger' :
+                        'bg-warning/10 text-warning'
+                    }`}>
                     {Math.round(alert.pct)}%
                   </span>
                 </div>

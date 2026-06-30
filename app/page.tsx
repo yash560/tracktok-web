@@ -113,7 +113,7 @@ const howItWorks = [
   },
   {
     title: 'Ask AI stuff',
-    description: 'Chat with TrackTok and ask things like “How much did I spend on brunch?” — our AI answers in seconds.',
+    description: 'Chat with TrackTok and ask things like “How much did I spend on brunch?” - our AI answers in seconds.',
     icon: MessageSquare,
     badge: 'Fast AF',
   },
@@ -270,114 +270,114 @@ function PhoneMockup() {
 
       <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }} className="relative mx-auto w-[280px] sm:w-[300px]">
         <motion.div animate={{ y: [0, -7, 0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1.2 }}>
-        <div className="bg-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
-          <div className="bg-white dark:bg-gray-800 rounded-[2rem] overflow-hidden">
-            <div className="flex items-center justify-between px-6 pt-3 pb-1">
-              <span className="text-[10px] font-semibold text-gray-900 dark:text-white">9:41</span>
-              <div className="w-20 h-5 bg-gray-900 rounded-full mx-auto" />
-              <div className="flex items-center gap-0.5">
-                <svg className="w-3 h-3 text-gray-900 dark:text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z" /></svg>
-                <svg className="w-4 h-3 text-gray-900 dark:text-white" fill="currentColor" viewBox="0 0 24 24"><rect x="2" y="6" width="18" height="12" rx="2" fillOpacity="0.3" /><rect x="2" y="6" width="14" height="12" rx="2" /><rect x="21" y="10" width="2" height="4" rx="1" /></svg>
+          <div className="bg-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
+            <div className="bg-white dark:bg-gray-800 rounded-[2rem] overflow-hidden">
+              <div className="flex items-center justify-between px-6 pt-3 pb-1">
+                <span className="text-[10px] font-semibold text-gray-900 dark:text-white">9:41</span>
+                <div className="w-20 h-5 bg-gray-900 rounded-full mx-auto" />
+                <div className="flex items-center gap-0.5">
+                  <svg className="w-3 h-3 text-gray-900 dark:text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z" /></svg>
+                  <svg className="w-4 h-3 text-gray-900 dark:text-white" fill="currentColor" viewBox="0 0 24 24"><rect x="2" y="6" width="18" height="12" rx="2" fillOpacity="0.3" /><rect x="2" y="6" width="14" height="12" rx="2" /><rect x="21" y="10" width="2" height="4" rx="1" /></svg>
+                </div>
               </div>
-            </div>
 
-            <div className="px-4 pb-6 pt-2">
-              <div className="flex items-center justify-between mb-4">
+              <div className="px-4 pb-6 pt-2">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-sm font-bold text-gray-900 dark:text-white">Hello, Ankit 👋</p>
+                    <p className="text-[10px] text-gray-500">Here&apos;s your spending overview</p>
+                  </div>
+                  <div className="w-7 h-7 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                    <Bell className="w-3.5 h-3.5 text-gray-600 dark:text-gray-300" />
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl p-3 mb-3">
+                  <p className="text-[10px] text-white/80">Total Spent</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xl font-bold text-white">₹48,750</p>
+                    <span className="flex items-center gap-0.5 text-[9px] text-white/90 bg-white/20 rounded-full px-1.5 py-0.5">
+                      <TrendingDown className="w-2.5 h-2.5" /> 12%
+                    </span>
+                  </div>
+                  <p className="text-[9px] text-white/70">vs last month</p>
+                </div>
+
+                <div className="mb-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-bold text-gray-900 dark:text-white">Spending by Category</p>
+                    <span className="text-[9px] text-gray-400">This Month ▾</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-16 h-16 flex-shrink-0">
+                      <div className="w-full h-full rounded-full" style={{ background: 'conic-gradient(#4DD69B 0% 30%, #8C7DFF 30% 50%, #FBA94D 50% 65%, #7C3AED 65% 80%, #94A3B8 80% 100%)' }} />
+                      <div className="absolute inset-2 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center">
+                        <div className="text-center">
+                          <p className="text-[8px] text-gray-400">Total</p>
+                          <p className="text-[9px] font-bold text-gray-900 dark:text-white">₹48,750</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-1 text-[9px]">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full bg-[#4DD69B]" />
+                        <span className="text-gray-600 dark:text-gray-400">Food & Dining</span>
+                        <span className="ml-auto font-semibold text-gray-900 dark:text-white">30%</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full bg-[#8C7DFF]" />
+                        <span className="text-gray-600 dark:text-gray-400">Travel</span>
+                        <span className="ml-auto font-semibold text-gray-900 dark:text-white">20%</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full bg-[#FBA94D]" />
+                        <span className="text-gray-600 dark:text-gray-400">Shopping</span>
+                        <span className="ml-auto font-semibold text-gray-900 dark:text-white">15%</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full bg-[#7C3AED]" />
+                        <span className="text-gray-600 dark:text-gray-400">Bills & Utilities</span>
+                        <span className="ml-auto font-semibold text-gray-900 dark:text-white">15%</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full bg-[#94A3B8]" />
+                        <span className="text-gray-600 dark:text-gray-400">Others</span>
+                        <span className="ml-auto font-semibold text-gray-900 dark:text-white">20%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div>
-                  <p className="text-sm font-bold text-gray-900 dark:text-white">Hello, Ankit 👋</p>
-                  <p className="text-[10px] text-gray-500">Here&apos;s your spending overview</p>
-                </div>
-                <div className="w-7 h-7 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                  <Bell className="w-3.5 h-3.5 text-gray-600 dark:text-gray-300" />
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl p-3 mb-3">
-                <p className="text-[10px] text-white/80">Total Spent</p>
-                <div className="flex items-center gap-2">
-                  <p className="text-xl font-bold text-white">₹48,750</p>
-                  <span className="flex items-center gap-0.5 text-[9px] text-white/90 bg-white/20 rounded-full px-1.5 py-0.5">
-                    <TrendingDown className="w-2.5 h-2.5" /> 12%
-                  </span>
-                </div>
-                <p className="text-[9px] text-white/70">vs last month</p>
-              </div>
-
-              <div className="mb-3">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-bold text-gray-900 dark:text-white">Spending by Category</p>
-                  <span className="text-[9px] text-gray-400">This Month ▾</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="relative w-16 h-16 flex-shrink-0">
-                    <div className="w-full h-full rounded-full" style={{ background: 'conic-gradient(#4DD69B 0% 30%, #8C7DFF 30% 50%, #FBA94D 50% 65%, #7C3AED 65% 80%, #94A3B8 80% 100%)' }} />
-                    <div className="absolute inset-2 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center">
-                      <div className="text-center">
-                        <p className="text-[8px] text-gray-400">Total</p>
-                        <p className="text-[9px] font-bold text-gray-900 dark:text-white">₹48,750</p>
-                      </div>
-                    </div>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-bold text-gray-900 dark:text-white">Recent Transactions</p>
+                    <span className="text-[9px] text-secondary font-semibold">View All</span>
                   </div>
-                  <div className="space-y-1 text-[9px]">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full bg-[#4DD69B]" />
-                      <span className="text-gray-600 dark:text-gray-400">Food & Dining</span>
-                      <span className="ml-auto font-semibold text-gray-900 dark:text-white">30%</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full bg-[#8C7DFF]" />
-                      <span className="text-gray-600 dark:text-gray-400">Travel</span>
-                      <span className="ml-auto font-semibold text-gray-900 dark:text-white">20%</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full bg-[#FBA94D]" />
-                      <span className="text-gray-600 dark:text-gray-400">Shopping</span>
-                      <span className="ml-auto font-semibold text-gray-900 dark:text-white">15%</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full bg-[#7C3AED]" />
-                      <span className="text-gray-600 dark:text-gray-400">Bills & Utilities</span>
-                      <span className="ml-auto font-semibold text-gray-900 dark:text-white">15%</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full bg-[#94A3B8]" />
-                      <span className="text-gray-600 dark:text-gray-400">Others</span>
-                      <span className="ml-auto font-semibold text-gray-900 dark:text-white">20%</span>
-                    </div>
+                  <div className="space-y-2">
+                    {[
+                      { name: 'Zomato', cat: 'Food & Dining', amount: '₹850', time: 'Today', color: 'bg-red-500', letter: 'Z' },
+                      { name: 'Uber', cat: 'Travel', amount: '₹620', time: 'Yesterday', color: 'bg-gray-900', letter: 'U' },
+                      { name: 'Amazon', cat: 'Shopping', amount: '₹1,499', time: '2 May', color: 'bg-orange-500', letter: 'A' },
+                    ].map((tx) => (
+                      <div key={tx.name} className="flex items-center gap-2">
+                        <div className={`w-7 h-7 rounded-lg ${tx.color} flex items-center justify-center flex-shrink-0`}>
+                          <span className="text-white text-[10px] font-bold">{tx.letter}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[11px] font-semibold text-gray-900 dark:text-white">{tx.name}</p>
+                          <p className="text-[9px] text-gray-400">{tx.cat}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[11px] font-semibold text-gray-900 dark:text-white">- {tx.amount}</p>
+                          <p className="text-[9px] text-gray-400">{tx.time}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-bold text-gray-900 dark:text-white">Recent Transactions</p>
-                  <span className="text-[9px] text-secondary font-semibold">View All</span>
-                </div>
-                <div className="space-y-2">
-                  {[
-                    { name: 'Zomato', cat: 'Food & Dining', amount: '₹850', time: 'Today', color: 'bg-red-500', letter: 'Z' },
-                    { name: 'Uber', cat: 'Travel', amount: '₹620', time: 'Yesterday', color: 'bg-gray-900', letter: 'U' },
-                    { name: 'Amazon', cat: 'Shopping', amount: '₹1,499', time: '2 May', color: 'bg-orange-500', letter: 'A' },
-                  ].map((tx) => (
-                    <div key={tx.name} className="flex items-center gap-2">
-                      <div className={`w-7 h-7 rounded-lg ${tx.color} flex items-center justify-center flex-shrink-0`}>
-                        <span className="text-white text-[10px] font-bold">{tx.letter}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-semibold text-gray-900 dark:text-white">{tx.name}</p>
-                        <p className="text-[9px] text-gray-400">{tx.cat}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[11px] font-semibold text-gray-900 dark:text-white">- {tx.amount}</p>
-                        <p className="text-[9px] text-gray-400">{tx.time}</p>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
             </div>
           </div>
-        </div>
         </motion.div>
       </motion.div>
     </div>
@@ -408,7 +408,7 @@ export default function Home() {
                 </h1>
 
                 <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                  TrackTok turns every SMS and bank alert into clean money stories. Smart budgets, quick AI answers, and squad-friendly split tracking — all served with Gen Z energy.
+                  TrackTok turns every SMS and bank alert into clean money stories. Smart budgets, quick AI answers, and squad-friendly split tracking - all served with Gen Z energy.
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 mb-8">
@@ -534,7 +534,7 @@ export default function Home() {
                 <div className="mx-auto w-full max-w-3xl overflow-hidden rounded-[46px] border border-slate-200 dark:border-gray-800 bg-white dark:bg-dark-card shadow-2xl">
                   <div className="px-6 py-5 border-b border-slate-200 dark:border-gray-800 flex items-center justify-between gap-4 bg-slate-50 dark:bg-slate-900">
                     <div className="space-y-1">
-                      <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Program Insider</p>
+                      <p className="text-xs uppercase tracking-[0.2em] text-slate-500">TrackTok</p>
                       <p className="text-sm font-semibold text-slate-900 dark:text-white">Overview</p>
                     </div>
                     <div className="rounded-full bg-slate-200/70 dark:bg-slate-800 px-3 py-1 text-xs text-slate-700 dark:text-slate-300">May 1 - May 31</div>
@@ -630,7 +630,7 @@ export default function Home() {
             <div className="mt-10 rounded-[32px] border border-gray-200 dark:border-gray-800 bg-white dark:bg-dark-card p-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 { title: 'Privacy First', description: 'Your data is encrypted and never shared.', icon: Shield },
-                { title: 'Multiple Accounts', description: 'Bank, UPI, cards, and wallets — all in one place.', icon: Wallet },
+                { title: 'Multiple Accounts', description: 'Bank, UPI, cards, and wallets - all in one place.', icon: Wallet },
                 { title: 'Flexible Filters', description: 'Today, this week, this month or custom date ranges.', icon: Calendar },
                 { title: 'Works Everywhere', description: 'Available on mobile and web, anytime.', icon: Smartphone },
               ].map((item, idx) => {
@@ -731,7 +731,7 @@ export default function Home() {
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
-                { title: 'Stay in control', description: 'See everything in one scroll — no hidden fees, no surprise bills.', icon: Shield },
+                { title: 'Stay in control', description: 'See everything in one scroll - no hidden fees, no surprise bills.', icon: Shield },
                 { title: 'Move faster', description: 'AI answers your money questions instantly, without a finance degree.', icon: Sparkles },
                 { title: 'Share smarter', description: 'Split gifts, trips, and rent with friends without the awkward tab.', icon: Users },
               ].map((item, idx) => (
