@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { connectToDatabase } from './mongodb';
 
 // Email configuration using GoDaddy SMTP
 const transporter = nodemailer.createTransport({
@@ -49,6 +50,9 @@ export async function sendEmail(payload: EmailPayload) {
         };
 
         const info = await transporter.sendMail(mailOptions);
+
+        await logEmail(payload, true, info.messageId);
+
         return {
             success: true,
             messageId: info.messageId,
@@ -56,7 +60,36 @@ export async function sendEmail(payload: EmailPayload) {
         };
     } catch (error) {
         console.error('Email sending error:', error);
+        await logEmail(payload, false, undefined, error instanceof Error ? error.message : String(error));
         throw error;
+    }
+}
+
+/**
+ * Record each send in `email_logs` — one doc per recipient, so counts per address are a simple aggregate.
+ */
+async function logEmail(payload: EmailPayload, success: boolean, messageId?: string, error?: string) {
+    try {
+        const recipients = [payload.to, payload.cc, payload.bcc]
+            .flat()
+            .filter((addr): addr is string => Boolean(addr));
+
+        if (recipients.length === 0) return;
+
+        const { db } = await connectToDatabase();
+
+        await db.collection('email_logs').insertMany(
+            recipients.map((to) => ({
+                to,
+                subject: payload.subject,
+                success,
+                messageId,
+                error,
+                sentAt: new Date(),
+            }))
+        );
+    } catch (logError) {
+        console.error('Email log write error:', logError);
     }
 }
 
