@@ -2,7 +2,7 @@ import { Db } from 'mongodb';
 import { NextRequest } from 'next/server';
 
 export type AuditAction = 'create' | 'update' | 'delete' | 'login' | 'settings_change';
-export type AuditEntity = 'expense' | 'budget' | 'reminder' | 'split_group' | 'profile';
+export type AuditEntity = 'expense' | 'budget' | 'reminder' | 'split_group' | 'profile' | 'api_token';
 
 export async function logAudit(
   db: Db,

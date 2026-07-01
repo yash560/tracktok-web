@@ -17,11 +17,11 @@ export async function comparePasswords(
   return bcrypt.compare(password, hashedPassword);
 }
 
-export function generateToken(userId: string): string {
+export function generateToken(userId: string, expiresInSeconds: number = 7 * 24 * 60 * 60): string {
   return jwt.sign(
     { userId, customer: 'webverse', collection: 'members' },
     JWT_SECRET,
-    { expiresIn: '7d' }
+    { expiresIn: expiresInSeconds }
   );
 }
 

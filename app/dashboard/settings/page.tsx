@@ -19,6 +19,9 @@ import {
   Mail,
   X,
   Search,
+  Key,
+  Copy,
+  Check,
 } from 'lucide-react';
 import axios from 'axios';
 import {
@@ -137,6 +140,156 @@ function ContactModal({
   );
 }
 
+interface ApiToken {
+  _id: string;
+  name: string;
+  tokenSuffix: string;
+  createdAt: string;
+  expiresAt: string;
+  lastUsedAt: string | null;
+}
+
+const DURATION_UNITS = [
+  { id: 'hours', label: 'Hours', ms: 60 * 60 * 1000, min: 1, max: 24 * 365 * 10 },
+  { id: 'days', label: 'Days', ms: 24 * 60 * 60 * 1000, min: 1, max: 365 * 10 },
+  { id: 'months', label: 'Months', ms: 30 * 24 * 60 * 60 * 1000, min: 1, max: 12 * 10 },
+  { id: 'years', label: 'Years', ms: 365 * 24 * 60 * 60 * 1000, min: 1, max: 10 },
+] as const;
+
+function CreateTokenModal({
+  isOpen,
+  onClose,
+  onCreate,
+  creating,
+  createdToken,
+  onDismissCreated,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onCreate: (name: string, expiresInMs: number) => void;
+  creating: boolean;
+  createdToken: string | null;
+  onDismissCreated: () => void;
+}) {
+  const [name, setName] = useState('');
+  const [amount, setAmount] = useState(30);
+  const [unit, setUnit] = useState<typeof DURATION_UNITS[number]['id']>('days');
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setName('');
+      setAmount(30);
+      setUnit('days');
+      setCopied(false);
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const unitConfig = DURATION_UNITS.find((u) => u.id === unit)!;
+  const clampedAmount = Math.min(Math.max(amount, unitConfig.min), unitConfig.max);
+  const expiresInMs = clampedAmount * unitConfig.ms;
+
+  const handleCopy = () => {
+    if (!createdToken) return;
+    navigator.clipboard.writeText(createdToken);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]">
+      <div className="bg-white dark:bg-dark-card rounded-2xl shadow-2xl max-w-md w-full p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-bold">{createdToken ? 'Token Created' : 'Create API Token'}</h3>
+          <button
+            onClick={createdToken ? onDismissCreated : onClose}
+            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {createdToken ? (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Copy this token now. For your security, you won&apos;t be able to see it again.
+            </p>
+            <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+              <code className="text-xs break-all flex-1">{createdToken}</code>
+              <button
+                onClick={handleCopy}
+                className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition flex-shrink-0"
+              >
+                {copied ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
+              </button>
+            </div>
+            <button
+              onClick={onDismissCreated}
+              className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition font-medium"
+            >
+              Done
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Token Name *</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                placeholder="e.g. CLI integration"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expires In *</label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  min={unitConfig.min}
+                  max={unitConfig.max}
+                  value={amount}
+                  onChange={(e) => setAmount(Number(e.target.value))}
+                  className="w-24 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                />
+                <select
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value as typeof unit)}
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                >
+                  {DURATION_UNITS.map((u) => (
+                    <option key={u.id} value={u.id}>{u.label}</option>
+                  ))}
+                </select>
+              </div>
+              <p className="text-xs text-gray-400 mt-1">Range: 1 hour – 10 years</p>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={onClose}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => onCreate(name, expiresInMs)}
+                disabled={creating || !name.trim()}
+                className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition font-medium disabled:opacity-50"
+              >
+                {creating ? 'Creating...' : 'Create'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 const CURRENCIES = [
   { code: 'INR', symbol: '₹', name: 'Indian Rupee', flag: '🇮🇳' },
   { code: 'USD', symbol: '$', name: 'US Dollar', flag: '🇺🇸' },
@@ -160,6 +313,11 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [notification, setNotification] = useState<NotificationState>(initialNotification);
   const [confirm, setConfirm] = useState<ConfirmState>(initialConfirm);
+  const [tokens, setTokens] = useState<ApiToken[]>([]);
+  const [tokensLoading, setTokensLoading] = useState(true);
+  const [tokenModalOpen, setTokenModalOpen] = useState(false);
+  const [creatingToken, setCreatingToken] = useState(false);
+  const [createdToken, setCreatedToken] = useState<string | null>(null);
 
   useEffect(() => {
     const theme = localStorage.getItem('theme');
@@ -187,6 +345,53 @@ export default function SettingsPage() {
   useEffect(() => {
     fetchContacts();
   }, [fetchContacts]);
+
+  const fetchTokens = useCallback(async () => {
+    try {
+      setTokensLoading(true);
+      const res = await axios.get('/api/user/tokens');
+      setTokens(res.data.tokens || []);
+    } catch {
+      setTokens([]);
+    } finally {
+      setTokensLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTokens();
+  }, [fetchTokens]);
+
+  const handleCreateToken = async (name: string, expiresInMs: number) => {
+    setCreatingToken(true);
+    try {
+      const res = await axios.post('/api/user/tokens', { name, expiresInMs });
+      setCreatedToken(res.data.token);
+      fetchTokens();
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Failed to create token';
+      setNotification({ isOpen: true, type: 'error', title: 'Error', message: msg });
+    } finally {
+      setCreatingToken(false);
+    }
+  };
+
+  const handleRevokeToken = (tok: ApiToken) => {
+    setConfirm({
+      isOpen: true,
+      title: 'Revoke Token',
+      message: `Are you sure you want to revoke "${tok.name}"? Any integration using it will stop working immediately.`,
+      onConfirm: async () => {
+        try {
+          await axios.delete(`/api/user/tokens/${tok._id}`);
+          setNotification({ isOpen: true, type: 'success', title: 'Token Revoked', message: `${tok.name} revoked.` });
+          fetchTokens();
+        } catch {
+          setNotification({ isOpen: true, type: 'error', title: 'Error', message: 'Failed to revoke token.' });
+        }
+      },
+    });
+  };
 
   const toggleTheme = () => {
     const newTheme = !isDarkMode;
@@ -461,6 +666,60 @@ export default function SettingsPage() {
             )}
           </div>
         </div>
+
+        {/* API Tokens Section */}
+        <div className="space-y-3 sm:space-y-4">
+          <div className="flex items-center justify-between px-4 sm:px-6">
+            <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-gray-400">
+              API Tokens
+            </h3>
+            <button
+              onClick={() => { setCreatedToken(null); setTokenModalOpen(true); }}
+              className="flex items-center gap-1 text-primary text-sm font-semibold hover:underline"
+            >
+              <Plus className="w-4 h-4" />
+              Create Token
+            </button>
+          </div>
+
+          <div className="card p-0 overflow-hidden">
+            {tokensLoading ? (
+              <div className="p-8 text-center text-gray-400 text-sm">Loading tokens...</div>
+            ) : tokens.length === 0 ? (
+              <div className="p-8 text-center">
+                <Key className="w-8 h-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">No API tokens yet</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                {tokens.map((tok) => {
+                  const expired = new Date(tok.expiresAt).getTime() < Date.now();
+                  return (
+                    <div key={tok._id} className="p-4 sm:p-5 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <Key className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-sm truncate">{tok.name}</p>
+                          <p className="text-xs text-gray-500">
+                            •••{tok.tokenSuffix} · {expired ? 'Expired' : 'Expires'} {new Date(tok.expiresAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleRevokeToken(tok)}
+                        className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition flex-shrink-0"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-danger" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Advanced Security Placeholder */}
@@ -490,6 +749,15 @@ export default function SettingsPage() {
         onSave={handleSaveContact}
         contact={editingContact}
         saving={saving}
+      />
+
+      <CreateTokenModal
+        isOpen={tokenModalOpen}
+        onClose={() => setTokenModalOpen(false)}
+        onCreate={handleCreateToken}
+        creating={creatingToken}
+        createdToken={createdToken}
+        onDismissCreated={() => { setTokenModalOpen(false); setCreatedToken(null); }}
       />
 
       <NotificationModal
