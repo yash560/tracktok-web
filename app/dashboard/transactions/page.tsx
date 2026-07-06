@@ -562,6 +562,7 @@ function TransactionsContent() {
 
       <TransactionModal
         isOpen={isModalOpen}
+        apiBaseUrl={process.env.NEXT_PUBLIC_BACKEND_API_URL || ''}
         onClose={() => setIsModalOpen(false)}
         onSuccess={fetchTransactions}
         transaction={selectedTransaction}

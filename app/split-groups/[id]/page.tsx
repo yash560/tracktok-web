@@ -1257,8 +1257,8 @@ export default function SplitGroupPage() {
                         </p>
                         {memberSettlement ? (
                           <span className={`inline-flex items-center gap-1 text-xs font-medium mt-1 px-2 py-0.5 rounded-full ${memberSettlement.type === 'owes'
-                              ? 'bg-warning/10 text-warning'
-                              : 'bg-success/10 text-success'
+                            ? 'bg-warning/10 text-warning'
+                            : 'bg-success/10 text-success'
                             }`}>
                             {memberSettlement.type === 'owes' ? (
                               <TrendingDown className="w-3 h-3" />
@@ -2149,10 +2149,10 @@ export default function SplitGroupPage() {
                     </p>
                   </div>
                   <div className={`p-4 rounded-xl text-center border ${netBalance > 0
-                      ? 'bg-success/5 border-success/20'
-                      : netBalance < 0
-                        ? 'bg-warning/5 border-warning/20'
-                        : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+                    ? 'bg-success/5 border-success/20'
+                    : netBalance < 0
+                      ? 'bg-warning/5 border-warning/20'
+                      : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
                     }`}>
                     <p className={`text-xs font-semibold uppercase tracking-wide mb-1 ${netBalance > 0 ? 'text-success' : netBalance < 0 ? 'text-warning' : 'text-gray-500 dark:text-gray-400'
                       }`}>
@@ -2313,8 +2313,8 @@ export default function SplitGroupPage() {
                                 onClick={() => setShowScheduleMenu(!showScheduleMenu)}
                                 disabled={isSettled}
                                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition font-medium text-xs sm:text-sm border disabled:opacity-50 disabled:cursor-not-allowed ${reminderSchedule
-                                    ? 'bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-400'
-                                    : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+                                  ? 'bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-400'
+                                  : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
                                   }`}
                                 title={reminderSchedule ? `Auto: ${reminderSchedule.frequency}` : 'Schedule auto-reminders'}
                               >
@@ -2345,8 +2345,8 @@ export default function SplitGroupPage() {
                                         onClick={() => handleScheduleReminder(opt.key)}
                                         disabled={isScheduling}
                                         className={`w-full text-left px-3 py-2 text-sm rounded-lg transition ${reminderSchedule?.frequency === opt.key
-                                            ? 'bg-primary/10 text-primary font-semibold'
-                                            : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                                          ? 'bg-primary/10 text-primary font-semibold'
+                                          : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
                                           } disabled:opacity-50`}
                                       >
                                         {opt.label}
@@ -2805,6 +2805,7 @@ export default function SplitGroupPage() {
           setShowTransactionModal(false);
           globalThis.location.reload();
         }}
+        apiBaseUrl={process.env.NEXT_PUBLIC_BACKEND_API_URL || ''}
         splitGroupId={id}
         splitGroupContacts={splitGroup.contacts}
         splitGroupCustomerId={splitGroup.customer_id}

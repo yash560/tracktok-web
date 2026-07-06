@@ -46,12 +46,12 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   onClose,
   onSuccess,
   transaction,
-  apiBaseUrl = 'https://webverse.thewebvale.com',
+  apiBaseUrl,
   splitGroupId,
   splitGroupContacts,
   splitGroupCustomerId,
 }) => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const userCode = (user as any)?.code || 'DEFAULT_USER';
   const [mode, setMode] = useState<'ai' | 'manual'>(!transaction ? 'ai' : 'manual');
   const [aiPrompt, setAiPrompt] = useState('');
@@ -87,7 +87,6 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     setAiLoading(true);
     try {
       const url = apiBaseUrl ? `${apiBaseUrl}/api/ai/expenses/chat/` : '/api/ai/expenses/chat/';
-      const token = process.env.NEXT_PUBLIC_BACKEND_TOKEN;
       const userPhone = (user as any)?.phone || (user as any)?.phoneNumber || '';
       const userName = (user as any)?.displayName || (user as any)?.name || 'You';
 
