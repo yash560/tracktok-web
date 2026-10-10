@@ -6,6 +6,7 @@ import { useState, useRef, useEffect } from 'react';
 import {
   ChevronDown, Zap, BarChart3, Tag, Users,
   MapPin, Wallet, MessageSquare, ShieldCheck, Grid3X3,
+  Sun, Moon,
 } from 'lucide-react';
 
 const featureLinks = [
@@ -21,7 +22,25 @@ const featureLinks = [
 
 export function MarketingNav() {
   const [featuresOpen, setFeaturesOpen] = useState(false);
+  const [isDark, setIsDark] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setIsDark(document.documentElement.classList.contains('dark'));
+  }, []);
+
+  const toggleTheme = () => {
+    const isCurrentlyDark = document.documentElement.classList.contains('dark');
+    if (isCurrentlyDark) {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+      setIsDark(false);
+    } else {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+      setIsDark(true);
+    }
+  };
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -95,12 +114,25 @@ export function MarketingNav() {
             )}
           </div>
 
+          <Link href="/#scrollytelling" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors font-medium flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Scroll Story
+          </Link>
           <Link href="/#how-it-works" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors font-medium">How it Works</Link>
           <Link href="/pricing" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors font-medium">Pricing</Link>
           <Link href="/#faq" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors font-medium">FAQ</Link>
         </div>
 
-        <div className="flex items-center gap-3 sm:gap-5">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <button
+            onClick={toggleTheme}
+            type="button"
+            className="p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+            title="Toggle color theme"
+            aria-label="Toggle color theme"
+          >
+            {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
+          </button>
           <Link href="/auth" className="hidden sm:block text-gray-600 dark:text-gray-300 hover:text-primary transition-colors text-sm font-medium">Login</Link>
           <Link href="/dashboard" className="btn-primary text-sm sm:text-base">Get Started</Link>
         </div>
