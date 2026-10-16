@@ -62,7 +62,18 @@ export function MarketingFooter() {
 
         <div className="border-t border-gray-200 dark:border-gray-800 pt-6 sm:pt-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4">
-            <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">© 2026 TrackTok AI. All rights reserved.</p>
+            <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
+              © {new Date().getFullYear()} TrackTok. Engineered by{" "}
+              <a
+                href="https://thewebvale.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-primary hover:underline"
+              >
+                TheWebVale
+              </a>
+              . All rights reserved.
+            </p>
             <div className="flex gap-4 sm:gap-6">
               <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-primary text-xs sm:text-sm">Twitter</a>
               <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-primary text-xs sm:text-sm">LinkedIn</a>
